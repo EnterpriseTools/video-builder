@@ -1,4 +1,5 @@
-const base = '/api';
+// Use environment variable for API base URL in production, fallback to /api for development
+const base = import.meta.env.VITE_API_BASE_URL || '/api';
 
 async function request(path, options = {}) {
   const res = await fetch(base + path, {
