@@ -1,0 +1,233 @@
+/* =============================================================================
+   Button Component
+   ============================================================================= */
+
+.btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-100);
+  border: none;
+  border-radius: var(--radius-100);
+  font-family: var(--font-body);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  white-space: nowrap;
+  
+  &:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+
+  /* =============================================================================
+     Sizes
+     ============================================================================= */
+  
+  &--small {
+    padding: var(--space-100) var(--space-200);
+    font-size: var(--font-size-200);
+    border-radius: var(--radius-200);
+  }
+  
+  &--medium {
+    padding: .5rem 1rem;
+    font-size: var(--font-size-300);
+    border-radius: var(--radius-200);
+  }
+  
+  &--large {
+    padding: var(--space-300) var(--space-400);
+    font-size: var(--font-size-400);
+    border-radius: var(--radius-200);
+  }
+
+  /* =============================================================================
+     Variants
+     ============================================================================= */
+  
+  /* Primary - Main call-to-action buttons */
+  &--primary {
+    background: #F51B77;
+    color: var(--color-fg-on-primary);
+    border: 1px solid transparent;
+    
+    &:hover:not(.btn--disabled):not(.btn--loading) {
+      background: #f73e8b;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+    
+    &:active:not(.btn--disabled):not(.btn--loading) {
+      transform: translateY(0);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+  }
+  
+  /* Secondary - Supporting actions */
+  &--secondary {
+    background: var(--color-surface);
+    color: var(--color-fg);
+    border: 1px solid var(--color-border);
+    
+    &:hover:not(.btn--disabled):not(.btn--loading) {
+      background: var(--color-surface-elevated);
+      border-color: var(--color-primary);
+      transform: translateY(-1px);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    &:active:not(.btn--disabled):not(.btn--loading) {
+      transform: translateY(0);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+  }
+  
+  /* Tertiary - Minimal actions */
+  &--tertiary {
+    background: transparent;
+    color: var(--color-fg-muted);
+    border: 1px solid transparent;
+    
+    &:hover:not(.btn--disabled):not(.btn--loading) {
+      color: var(--color-fg);
+      background: #27252C;
+    }
+    
+    &:active:not(.btn--disabled):not(.btn--loading) {
+      background: var(--color-surface-elevated);
+    }
+  }
+  
+  /* Destructive - Delete/clear actions */
+  &--destructive {
+    background: var(--color-error);
+    color: var(--color-fg-on-error);
+    border: 1px solid transparent;
+    
+    &:hover:not(.btn--disabled):not(.btn--loading) {
+      background: var(--color-error-hover);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(239, 68, 68, 0.3);
+    }
+    
+    &:active:not(.btn--disabled):not(.btn--loading) {
+      transform: translateY(0);
+      box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
+    }
+  }
+  
+  /* Success - Positive actions like download/export */
+  &--success {
+    background: var(--color-success);
+    color: var(--color-fg-on-success);
+    border: 1px solid transparent;
+    
+    &:hover:not(.btn--disabled):not(.btn--loading) {
+      background: var(--color-success-hover);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3);
+    }
+    
+    &:active:not(.btn--disabled):not(.btn--loading) {
+      transform: translateY(0);
+      box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);
+    }
+  }
+  
+  /* Link - Text-only buttons */
+  &--link {
+    background: transparent;
+    color: var(--color-primary);
+    border: none;
+    padding: var(--space-100);
+    text-decoration: underline;
+    text-decoration-color: transparent;
+    transition: text-decoration-color 0.2s ease;
+    
+    &:hover:not(.btn--disabled):not(.btn--loading) {
+      text-decoration-color: currentColor;
+    }
+    
+    &:active:not(.btn--disabled):not(.btn--loading) {
+      color: var(--color-primary-hover);
+    }
+  }
+
+  /* =============================================================================
+     States
+     ============================================================================= */
+  
+  &--disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
+    
+    &:hover {
+      background: initial;
+      border-color: initial;
+      color: initial;
+    }
+  }
+  
+  &--loading {
+    cursor: default;
+    
+    .btn__content {
+      opacity: 0.7;
+    }
+  }
+
+  /* =============================================================================
+     Loading Spinner
+     ============================================================================= */
+  
+  .btn__spinner {
+    position: absolute;
+    width: 1em;
+    height: 1em;
+    border: 2px solid transparent;
+    border-top: 2px solid currentColor;
+    border-radius: 50%;
+    animation: btn-spin 1s linear infinite;
+  }
+  
+  .btn__content {
+    transition: opacity 0.2s ease;
+    
+    &--loading {
+      opacity: 0.7;
+    }
+  }
+
+  @keyframes btn-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+}
+
+/* =============================================================================
+   Special Cases - Close Button
+   ============================================================================= */
+
+.btn--close {
+  background: none;
+  border: none;
+  color: var(--color-fg-muted);
+  font-size: var(--font-size-600, 1.5rem);
+  padding: var(--space-100);
+  border-radius: var(--radius-100);
+  line-height: 1;
+  
+  &:hover:not(.btn--disabled) {
+    color: var(--color-fg);
+    background: var(--color-surface);
+  }
+  
+  &:active:not(.btn--disabled) {
+    background: var(--color-surface-elevated);
+  }
+}

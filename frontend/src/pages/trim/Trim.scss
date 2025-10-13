@@ -1,0 +1,441 @@
+// Trim Page Styles - Matching Create.scss design
+.trim-page {
+  min-height: 100vh;
+  background: #0a0a0a;
+  color: white;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  padding: 2rem;
+}
+
+.trim-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.trim-content {
+  text-align: center;
+  
+  h1 {
+    font-size: 3.5rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: white;
+    letter-spacing: -0.02em;
+  }
+  
+  > p {
+    font-size: 1.125rem;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 3rem;
+    line-height: 1.6;
+  }
+}
+
+// Section Styles - Card-based like Create.scss
+.section {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+  text-align: left;
+  
+  &:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+}
+
+.section-header {
+  margin-bottom: 1.5rem;
+  
+  h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: white;
+    margin: 0;
+  }
+}
+
+.section-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+// File input styles now handled by FileInput component
+
+// Video Section
+.video-section {
+  margin-bottom: 2rem;
+  
+  h4 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: white;
+  }
+}
+
+.video-container {
+  width: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.video-container .video-js {
+  width: 100%;
+  height: auto;
+  min-height: 400px;
+}
+
+// Timeline Section
+.timeline-section {
+  margin-bottom: 2rem;
+  
+  h4 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: white;
+  }
+}
+
+.timeline-container {
+  margin-bottom: 2rem;
+}
+
+.timeline {
+  position: relative;
+  height: 60px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  cursor: pointer;
+  user-select: none;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+  
+  &.dragging {
+    cursor: ew-resize;
+  }
+}
+
+.timeline-track {
+  position: relative;
+  height: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.timeline-progress {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: #e91e63;
+  opacity: 0.3;
+  z-index: 5;
+  transition: width 0.1s ease;
+}
+
+.timeline-selection {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  background: #e91e63;
+  opacity: 0.5;
+  border: 2px solid #e91e63;
+  box-sizing: border-box;
+  z-index: 10;
+  pointer-events: none;
+  transition: all 0.1s ease;
+}
+
+.timeline-handle {
+  position: absolute;
+  top: 0;
+  width: 12px;
+  height: 100%;
+  background: #e91e63;
+  border: 2px solid white;
+  border-radius: 6px;
+  cursor: ew-resize;
+  z-index: 20;
+  user-select: none;
+  transition: all 0.1s ease;
+  
+  &:hover {
+    transform: scaleX(1.2);
+    background: #d81b60;
+  }
+  
+  &:active {
+    transform: scaleX(1.1);
+  }
+}
+
+.timeline-handle-left {
+  left: 0;
+}
+
+.timeline-handle-right {
+  right: 0;
+}
+
+.timeline-current-time {
+  position: absolute;
+  top: 0;
+  width: 2px;
+  height: 100%;
+  background: white;
+  z-index: 15;
+  pointer-events: none;
+  transition: left 0.1s ease;
+}
+
+.timeline-info {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.timeline-time {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.dragging-indicator {
+  color: #e91e63;
+  font-weight: 600;
+}
+
+// Manual Time Entry Accordion
+.manual-time-accordion {
+  margin-top: 2rem;
+}
+
+.accordion-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: #e91e63;
+  }
+  
+  h4 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: white;
+  }
+}
+
+.accordion-toggle {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #e91e63;
+  transition: transform 0.2s ease;
+  line-height: 1;
+}
+
+.accordion-content {
+  padding: 2rem;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+}
+
+.input-instructions {
+  margin-bottom: 1.5rem;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.5;
+}
+
+.time-input-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin-bottom: 1.5rem;
+}
+
+.time-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  
+  label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: white;
+  }
+}
+
+// Time input styles now handled by Input component with variant="time"
+
+.time-display {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.5);
+  font-family: monospace;
+}
+
+.selection-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  font-size: 0.875rem;
+  
+  strong {
+    color: white;
+  }
+}
+
+.selection-duration {
+  color: white;
+}
+
+.video-info {
+  display: flex;
+  gap: 1.5rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+// Action Buttons
+.trim-actions {
+  margin-top: 2rem;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+// Error message
+.error-message {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: rgba(220, 38, 127, 0.1);
+  border: 1px solid rgba(220, 38, 127, 0.3);
+  border-radius: 8px;
+  color: #ff6b9d;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+// Video.js Customization
+.video-js {
+  .vjs-control-bar {
+    background: rgba(0, 0, 0, 0.9);
+  }
+  
+  .vjs-progress-control {
+    .vjs-progress-holder {
+      background: rgba(255, 255, 255, 0.2);
+    }
+    
+    .vjs-play-progress {
+      background: #e91e63;
+    }
+  }
+  
+  .vjs-time-control {
+    font-family: monospace;
+    color: white;
+  }
+  
+  .vjs-button {
+    &:hover {
+      color: #e91e63;
+    }
+  }
+}
+
+// Responsive Design
+@media (max-width: 768px) {
+  .trim-page {
+    padding: 1rem;
+  }
+  
+  .trim-content {
+    h1 {
+      font-size: 2.5rem;
+    }
+    
+    > p {
+      font-size: 1rem;
+      margin-bottom: 2rem;
+    }
+  }
+  
+  .section {
+    padding: 1.5rem;
+  }
+  
+  .video-container .video-js {
+    min-height: 250px;
+  }
+  
+  .time-input-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+    
+    button {
+      width: 100%;
+    }
+  }
+  
+  .selection-info {
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 480px) {
+  .trim-content {
+    h1 {
+      font-size: 2rem;
+    }
+  }
+  
+  .section {
+    padding: 1rem;
+  }
+  
+  .section-header {
+    h3 {
+      font-size: 1.25rem;
+    }
+  }
+}

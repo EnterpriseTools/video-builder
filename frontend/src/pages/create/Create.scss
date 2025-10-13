@@ -1,0 +1,520 @@
+.video-builder {
+  min-height: 100vh;
+  background: #0a0a0a;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+.video-builder-container {
+  width: 100%;
+  max-width: 1200px;
+  text-align: center;
+}
+
+.video-builder-title {
+  font-size: 3.5rem;
+  font-weight: 600;
+  margin-bottom: 3rem;
+  color: white;
+  letter-spacing: -0.02em;
+}
+
+.template-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.template-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 2rem 1.5rem;
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: all 0.3s ease;
+  position: relative;
+  backdrop-filter: blur(10px);
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+  }
+}
+
+.template-content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: .5rem;
+}
+
+.template-name {
+  font-size: 1.5rem;
+  font-weight: 500;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.9);
+  text-align: center;
+}
+
+.add-button {
+  background: transparent;
+  border: 1px solid #e91e63;
+  border-radius: 6px;
+  color: #e91e63;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 44px;
+
+  &:hover {
+    background: #e91e63;
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(233, 30, 99, 0.3);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+.add-icon {
+  font-size: 1.2rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
+// Template Ready States
+.template-card.ready {
+  .template-content {
+    position: relative;
+    min-height: 150px;
+  }
+  
+  // Change button to tertiary style when template is ready
+  .add-button {
+    background: transparent;
+    border: 1px solid transparent;
+    color: rgba(255, 255, 255, 0.7);
+    
+    &:hover {
+      color: white;
+      background: rgba(255, 255, 255, 0.1);
+      transform: translateY(-1px);
+      box-shadow: none;
+    }
+  }
+
+  .template-preview {
+    position: relative;
+    width: 100%;
+    height: 150px;
+    border-radius: 8px;
+    overflow: hidden;
+    
+    .preview-thumbnail {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+
+    .placeholder-thumbnail {
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      
+      span {
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 0.9rem;
+        font-weight: 500;
+      }
+    }
+
+    .preview-thumbnail-container {
+      width: 100%;
+      height: 100%;
+      border-radius: 8px;
+      overflow: hidden;
+      
+      // Scale down the preview to fit in thumbnail
+      .overlay-preview-section {
+        margin: 0;
+        padding: 0;
+        background: none;
+        border: none;
+        
+        h4, p {
+          display: none; // Hide title and description for thumbnails
+        }
+        
+        .overlay-preview-container {
+          width: 100%;
+          height: 100%;
+          border-radius: 8px;
+          
+          // Scale down everything proportionally for thumbnail view
+          &.thumbnail-preview {
+            transform: scale(0.6); // Scale entire preview to 60% size
+            transform-origin: center center; // Scale from center
+            
+            // Adjust container to account for scaling
+            width: calc(100% / 0.6); // Compensate for scale
+            height: calc(100% / 0.6); // Compensate for scale
+            margin-left: calc((100% - 100% / 0.6) / 2); // Center horizontally
+            margin-top: -18.333333%; // Adjusted value that works for thumbnail positioning
+          }
+        }
+      }
+    }
+
+    .ready-indicator {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      
+      .checkmark {
+        width: 24px;
+        height: 24px;
+        background: #10b981;
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 14px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      }
+    }
+  }
+
+  .template-name {
+    margin-bottom: 0;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    text-align: center;
+  }
+}
+
+// Final Render Section
+.final-render-section {
+  margin-top: 3rem;
+  display: flex;
+  justify-content: center;
+  
+  .final-render-button {
+    padding: 1rem 2rem;
+    font-size: 1.125rem;
+    font-weight: 600;
+    background: linear-gradient(135deg, #ff007f, #ff4da6);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 250px;
+    min-height: 60px;
+    position: relative;
+    
+    &:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(255, 0, 127, 0.3);
+    }
+    
+    &:disabled {
+      background: rgba(255, 255, 255, 0.1);
+      color: rgba(255, 255, 255, 0.5);
+      cursor: not-allowed;
+    }
+    
+    &.loading {
+      background: linear-gradient(135deg, #ff007f, #ff4da6);
+      cursor: wait;
+      
+      .loading-content {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+        
+        .spinner {
+          width: 20px;
+          height: 20px;
+          border: 2px solid rgba(255, 255, 255, 0.3);
+          border-top: 2px solid white;
+          border-radius: 50%;
+          animation: spin 1s linear infinite;
+        }
+        
+        span {
+          font-size: 0.95rem;
+          font-weight: 500;
+          max-width: 300px;
+          text-align: center;
+          line-height: 1.2;
+        }
+      }
+    }
+  }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+// Modal Specific Styles
+.modal-template-wrapper {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  
+  .video-template-page {
+    background: transparent;
+    padding: 0;
+    min-height: auto;
+  }
+  
+  .video-template-container {
+    max-width: none;
+    margin: 0;
+  }
+  
+  .video-template-header {
+    display: none; // Hide header in modal since we have modal title
+  }
+  
+  .video-template-actions {
+    margin-top: 2rem;
+    text-align: center;
+  }
+}
+
+// Modal Overlay Updates
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+  backdrop-filter: blur(5px);
+}
+
+.modal-content {
+  display: flex;
+  flex-direction: column;
+  background: #131216;
+  border: 2px solid #2A2A2A;
+  border-radius: 1rem;
+  width: 98%;
+  max-width: 1440px;
+  max-height: 95vh;
+  overflow: hidden;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+  animation: modalSlideIn 0.3s ease-out;
+  
+
+  @media (max-width: 768px) {
+    margin: 1rem;
+    max-width: none;
+  }
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2rem 2rem 1rem 2rem;
+}
+
+.modal-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: white;
+  margin: 0;
+}
+
+.modal-close {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  background: none;
+  border: none;
+  color: #B3B3B3;
+  font-size: 2rem;
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+
+  &:hover {
+    color: white;
+    background: rgba(255, 255, 255, 0.1);
+  }
+}
+
+.modal-body {
+  flex: 1;
+  overflow: hidden;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.modal-placeholder {
+  text-align: center;
+  padding: 2rem 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  border: 1px dashed rgba(255, 255, 255, 0.2);
+
+  .placeholder-icon {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+  }
+
+  p {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.9rem;
+  }
+}
+
+.modal-footer {
+  display: flex;
+  gap: 0.75rem;
+  padding: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  justify-content: flex-end;
+}
+
+.modal-button {
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+
+  &.secondary {
+    background: transparent;
+    color: rgba(255, 255, 255, 0.7);
+    border-color: rgba(255, 255, 255, 0.2);
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+    }
+  }
+
+  &.primary {
+    background: #e91e63;
+    color: white;
+    border-color: #e91e63;
+
+    &:hover {
+      background: #d81b60;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(233, 30, 99, 0.3);
+    }
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .video-builder {
+    padding: 1rem;
+  }
+
+  .video-builder-title {
+    font-size: 2.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .template-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .template-card {
+    min-height: 150px;
+    padding: 1.5rem 1rem;
+  }
+
+  .template-name {
+    font-size: 1.25rem;
+  }
+
+  .modal-header,
+  .modal-body,
+  .modal-footer {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .video-builder-title {
+    font-size: 2rem;
+  }
+
+  .template-card {
+    min-height: 120px;
+    padding: 1rem;
+  }
+
+  .add-button {
+    padding: 0.625rem 1.25rem;
+    font-size: 0.9rem;
+  }
+
+  .modal-footer {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .modal-button {
+    width: 100%;
+  }
+}

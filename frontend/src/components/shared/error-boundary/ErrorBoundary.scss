@@ -1,0 +1,5 @@
+.errorBoundary {
+    padding: var(--space-200);
+    border-radius: var(--radius-200);
+    background: color-mix(in oklab, var(--color-bg), var(--color-fg) 6%);
+  }

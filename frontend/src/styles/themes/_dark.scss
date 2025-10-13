@@ -1,0 +1,14 @@
+@use 'sass:map';
+
+$dark: (
+  color: (
+    bg: #0f1120,
+    fg: #e6e8ff,
+    brand: #8b90ff
+  )
+);
+
+/* dark() reads from the dark map */
+@function dark($group, $key) {
+  @return map.get(map.get($dark, $group), $key);
+}

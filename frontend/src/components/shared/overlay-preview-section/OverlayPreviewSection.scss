@@ -1,0 +1,184 @@
+// Unified overlay preview section styles
+.overlay-preview-section {
+  margin-top: var(--space-300);
+  padding: var(--space-200);
+  background: var(--color-bg-subtle);
+  border-radius: var(--radius-200);
+  border: 1px solid var(--color-border);
+  min-height: 200px; // Ensure minimum height when no title/description
+  
+  // When used in modal context without title/description, remove extra spacing
+  &.modal-preview {
+    margin-top: 0;
+    padding: 0;
+    background: transparent;
+    border: none;
+    min-height: auto;
+    width: 100%;
+  }
+
+  h4 {
+    margin: 0 0 var(--space-100) 0;
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-fg);
+  }
+
+  p {
+    margin: 0 0 var(--space-150) 0;
+    font-size: var(--font-size-sm);
+    color: var(--color-fg-muted);
+  }
+
+  .overlay-preview-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    aspect-ratio: 16 / 9;
+    background: #0C0A0E; // Default dark background for all templates
+    border-radius: var(--radius-100);
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    // Background image styling for templates that use them
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    
+    // Overlay content styling
+    .overlay-content {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    
+    // Specific background colors for templates that don't use background images
+    &[data-template="closing"], 
+    &[data-template="how-it-works"] {
+      background: #0C0A0E !important; // Match backend bg_color exactly
+    }
+    
+    // Templates that only get dark background when no background image
+    &[data-template="announcement"]:not(.has-background),
+    &[data-template="persona"]:not(.has-background) {
+      background: #0C0A0E !important; // Match backend bg_color exactly
+    }
+    
+    // Ensure overlays can position absolutely within the container
+    &[data-template="closing"] .closing-overlay,
+    &[data-template="announcement"] .announcement-overlay,
+    &[data-template="how-it-works"] .how-it-works-overlay,
+    &[data-template="persona"] .persona-overlay {
+      position: absolute !important;
+      top: 0 !important;
+      left: 0 !important;
+      width: 100% !important;
+      height: 100% !important;
+    }
+    
+    // Allow overflow for templates with decorative elements
+    &[data-template="closing"],
+    &[data-template="announcement"], 
+    &[data-template="how-it-works"] {
+      overflow: visible !important;
+      
+      .wave-element {
+        position: absolute !important;
+        z-index: 10 !important;
+      }
+      
+      .highlight-element {
+        position: absolute !important;
+        z-index: 15 !important;
+      }
+    }
+    
+    // Show placeholder when no background (except for templates that don't need backgrounds)
+    &:not(.has-background):not([data-template="closing"]):not([data-template="announcement"]):not([data-template="persona"]):not([data-template="intro"]):not([data-template="how-it-works"])::before {
+      content: "Upload files to see the preview";
+      color: var(--color-fg-muted);
+      font-size: var(--font-size-sm);
+      text-align: center;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 5;
+    }
+    
+    // Hide overlay content when no background (except for templates that don't need backgrounds)
+    &:not(.has-background):not([data-template="closing"]):not([data-template="announcement"]):not([data-template="persona"]):not([data-template="intro"]):not([data-template="how-it-works"]) .overlay-content {
+      display: none;
+    }
+
+    // Show decorative elements in final state (no animations)
+    .wave-element {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    
+    .highlight-element {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    
+    // All templates show decorative elements in final state (no template-specific animations)
+  }
+
+  // Preview controls styling
+  .preview-controls {
+    margin-top: var(--space-150);
+    text-align: center;
+  }
+}
+
+// Animation keyframes removed - previews now show final static state
+
+// Template-specific container overrides
+.overlay-preview-container {
+  // Intro template specific styles - use consistent 16:9 aspect ratio
+  &[data-template="intro"] {
+    // Use 16:9 aspect ratio like other templates
+    aspect-ratio: 16 / 9;
+    
+    // Only show gradient background when no background image is set
+    &:not(.has-background) {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      
+      // Add a subtle pattern to make it look more like a video background
+      &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: 
+          radial-gradient(circle at 20% 50%, rgba(255,255,255,0.1) 0%, transparent 50%),
+          radial-gradient(circle at 80% 80%, rgba(255,255,255,0.05) 0%, transparent 50%);
+        pointer-events: none;
+      }
+      
+      // Center message when overlay is empty and no background
+      &:not(.has-overlay-content)::after {
+        content: 'Start typing to see overlay preview';
+        color: rgba(255, 255, 255, 0.7);
+        font-size: var(--font-size-sm);
+        font-weight: var(--font-weight-medium);
+        z-index: 5;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+      }
+    }
+  }
+}

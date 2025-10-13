@@ -1,0 +1,11 @@
+@forward './core/tokens' as token-*;
+@forward './themes/light' as theme-*;
+@forward './themes/dark'  as dark-*;
+@forward './core/functions';
+@forward './core/mixins';
+
+/* Re-export token function without prefix for easier use */
+@use './core/tokens' as tokens;
+@function token($group, $key) {
+  @return tokens.token($group, $key);
+}

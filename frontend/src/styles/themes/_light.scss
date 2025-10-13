@@ -1,0 +1,14 @@
+@use 'sass:map';
+
+$light: (
+  color: (
+    bg: #ffffff,
+    fg: #0f1120,
+    brand: #646cff
+  )
+);
+
+/* theme() reads from the light map */
+@function theme($group, $key) {
+  @return map.get(map.get($light, $group), $key);
+}

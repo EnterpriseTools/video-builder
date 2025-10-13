@@ -1,0 +1,104 @@
+.announcement-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  background: #0C090E; // Main background color to match backend
+  overflow: visible; // Allow decorative elements to extend beyond bounds
+  pointer-events: none;
+
+  // Left side content - text area (50% width)
+  .left-side-content {
+    width: 50%;
+    background: #0C090E;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-200);
+    position: relative;
+    
+    // Show text in final state (no animations)
+    transform: translateY(0); // Final position
+    opacity: 1; // Fully visible
+  }
+
+  // Right side content - image area (50% width)
+  .right-side-content {
+    width: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 32px; // Match the 32px padding from backend specs
+    position: relative;
+    
+    // Show image in final state (no animations)
+    transform: translateX(0); // Final position
+  }
+
+  .text-display-area {
+    text-align: left; // Left align to match the backend rendering
+    width: 100%;
+    position: relative;
+    z-index: 3; // Above decorative elements
+    
+    .preview-title {
+      color: #ffffff;
+      font-size: 48px; // Large title size to match backend
+      font-weight: 700;
+      margin: 0 0 var(--space-150) 0;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+    }
+
+    .preview-description {
+      color: rgba(255, 255, 255, 0.9);
+      font-size: var(--font-size-lg);
+      font-weight: 400;
+      margin: 0;
+      line-height: 1.4;
+      letter-spacing: -0.01em;
+    }
+
+  }
+
+  .image-container-preview {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    .preview-image {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+    
+    .image-placeholder {
+      color: rgba(255, 255, 255, 0.6);
+      font-size: var(--font-size-sm);
+      font-weight: var(--font-weight-medium);
+      text-align: center;
+      padding: var(--space-100);
+      border: 1px dashed rgba(255, 255, 255, 0.3);
+      border-radius: var(--radius-50);
+      background: rgba(0, 0, 0, 0.3);
+    }
+  }
+
+  // Decorative elements in final state (no animations)
+  .wave-element {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  
+  .highlight-element {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Animation keyframes removed - preview shows final static state

@@ -1,0 +1,10 @@
+@use 'sass:math';
+
+@function rem($px, $base: 16) {
+  @return (math.div($px, $base)) * 1rem;
+}
+
+/* clamp(min, preferred, max) helper */
+@function clampf($min, $pref, $max) {
+  @return clamp($min, $pref, $max);
+}

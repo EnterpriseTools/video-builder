@@ -1,0 +1,135 @@
+# ===========================
+# Node
+# ===========================
+node_modules/
+frontend/node_modules/
+dist/
+frontend/dist/
+
+# Vite
+.vite/
+frontend/.vite/
+vite.config.*.timestamp-*
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Lock files (keep frontend/package-lock.json but ignore root if needed)
+pnpm-lock.yaml
+yarn.lock
+
+# ===========================
+# Python
+# ===========================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist-info/
+.eggs/
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+backend/.venv/
+backend/__pycache__/
+
+# Pipenv
+# Note: Pipfile.lock should be committed for reproducibility
+# .Pipfile.lock (uncomment if you want to ignore it)
+
+# pytest
+.pytest_cache/
+.coverage
+htmlcov/
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Python temp files
+*.pyc
+*.pyo
+*.pyd
+
+# ===========================
+# Environment Variables
+# ===========================
+.env
+frontend/.env
+backend/.env
+
+# ===========================
+# Build & Output
+# ===========================
+*.log
+*.cache
+*.tmp
+*.out
+*.pid
+coverage/
+build/
+
+# Temporary FFmpeg/Video processing files
+**/temp_*
+**/tmp_*
+announcement_*/
+concatenate_*/
+concatenate_mp_*/
+closing_*/
+demo_*/
+how_it_works_*/
+intro_*/
+persona_*/
+trim_*/
+*.mp4
+*.mov
+*.wav
+*.aifc
+*.aiff
+*.m4a
+extracted_audio.wav
+overlay.png
+*_overlay_*.png
+segment_*.mp4
+
+# ===========================
+# Test Files & Examples
+# ===========================
+frontend/public/Examples/
+
+# ===========================
+# System / OS
+# ===========================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# ===========================
+# IDE / Editor
+# ===========================
+.vscode/
+.idea/
+.cursor/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+*.sublime-project
+*.sublime-workspace

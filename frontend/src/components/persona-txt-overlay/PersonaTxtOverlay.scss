@@ -1,0 +1,81 @@
+.persona-txt-overlay {
+  position: absolute;
+  bottom: 48px;
+  right: 48px;
+  z-index: 10;
+  // Ensure the overlay is always visible with proper layering
+  pointer-events: none;
+  
+  // Show in preview containers - maintain bottom-right positioning
+  .overlay-preview-container & {
+    position: absolute;
+    bottom: 48px;
+    right: 48px;
+    display: block;
+  }
+
+  .persona-txt-card {
+    display: inline-block;
+    background: #FEC62E !important; // Yellow background as specified
+    border-radius: 4px !important; // 4px border-radius as specified
+    padding: 24px;
+    border: none !important; // No stroke/border
+    max-width: 600px; // Max width of 600px as specified
+    width: fit-content; // Width dependent on text content
+    transform: translateZ(0);
+    will-change: transform;
+  }
+
+
+  .persona-txt-text-container {
+    color: #000000 !important; // Black text for yellow background
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+
+  .persona-txt-name {
+    font-size: 26px !important;
+    font-weight: 700 !important;
+    color: #000000 !important; // Black text for yellow background
+    margin-bottom: 4px;
+    line-height: 1.2;
+  }
+
+  .persona-txt-title {
+    font-size: 16px !important;
+    font-weight: 500 !important;
+    color: #000000 !important; // Black text for yellow background
+    margin-bottom: 6px;
+    line-height: 1.3;
+  }
+
+  .persona-txt-industry {
+    font-size: 14px !important;
+    font-weight: 400 !important;
+    color: #000000 !important; // Black text for yellow background
+    line-height: 1.4;
+    max-width: 576px; // Adjust to fit within 600px card width
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2; // Limit to 2 lines
+    -webkit-box-orient: vertical;
+  }
+}
+
+// Additional styles to ensure overlay renders properly in video context
+.persona-txt-overlay-container .persona-txt-overlay {
+  // Force the overlay to always render with proper styling
+  .persona-txt-card * {
+    box-sizing: border-box !important;
+  }
+  
+  // Ensure backdrop filter works across browsers
+  .persona-txt-card {
+    @supports (backdrop-filter: blur(20px)) {
+      backdrop-filter: blur(20px) !important;
+    }
+    @supports (-webkit-backdrop-filter: blur(20px)) {
+      -webkit-backdrop-filter: blur(20px) !important;
+    }
+  }
+}
+

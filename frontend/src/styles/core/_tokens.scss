@@ -1,0 +1,33 @@
+@use 'sass:map';
+
+$colors: (
+  bg: #0f1120,
+  fg: #e6e8ff,
+  brand: #646cff
+);
+
+$space: (
+  0: 0,
+  100: 0.5rem,
+  200: 1rem,
+  300: 1.5rem,
+  400: 2rem
+);
+
+$radius: (
+  100: 4px,
+  200: 8px
+);
+
+$fonts: (
+  body: (system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif)
+);
+
+/* expose a uniform token() accessor */
+@function token($group, $key) {
+  @if $group == color   { @return map.get($colors, $key); }
+  @if $group == space   { @return map.get($space, $key); }
+  @if $group == radius  { @return map.get($radius, $key); }
+  @if $group == font    { @return map.get($fonts, $key); }
+  @error "Unknown token group: #{$group}";
+}

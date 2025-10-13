@@ -1,0 +1,16 @@
+{
+  "name": "TakeOne",
+  "version": "1.0.0",
+  "description": "Professional video presentation generator with timeline editing and trim tools",
+  "readme": "README.md",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.12.0 || >=20.19.0"
+  },
+  "scripts": {
+    "dev": "npx -y concurrently \"npm:dev:fe\" \"npm:dev:be\"",
+    "dev:fe": "cd frontend && npm run dev",
+    "dev:be": "cd backend && pipenv run uvicorn app.main:app --reload --port 8000 --host 127.0.0.1"
+  }
+}

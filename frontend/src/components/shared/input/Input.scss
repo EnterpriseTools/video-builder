@@ -1,0 +1,185 @@
+/* =============================================================================
+   Input Component
+   ============================================================================= */
+
+.input-container {
+  margin-bottom: var(--space-300);
+  
+  &--small {
+    margin-bottom: var(--space-200);
+  }
+  
+  &--large {
+    margin-bottom: var(--space-400);
+  }
+  
+  &--error {
+    .input-field {
+      border-color: var(--color-error);
+      box-shadow: 0 0 0 2px var(--color-error-bg);
+    }
+  }
+}
+
+.input-label {
+  display: block;
+  margin-bottom: var(--space-100);
+  font-size: var(--font-size-300);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-fg);
+  line-height: 1.4;
+}
+
+.input-required {
+  color: var(--color-error);
+  margin-left: 2px;
+}
+
+.input-field {
+  width: 100%;
+  border: 1px solid #3D3D3D;
+  border-radius: 8px;
+  background: #19181D;
+  color: var(--color-fg);
+  font-family: var(--font-body);
+  transition: all 0.2s ease;
+  resize: vertical;
+  
+  &:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px var(--color-primary-alpha);
+  }
+  
+  &::placeholder {
+    color: #716F6F;
+    font-weight: 300;
+    font-style: italic;
+    letter-spacing: 0.125px;
+  }
+  
+  /* =============================================================================
+     Sizes
+     ============================================================================= */
+  
+  &--small {
+    padding: 12px 16px;
+    font-size: var(--font-size-200);
+  }
+  
+  &--medium {
+    padding: var(--space-200) var(--space-300);
+    font-size: var(--font-size-300);
+  }
+  
+  &--large {
+    padding: var(--space-300) var(--space-400);
+    font-size: var(--font-size-400);
+  }
+
+  /* =============================================================================
+     Variants
+     ============================================================================= */
+  
+  /* Default - Standard text input */
+  &--default {
+    // Uses base styles above
+  }
+  
+  /* Time - Monospace font for time/code inputs */
+  &--time {
+    font-family: monospace;
+    text-align: center;
+    font-weight: var(--font-weight-medium);
+    letter-spacing: 0.5px;
+    
+    &::placeholder {
+      font-family: monospace;
+    }
+  }
+  
+  /* Code - Monospace with different styling */
+  &--code {
+    font-family: monospace;
+    background: var(--color-surface);
+    letter-spacing: 0.25px;
+  }
+
+  /* =============================================================================
+     States
+     ============================================================================= */
+  
+  &--disabled {
+    background: var(--color-surface);
+    color: var(--color-fg-muted);
+    cursor: not-allowed;
+    opacity: 0.6;
+    
+    &:focus {
+      border-color: var(--color-border);
+      box-shadow: none;
+    }
+  }
+  
+  &--error {
+    border-color: var(--color-error);
+    
+    &:focus {
+      border-color: var(--color-error);
+      box-shadow: 0 0 0 2px var(--color-error-bg);
+    }
+  }
+}
+
+/* =============================================================================
+   Textarea Specific Styles
+   ============================================================================= */
+
+textarea.input-field {
+  min-height: 120px;
+  line-height: 1.5;
+  resize: vertical;
+  
+  &--small {
+    min-height: 80px;
+  }
+  
+  &--large {
+    min-height: 160px;
+  }
+}
+
+.input-error {
+  display: block;
+  margin-top: var(--space-100);
+  font-size: var(--font-size-200);
+  color: var(--color-error);
+  font-weight: var(--font-weight-medium);
+}
+
+/* =============================================================================
+   Responsive Design
+   ============================================================================= */
+
+@media (max-width: 768px) {
+  .input-container {
+    margin-bottom: var(--space-200);
+    
+    &--large {
+      margin-bottom: var(--space-300);
+    }
+  }
+  
+  .input-field {
+    &--large {
+      padding: var(--space-200) var(--space-300);
+      font-size: var(--font-size-300);
+    }
+  }
+}
+
+/* =============================================================================
+   Focus Visible (Accessibility)
+   ============================================================================= */
+
+

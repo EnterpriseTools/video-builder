@@ -1,0 +1,201 @@
+.closing-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 10;
+  
+  // Match backend: 1920x1080 with center_y = 540 (50%)
+  // All positioning matches backend/app/utils/closing_overlay.py exactly
+  
+  .axon-logo-container {
+    position: absolute;
+    // logo_y = center_y - 150 = 540 - 150 = 390
+    // Convert to percentage: 390/1080 = 36.1%
+    top: 35%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10;
+    animation: slideUpIn 0.7s ease-out 0.3s both;
+    
+    img { 
+      width: 40px;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+      display: block;
+      opacity: 1;
+      pointer-events: none;
+      line-height: 1;
+    }
+  }
+  
+  .main-title {
+    position: absolute;
+    // title_y = center_y - 50 = 540 - 50 = 490
+    // Convert to percentage: 490/1080 = 45.4%
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 2;
+    animation: slideUpIn 0.7s ease-out 0.6s both;
+    
+    // Match backend font: 72px title_font
+    font-size: 42px;
+    font-weight: 700;
+    color: white;
+    text-align: center;
+    white-space: nowrap;
+  }
+  
+  .main-subtitle {
+    position: absolute;
+    // subtitle_y = center_y + 30 = 540 + 30 = 570
+    // Convert to percentage: 570/1080 = 52.8%
+    top: 65%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 2;
+    animation: slideUpIn 0.7s ease-out 0.7s both;
+    
+    // Match backend font: 24px subtitle_font
+    font-size: 16px;
+    color: #B0B0B0;
+    text-align: center;
+    white-space: nowrap;
+  }
+  
+  .main-email {
+    position: absolute;
+    // email_y = center_y + 70 = 540 + 70 = 610
+    // Convert to percentage: 610/1080 = 56.5%
+    top: 72%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 2;
+    animation: slideUpIn 0.7s ease-out 0.8s both;
+    
+    font-size: 22px;
+    font-weight: 500;
+    color: #FEC62E;
+    text-align: center;
+    white-space: nowrap;
+  }
+  
+  .bottom-left-content {
+    position: absolute;
+    bottom: 16px;
+    left: 16px;
+    z-index: 3;
+    animation: slideUpInBottom 0.7s ease-out 0.8s both;
+    
+    .team-info {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 8px;
+      
+      .team-name, .director-name {
+        color: #B0B0B0;
+        font-size: 14px;
+        line-height: 1.2;
+      }
+    }
+  }
+  
+  .bottom-right-content {
+    position: absolute;
+    bottom: 16px;
+    right: 16px;
+    z-index: 3;
+    animation: slideUpInBottom 0.7s ease-out 0.8s both;
+    
+    .company-info {
+      color: #B0B0B0;
+      font-size: 14px;
+      line-height: 1.2;
+      text-align: right;
+    }
+  }
+  
+  // Wave and highlight elements are handled by TemplatePreview component
+}
+
+// Animations
+@keyframes slideUpIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, calc(-50% + 100px));
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+}
+
+// Animation for bottom corner elements (no transform interference)
+@keyframes slideUpInBottom {
+  from {
+    opacity: 0;
+    transform: translateY(100px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Wave and highlight animations are handled by TemplatePreview component
+
+// Responsive Design
+@media (max-width: 1024px) {
+  .closing-overlay {
+    .axon-logo-container .axon-logo-placeholder {
+      font-size: 60px; // Scale down from 72px
+    }
+    
+    .main-title {
+      font-size: 60px; // Scale down from 72px
+    }
+    
+    .main-subtitle {
+      font-size: 20px; // Scale down from 24px
+    }
+    
+    .main-email {
+      font-size: 30px; // Scale down from 36px
+    }
+    
+    .bottom-left-content .team-info .team-name,
+    .bottom-left-content .team-info .director-name,
+    .bottom-right-content .company-info {
+      font-size: 16px; // Scale down from 18px
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .closing-overlay {
+    .axon-logo-container .axon-logo-placeholder {
+      font-size: 48px; // Scale down from 72px
+    }
+    
+    .main-title {
+      font-size: 48px; // Scale down from 72px
+    }
+    
+    .main-subtitle {
+      font-size: 18px; // Scale down from 24px
+    }
+    
+    .main-email {
+      font-size: 24px; // Scale down from 36px
+    }
+    
+    .bottom-left-content .team-info .team-name,
+    .bottom-left-content .team-info .director-name,
+    .bottom-right-content .company-info {
+      font-size: 14px; // Scale down from 18px
+    }
+  }
+}

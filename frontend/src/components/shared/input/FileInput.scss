@@ -1,0 +1,131 @@
+/* =============================================================================
+   FileInput Component
+   ============================================================================= */
+
+.file-input-container {
+  
+  &--error {
+    .file-input-dropzone {
+      border-color: var(--color-error);
+      background: var(--color-error-bg);
+    }
+  }
+  
+  &--disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.file-input-label {
+  display: block;
+  margin-bottom: var(--space-200);
+  font-size: var(--font-size-300);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-fg);
+  line-height: 1.4;
+}
+
+.file-input-required {
+  color: var(--color-error);
+  margin-left: 2px;
+}
+
+.file-input-dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: .75rem;
+  border: 2px dashed #2f3a49;
+  border-radius: 1rem;
+  padding: 32px 24px;
+  text-align: center;
+  cursor: pointer;
+  background: rgba(71, 145, 255, 0.02);
+  transition: all 0.2s ease;
+ 
+  
+  &:hover:not(.file-input-dropzone--disabled) {
+    border-color: var(--color-primary);
+    background: var(--color-primary-alpha);
+    transform: translateY(-1px);
+  }
+  
+  &:active:not(.file-input-dropzone--disabled) {
+    transform: translateY(0);
+  }
+  
+  &--disabled {
+    cursor: not-allowed;
+    background: var(--color-surface);
+    
+    &:hover {
+      border-color: var(--color-border);
+      background: var(--color-surface);
+      transform: none;
+    }
+  }
+}
+
+.file-input-text {
+  font-size: 20px;
+  font-weight: 600;
+  color: #4791FF;
+}
+
+.file-input-hint {
+  color: #B0B0B0;
+  font-size: 14px;
+  font-style: italic;
+  font-weight: 400;
+}
+
+.file-input-hidden {
+  display: none;
+}
+
+.file-input-error {
+  display: block;
+  margin-top: var(--space-200);
+  font-size: var(--font-size-200);
+  color: var(--color-error);
+  font-weight: var(--font-weight-medium);
+}
+
+/* =============================================================================
+   Drag and Drop States
+   ============================================================================= */
+
+.file-input-dropzone {
+  /* Add visual feedback for drag states */
+  &.dragover {
+    border-color: var(--color-primary);
+    background: var(--color-primary-alpha);
+    border-style: solid;
+  }
+}
+
+/* =============================================================================
+   Responsive Design
+   ============================================================================= */
+
+@media (max-width: 768px) {
+  .file-input-dropzone {
+    padding: var(--space-300);
+  }
+  
+  .file-input-text {
+    font-size: var(--font-size-200);
+  }
+}
+
+/* =============================================================================
+   Focus Visible (Accessibility)
+   ============================================================================= */
+
+.file-input-dropzone:focus-within {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-color: var(--color-primary);
+}
