@@ -22,5 +22,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Root health check endpoint for Render and other monitoring services
+@app.get("/")
+async def root():
+    """Health check endpoint"""
+    return {"status": "ok", "service": "TakeOne API", "version": "1.0.0"}
+
 # Mount all API routes under /api
 app.include_router(api_router, prefix="/api")
