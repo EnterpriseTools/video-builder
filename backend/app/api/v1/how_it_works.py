@@ -97,9 +97,10 @@ async def render_how_it_works(
         
         # Wave positioning with outro animation: slides down at the end
         # Position: left=-10%, bottom=-30% (matches announcement CSS positioning)
-        wave_x = "-192"  # -10% of 1920px width
-        wave_y_normal = "H-h*0.5"  # Normal position: show 65% of wave, 35% below viewport
-        wave_y_outro = "H+100"  # Outro position: completely below viewport
+        # Use numeric values to avoid FFmpeg hanging - wave is typically ~700px high
+        wave_x = -192  # -10% of 1920px width
+        wave_y_normal = 730  # Normal position: show about 50% of wave image
+        wave_y_outro = 1180  # Outro position: completely below viewport (1080 + 100)
         
         # Simplified wave overlay with linear interpolation
         wave_y_expr = f"if(lt(t,{wave_outro_start}),{wave_y_normal},if(lt(t,{wave_outro_end}),{wave_y_normal}+({wave_y_outro}-{wave_y_normal})*(t-{wave_outro_start})/{wave_outro_end-wave_outro_start},{wave_y_outro}))"
@@ -115,9 +116,10 @@ async def render_how_it_works(
         
         # Highlight positioning with outro animation: slides up at the end
         # Position: top-aligned, horizontally centered (same as announcement)
-        highlight_x = "W*0.5-w*0.5"  # Center horizontally (50% of viewport - 50% of image)
-        highlight_y_normal = "H*-0.3"    # Normal position: top-aligned (same as announcement)
-        highlight_y_outro = "H*-0.8"  # Outro position: further up and out of view
+        # Use numeric values to avoid FFmpeg hanging - highlight is typically ~1000px wide
+        highlight_x = 460  # Center horizontally: (1920 - 1000) / 2 = 460px
+        highlight_y_normal = -100  # Normal position: partially visible at top
+        highlight_y_outro = -400  # Outro position: further up and out of view
         
         # Simplified highlight overlay with linear interpolation
         highlight_y_expr = f"if(lt(t,{wave_outro_start}),{highlight_y_normal},if(lt(t,{wave_outro_end}),{highlight_y_normal}+({highlight_y_outro}-{highlight_y_normal})*(t-{wave_outro_start})/{wave_outro_end-wave_outro_start},{highlight_y_outro}))"
@@ -137,9 +139,10 @@ async def render_how_it_works(
             text_slide_out_end = overlay_end
             
             # Position the overlay centered (no image to work around)
-            overlay_x = "(W-w)/2"  # Center horizontally
-            overlay_y_final = "(H-h)/2"  # Center vertically
-            overlay_y_start = f"(H-h)/2+120"  # Start position: 120px below final position
+            # Use numeric values to avoid FFmpeg hanging - assuming text overlay ~800px wide x 400px high
+            overlay_x = 560  # Center horizontally: (1920 - 800) / 2 = 560px
+            overlay_y_final = 340  # Center vertically: (1080 - 400) / 2 = 340px
+            overlay_y_start = 460  # Start position: 120px below final position
             
             # Simplified text overlay with linear interpolation for better FFmpeg compatibility
             text_y_expr = f"if(lt(t,{text_slide_in_start}),{overlay_y_start},if(lt(t,{text_slide_in_end}),{overlay_y_start}+({overlay_y_final}-{overlay_y_start})*(t-{text_slide_in_start})/{text_slide_in_end-text_slide_in_start},if(lt(t,{text_slide_out_start}),{overlay_y_final},if(lt(t,{text_slide_out_end}),{overlay_y_final}+({overlay_y_start}-{overlay_y_final})*(t-{text_slide_out_start})/{text_slide_out_end-text_slide_out_start},{overlay_y_start}))))"

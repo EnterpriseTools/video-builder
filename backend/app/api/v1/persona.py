@@ -102,9 +102,10 @@ async def render_persona(
             slide_out_end = overlay_end  # End of overlay period
             
             # Position the content-sized overlay with sliding animation (bottom-right)
-            overlay_x = "W-w-48"   # 48px from right edge
-            overlay_y_final = "H-h-48"  # Final position: 48px from bottom
-            overlay_y_start = "H+20"    # Start position: 20px below viewport (hidden)
+            # Use numeric values to avoid FFmpeg hanging - assuming text overlay ~200px wide x 100px high
+            overlay_x = 1672  # 1920 - 200 - 48 = 1672px from left (48px from right)
+            overlay_y_final = 932  # 1080 - 100 - 48 = 932px from top (48px from bottom)
+            overlay_y_start = 1100  # 1100px from top (below viewport, hidden)
             
             # Animation timing
             slide_in_duration = 0.4  # 400ms slide in

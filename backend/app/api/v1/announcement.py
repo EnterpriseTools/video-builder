@@ -130,10 +130,12 @@ async def render_announcement(
         
         # Wave animation: slides up from bottom and stays visible (applied to background first)
         # Position: left=-10%, bottom=-30% (matches CSS positioning - lowered by 20%)
-        wave_start_x = "-192"  # -10% of 1920px width
-        wave_final_x = "-192"  # Same x position throughout
-        wave_start_y = "H"  # Start completely below screen
-        wave_final_y = "H-h*0.5"  # Final position: show 65% of wave, 35% below viewport (lowered by 20%)
+        wave_start_x = -192  # -10% of 1920px width
+        wave_final_x = -192  # Same x position throughout
+        # Use numeric values to avoid FFmpeg hanging - wave is typically ~700px high
+        # Final position shows about 50% of wave (350px visible)
+        wave_start_y = 1080  # Start completely below screen
+        wave_final_y = 730  # Show about 50% of wave image
         # Simplified wave overlay with linear interpolation instead of pow()
         wave_y_expr = f"if(lt(t,{wave_slide_start}),{wave_start_y},if(lt(t,{wave_slide_end}),{wave_start_y}+({wave_final_y}-{wave_start_y})*(t-{wave_slide_start})/{wave_slide_end-wave_slide_start},{wave_final_y}))"
         wave_overlay = f"[bg][scaled_wave]overlay=x={wave_final_x}:y='{wave_y_expr}':enable=gte(t\\,{wave_slide_start})[wave_bg]"
@@ -155,11 +157,12 @@ async def render_announcement(
         filter_parts.append(f"[3:v]scale=iw:ih[scaled_highlight]")
         
         # Highlight animation: slides down from top and stays visible
-        # Position: top-aligned, horizontally centered (percentage-based for easy tweaking)
-        highlight_start_x = "W*0.5-w*0.5"  # Center horizontally (50% of viewport - 50% of image)
-        highlight_final_x = "W*0.5-w*0.5"  # Same x position throughout
-        highlight_start_y = "-h"  # Start completely above screen
-        highlight_final_y = "H*-0.3"    # Final position: top-aligned (0% from top)
+        # Position: top-aligned, horizontally centered
+        # Use numeric values to avoid FFmpeg hanging - highlight is typically ~1000px wide
+        highlight_start_x = 460  # Center horizontally: (1920 - 1000) / 2 = 460px
+        highlight_final_x = 460  # Same x position throughout
+        highlight_start_y = -400  # Start completely above screen (assuming ~400px height)
+        highlight_final_y = -100  # Final position: partially visible at top
         # Simplified highlight overlay with linear interpolation
         highlight_y_expr = f"if(lt(t,{highlight_slide_start}),{highlight_start_y},if(lt(t,{highlight_slide_end}),{highlight_start_y}+({highlight_final_y}-{highlight_start_y})*(t-{highlight_slide_start})/{highlight_slide_end-highlight_slide_start},{highlight_final_y}))"
         highlight_overlay = f"[base_video][scaled_highlight]overlay=x={highlight_final_x}:y='{highlight_y_expr}':enable=gte(t\\,{highlight_slide_start})[highlight_video]"
@@ -178,9 +181,11 @@ async def render_announcement(
             text_slide_out_end = overlay_end
             
             # Position the overlay on the left side (since image is on right)
-            overlay_x = "100"  # Position from left edge with some margin
-            overlay_y_final = "(H-h)/2"  # Center vertically
-            overlay_y_start = f"(H-h)/2+100"  # Start position: 100px below final position
+            overlay_x = 100  # Position from left edge with some margin
+            # Use numeric values to avoid FFmpeg hanging - assuming text overlay ~200px high
+            # Center vertically: (1080 - 200) / 2 = 440px
+            overlay_y_final = 440  # Center vertically
+            overlay_y_start = 540  # Start position: 100px below final position
             
             # Simplified text overlay with linear interpolation for better FFmpeg compatibility
             text_y_expr = f"if(lt(t,{text_slide_in_start}),{overlay_y_start},if(lt(t,{text_slide_in_end}),{overlay_y_start}+({overlay_y_final}-{overlay_y_start})*(t-{text_slide_in_start})/{text_slide_in_end-text_slide_in_start},if(lt(t,{text_slide_out_start}),{overlay_y_final},if(lt(t,{text_slide_out_end}),{overlay_y_final}+({overlay_y_start}-{overlay_y_final})*(t-{text_slide_out_start})/{text_slide_out_end-text_slide_out_start},{overlay_y_start}))))"

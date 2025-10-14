@@ -95,22 +95,17 @@ async def render_intro_video(
                 
                 # Position the content-sized overlay with sliding animation
                 overlay_x = 40
-                overlay_y_final = "H-h-40"  # Final position: 40px from bottom
-                overlay_y_start = "H+20"    # Start position: 20px below viewport (hidden)
+                # Use numeric values instead of string expressions to avoid FFmpeg hanging
+                overlay_y_final = 940  # 1080 - 100 (overlay height) - 40 (padding) = 940px from top
+                overlay_y_start = 1100  # 1100px from top (below viewport, hidden)
                 
                 # Animation timing
                 slide_in_duration = 0.4  # 400ms slide in
                 slide_out_duration = 0.4  # 400ms slide out
                 
-                # Create overlay filter with sliding animation
-                # Simplified version to avoid FFmpeg expression complexity issues
-                # The overlay slides up from bottom, stays visible, then slides down
-                
-                # Calculate Y position with linear interpolation for smoother performance
-                # During slide-in: interpolate from start to final position
-                # During hold: stay at final position  
-                # During slide-out: interpolate from final to start position
-                y_expr = (
+                # Create overlay filter with sliding animation using linear interpolation
+                # Simplified version for better FFmpeg compatibility
+                overlay_y_expr = (
                     f"if(lt(t,{slide_in_start}),{overlay_y_start},"
                     f"if(lt(t,{slide_in_end}),"
                     f"{overlay_y_start}+({overlay_y_final}-{overlay_y_start})*(t-{slide_in_start})/{slide_in_duration},"
@@ -119,8 +114,7 @@ async def render_intro_video(
                     f"{overlay_y_final}+({overlay_y_start}-{overlay_y_final})*(t-{slide_out_start})/{slide_out_duration},"
                     f"{overlay_y_start}))))"
                 )
-                
-                overlay_filter = f"[0:v]scale=1920:1080,fps=30[scaled];[scaled][1:v]overlay=x={overlay_x}:y='{y_expr}':enable='between(t,{overlay_start},{overlay_end})'"
+                overlay_filter = f"[0:v]scale=1920:1080,fps=30[scaled];[scaled][1:v]overlay=x={overlay_x}:y='{overlay_y_expr}':enable='between(t,{overlay_start},{overlay_end})'"
                 
                 filter_parts.append(overlay_filter)
                 has_overlay = True

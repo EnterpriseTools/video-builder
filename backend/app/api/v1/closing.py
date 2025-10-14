@@ -95,8 +95,9 @@ async def render_closing(
         filter_parts.append(f"[0:v]scale={wave_width}:-1[scaled_wave]")
         
         # Wave positioning - no outro animation, stays visible throughout
-        wave_x = "-192"  # -10% of 1920px width
-        wave_y = "H-h*0.5"  # Position: show 65% of wave, 35% below viewport
+        # Use numeric values to avoid FFmpeg hanging - wave is typically ~700px high
+        wave_x = -192  # -10% of 1920px width
+        wave_y = 730  # Position: show about 50% of wave image
         
         wave_overlay = f"[bg][scaled_wave]overlay=x={wave_x}:y={wave_y}:enable=lte(t\\,{audio_duration})[wave_bg]"
         
@@ -110,8 +111,9 @@ async def render_closing(
         
         # Highlight positioning - no outro animation, stays visible throughout
         # Position: top-aligned, horizontally centered (same as announcement)
-        highlight_x = "W*0.5-w*0.5"  # Center horizontally (50% of viewport - 50% of image)
-        highlight_y = "H*-0.3"  # Position: top-aligned (same as announcement)
+        # Use numeric values to avoid FFmpeg hanging - highlight is typically ~1000px wide
+        highlight_x = 460  # Center horizontally: (1920 - 1000) / 2 = 460px
+        highlight_y = -100  # Position: partially visible at top
         
         highlight_overlay = f"[wave_bg][scaled_highlight]overlay=x={highlight_x}:y={highlight_y}:enable=lte(t\\,{audio_duration})[highlight_video]"
         
@@ -129,9 +131,10 @@ async def render_closing(
             text_slide_out_end = overlay_end
             
             # Position the overlay centered (no image to work around)
-            overlay_x = "(W-w)/2"  # Center horizontally
-            overlay_y_final = "(H-h)/2"  # Center vertically
-            overlay_y_start = f"(H-h)/2+120"  # Start position: 120px below final position
+            # Use numeric values to avoid FFmpeg hanging - assuming text overlay ~800px wide x 400px high
+            overlay_x = 560  # Center horizontally: (1920 - 800) / 2 = 560px
+            overlay_y_final = 340  # Center vertically: (1080 - 400) / 2 = 340px
+            overlay_y_start = 460  # Start position: 120px below final position
             
             # Simplified text overlay with linear interpolation for better FFmpeg compatibility
             text_y_expr = f"if(lt(t,{text_slide_in_start}),{overlay_y_start},if(lt(t,{text_slide_in_end}),{overlay_y_start}+({overlay_y_final}-{overlay_y_start})*(t-{text_slide_in_start})/{text_slide_in_end-text_slide_in_start},if(lt(t,{text_slide_out_start}),{overlay_y_final},if(lt(t,{text_slide_out_end}),{overlay_y_final}+({overlay_y_start}-{overlay_y_final})*(t-{text_slide_out_start})/{text_slide_out_end-text_slide_out_start},{overlay_y_start}))))"
