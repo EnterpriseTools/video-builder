@@ -99,7 +99,7 @@ async def render_closing(
         wave_x = -192  # -10% of 1920px width
         wave_y = 730  # Position: show about 50% of wave image
         
-        wave_overlay = f"[bg][scaled_wave]overlay=x={wave_x}:y={wave_y}:enable=lte(t\\,{audio_duration})[wave_bg]"
+        wave_overlay = f"[bg][scaled_wave]overlay={wave_x}:{wave_y}[wave_bg]"
         
         filter_parts.append(wave_overlay)
         
@@ -115,7 +115,7 @@ async def render_closing(
         highlight_x = 460  # Center horizontally: (1920 - 1000) / 2 = 460px
         highlight_y = -100  # Position: partially visible at top
         
-        highlight_overlay = f"[wave_bg][scaled_highlight]overlay=x={highlight_x}:y={highlight_y}:enable=lte(t\\,{audio_duration})[highlight_video]"
+        highlight_overlay = f"[wave_bg][scaled_highlight]overlay={highlight_x}:{highlight_y}[highlight_video]"
         
         filter_parts.append(highlight_overlay)
         
@@ -128,8 +128,8 @@ async def render_closing(
             overlay_x = 560  # Center horizontally: (1920 - 800) / 2 = 560px
             overlay_y = 340  # Center vertically: (1080 - 400) / 2 = 340px
             
-            # Simple static text overlay
-            overlay_filter = f"[highlight_video][2:v]overlay={overlay_x}:{overlay_y}:enable=between(t\\,{overlay_start}\\,{overlay_end})[final]"
+            # Ultra-simple static text overlay - no enable parameter
+            overlay_filter = f"[highlight_video][2:v]overlay={overlay_x}:{overlay_y}[final]"
             
             filter_parts.append(overlay_filter)
             

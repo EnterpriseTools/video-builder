@@ -121,8 +121,8 @@ async def render_how_it_works(
             overlay_x = 560  # Center horizontally: (1920 - 800) / 2 = 560px
             overlay_y = 340  # Center vertically: (1080 - 400) / 2 = 340px
             
-            # Simple static text overlay
-            overlay_filter = f"[highlight_video][2:v]overlay={overlay_x}:{overlay_y}:enable=between(t\\,{overlay_start}\\,{overlay_end})[final]"
+            # Ultra-simple static text overlay - no enable parameter
+            overlay_filter = f"[highlight_video][2:v]overlay={overlay_x}:{overlay_y}[final]"
             
             filter_parts.append(overlay_filter)
             

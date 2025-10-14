@@ -91,8 +91,8 @@ async def render_intro_video(
                 overlay_x = 40
                 overlay_y = 940  # 1080 - 100 (overlay height) - 40 (padding) = 940px from top
                 
-                # Simple static overlay - animations removed temporarily to fix FFmpeg hanging issue
-                overlay_filter = f"[0:v]scale=1920:1080,fps=30[scaled];[scaled][1:v]overlay={overlay_x}:{overlay_y}:enable='between(t,{overlay_start},{overlay_end})'"
+                # Ultra-simple static overlay - no enable parameter to avoid FFmpeg hanging
+                overlay_filter = f"[0:v]scale=1920:1080,fps=30[scaled];[scaled][1:v]overlay={overlay_x}:{overlay_y}"
                 
                 filter_parts.append(overlay_filter)
                 has_overlay = True

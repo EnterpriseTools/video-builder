@@ -99,8 +99,8 @@ async def render_persona(
             overlay_x = 1672  # 1920 - 200 - 48 = 1672px from left (48px from right)
             overlay_y = 932  # 1080 - 100 - 48 = 932px from top (48px from bottom)
             
-            # Simple static overlay
-            overlay_filter = f"[bg][1:v]overlay={overlay_x}:{overlay_y}:enable='between(t,{overlay_start},{overlay_end})'[final]"
+            # Ultra-simple static overlay - no enable parameter
+            overlay_filter = f"[bg][1:v]overlay={overlay_x}:{overlay_y}[final]"
             
             filter_parts.append(overlay_filter)
             

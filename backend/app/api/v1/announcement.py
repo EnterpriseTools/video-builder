@@ -150,8 +150,8 @@ async def render_announcement(
             overlay_x = 100  # Position from left edge with some margin
             overlay_y = 440  # Center vertically
             
-            # Simple static text overlay
-            overlay_filter = f"[highlight_video][1:v]overlay={overlay_x}:{overlay_y}:enable=between(t\\,{overlay_start}\\,{overlay_end})[final]"
+            # Ultra-simple static text overlay - no enable parameter
+            overlay_filter = f"[highlight_video][1:v]overlay={overlay_x}:{overlay_y}[final]"
             
             filter_parts.append(overlay_filter)
             
