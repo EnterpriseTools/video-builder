@@ -134,12 +134,15 @@ async def render_announcement(
         wave_final_x = "-192"  # Same x position throughout
         wave_start_y = "H"  # Start completely below screen
         wave_final_y = "H-h*0.5"  # Final position: show 65% of wave, 35% below viewport (lowered by 20%)
-        wave_overlay = f"[bg][scaled_wave]overlay=x={wave_final_x}:y='if(between(t,{wave_slide_start},{wave_slide_end}), {wave_start_y} + (({wave_final_y})-({wave_start_y})) * pow((t-{wave_slide_start})/{wave_slide_end-wave_slide_start}, 0.6), {wave_final_y})':enable=gte(t\\,{wave_slide_start})[wave_bg]"
+        # Simplified wave overlay with linear interpolation instead of pow()
+        wave_y_expr = f"if(lt(t,{wave_slide_start}),{wave_start_y},if(lt(t,{wave_slide_end}),{wave_start_y}+({wave_final_y}-{wave_start_y})*(t-{wave_slide_start})/{wave_slide_end-wave_slide_start},{wave_final_y}))"
+        wave_overlay = f"[bg][scaled_wave]overlay=x={wave_final_x}:y='{wave_y_expr}':enable=gte(t\\,{wave_slide_start})[wave_bg]"
         
         filter_parts.append(wave_overlay)
         
-        # Create animated overlay for the image container with easing (on top of wave)
-        animated_overlay = f"[wave_bg][final_container]overlay=x='if(between(t,{image_slide_in_start},{image_slide_in_end}), {image_start_x} + ({image_final_x}-{image_start_x}) * pow((t-{image_slide_in_start})/{image_slide_in_end-image_slide_in_start}, 0.5), if(between(t,{image_slide_in_end},{image_slide_out_start}), {image_final_x}, if(between(t,{image_slide_out_start},{image_slide_out_end}), {image_final_x} + ({image_start_x}-{image_final_x}) * pow((t-{image_slide_out_start})/{image_slide_out_end-image_slide_out_start}, 2), {image_start_x})))':y=0[base_video]"
+        # Create animated overlay for the image container with linear interpolation (on top of wave)
+        image_x_expr = f"if(lt(t,{image_slide_in_start}),{image_start_x},if(lt(t,{image_slide_in_end}),{image_start_x}+({image_final_x}-{image_start_x})*(t-{image_slide_in_start})/{image_slide_in_end-image_slide_in_start},if(lt(t,{image_slide_out_start}),{image_final_x},if(lt(t,{image_slide_out_end}),{image_final_x}+({image_start_x}-{image_final_x})*(t-{image_slide_out_start})/{image_slide_out_end-image_slide_out_start},{image_start_x}))))"
+        animated_overlay = f"[wave_bg][final_container]overlay=x='{image_x_expr}':y=0[base_video]"
         
         filter_parts.append(animated_overlay)
         
@@ -157,7 +160,9 @@ async def render_announcement(
         highlight_final_x = "W*0.5-w*0.5"  # Same x position throughout
         highlight_start_y = "-h"  # Start completely above screen
         highlight_final_y = "H*-0.3"    # Final position: top-aligned (0% from top)
-        highlight_overlay = f"[base_video][scaled_highlight]overlay=x={highlight_final_x}:y='if(between(t,{highlight_slide_start},{highlight_slide_end}), {highlight_start_y} + ({highlight_final_y}-({highlight_start_y})) * pow((t-{highlight_slide_start})/{highlight_slide_end-highlight_slide_start}, 0.6), {highlight_final_y})':enable=gte(t\\,{highlight_slide_start})[highlight_video]"
+        # Simplified highlight overlay with linear interpolation
+        highlight_y_expr = f"if(lt(t,{highlight_slide_start}),{highlight_start_y},if(lt(t,{highlight_slide_end}),{highlight_start_y}+({highlight_final_y}-{highlight_start_y})*(t-{highlight_slide_start})/{highlight_slide_end-highlight_slide_start},{highlight_final_y}))"
+        highlight_overlay = f"[base_video][scaled_highlight]overlay=x={highlight_final_x}:y='{highlight_y_expr}':enable=gte(t\\,{highlight_slide_start})[highlight_video]"
         
         filter_parts.append(highlight_overlay)
         
@@ -177,9 +182,9 @@ async def render_announcement(
             overlay_y_final = "(H-h)/2"  # Center vertically
             overlay_y_start = f"(H-h)/2+100"  # Start position: 100px below final position
             
-            # Use the working slide animation - it provides great visual impact
-            # The smooth slide up/down animation matches the frontend perfectly
-            overlay_filter = f"""[highlight_video][1:v]overlay=x={overlay_x}:y='if(between(t,{text_slide_in_start},{text_slide_in_end}), {overlay_y_start} + ({overlay_y_final}-({overlay_y_start})) * pow((t-{text_slide_in_start})/{text_slide_in_end-text_slide_in_start}, 0.7), if(between(t,{text_slide_in_end},{text_slide_out_start}), {overlay_y_final}, if(between(t,{text_slide_out_start},{text_slide_out_end}), {overlay_y_final} + ({overlay_y_start}-({overlay_y_final})) * pow((t-{text_slide_out_start})/{text_slide_out_end-text_slide_out_start}, 1.5), {overlay_y_start})))':enable=between(t\\,{text_slide_in_start}\\,{text_slide_out_end})[final]"""
+            # Simplified text overlay with linear interpolation for better FFmpeg compatibility
+            text_y_expr = f"if(lt(t,{text_slide_in_start}),{overlay_y_start},if(lt(t,{text_slide_in_end}),{overlay_y_start}+({overlay_y_final}-{overlay_y_start})*(t-{text_slide_in_start})/{text_slide_in_end-text_slide_in_start},if(lt(t,{text_slide_out_start}),{overlay_y_final},if(lt(t,{text_slide_out_end}),{overlay_y_final}+({overlay_y_start}-{overlay_y_final})*(t-{text_slide_out_start})/{text_slide_out_end-text_slide_out_start},{overlay_y_start}))))"
+            overlay_filter = f"[highlight_video][1:v]overlay=x={overlay_x}:y='{text_y_expr}':enable=between(t\\,{text_slide_in_start}\\,{text_slide_out_end})[final]"
             
             filter_parts.append(overlay_filter)
             

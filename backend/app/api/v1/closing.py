@@ -133,8 +133,9 @@ async def render_closing(
             overlay_y_final = "(H-h)/2"  # Center vertically
             overlay_y_start = f"(H-h)/2+120"  # Start position: 120px below final position
             
-            # Smooth slide animation for closing
-            overlay_filter = f"""[highlight_video][2:v]overlay=x={overlay_x}:y='if(between(t,{text_slide_in_start},{text_slide_in_end}), {overlay_y_start} + ({overlay_y_final}-({overlay_y_start})) * pow((t-{text_slide_in_start})/{text_slide_in_end-text_slide_in_start}, 0.7), if(between(t,{text_slide_in_end},{text_slide_out_start}), {overlay_y_final}, if(between(t,{text_slide_out_start},{text_slide_out_end}), {overlay_y_final} + ({overlay_y_start}-({overlay_y_final})) * pow((t-{text_slide_out_start})/{text_slide_out_end-text_slide_out_start}, 1.5), {overlay_y_start})))':enable=between(t\\,{text_slide_in_start}\\,{text_slide_out_end})[final]"""
+            # Simplified text overlay with linear interpolation for better FFmpeg compatibility
+            text_y_expr = f"if(lt(t,{text_slide_in_start}),{overlay_y_start},if(lt(t,{text_slide_in_end}),{overlay_y_start}+({overlay_y_final}-{overlay_y_start})*(t-{text_slide_in_start})/{text_slide_in_end-text_slide_in_start},if(lt(t,{text_slide_out_start}),{overlay_y_final},if(lt(t,{text_slide_out_end}),{overlay_y_final}+({overlay_y_start}-{overlay_y_final})*(t-{text_slide_out_start})/{text_slide_out_end-text_slide_out_start},{overlay_y_start}))))"
+            overlay_filter = f"[highlight_video][2:v]overlay=x={overlay_x}:y='{text_y_expr}':enable=between(t\\,{text_slide_in_start}\\,{text_slide_out_end})[final]"
             
             filter_parts.append(overlay_filter)
             

@@ -101,7 +101,9 @@ async def render_how_it_works(
         wave_y_normal = "H-h*0.5"  # Normal position: show 65% of wave, 35% below viewport
         wave_y_outro = "H+100"  # Outro position: completely below viewport
         
-        wave_overlay = f"[bg][scaled_wave]overlay=x={wave_x}:y='if(between(t,{wave_outro_start},{wave_outro_end}), {wave_y_normal} + ({wave_y_outro}-({wave_y_normal})) * pow((t-{wave_outro_start})/{wave_outro_end-wave_outro_start}, 1.5), {wave_y_normal})':enable=lte(t\\,{audio_duration})[wave_bg]"
+        # Simplified wave overlay with linear interpolation
+        wave_y_expr = f"if(lt(t,{wave_outro_start}),{wave_y_normal},if(lt(t,{wave_outro_end}),{wave_y_normal}+({wave_y_outro}-{wave_y_normal})*(t-{wave_outro_start})/{wave_outro_end-wave_outro_start},{wave_y_outro}))"
+        wave_overlay = f"[bg][scaled_wave]overlay=x={wave_x}:y='{wave_y_expr}':enable=lte(t\\,{audio_duration})[wave_bg]"
         
         filter_parts.append(wave_overlay)
         
@@ -117,7 +119,9 @@ async def render_how_it_works(
         highlight_y_normal = "H*-0.3"    # Normal position: top-aligned (same as announcement)
         highlight_y_outro = "H*-0.8"  # Outro position: further up and out of view
         
-        highlight_overlay = f"[wave_bg][scaled_highlight]overlay=x={highlight_x}:y='if(between(t,{wave_outro_start},{wave_outro_end}), {highlight_y_normal} + ({highlight_y_outro}-({highlight_y_normal})) * pow((t-{wave_outro_start})/{wave_outro_end-wave_outro_start}, 1.5), {highlight_y_normal})':enable=lte(t\\,{audio_duration})[highlight_video]"
+        # Simplified highlight overlay with linear interpolation
+        highlight_y_expr = f"if(lt(t,{wave_outro_start}),{highlight_y_normal},if(lt(t,{wave_outro_end}),{highlight_y_normal}+({highlight_y_outro}-{highlight_y_normal})*(t-{wave_outro_start})/{wave_outro_end-wave_outro_start},{highlight_y_outro}))"
+        highlight_overlay = f"[wave_bg][scaled_highlight]overlay=x={highlight_x}:y='{highlight_y_expr}':enable=lte(t\\,{audio_duration})[highlight_video]"
         
         filter_parts.append(highlight_overlay)
         
@@ -137,8 +141,9 @@ async def render_how_it_works(
             overlay_y_final = "(H-h)/2"  # Center vertically
             overlay_y_start = f"(H-h)/2+120"  # Start position: 120px below final position
             
-            # Smooth slide animation for how-it-works
-            overlay_filter = f"""[highlight_video][2:v]overlay=x={overlay_x}:y='if(between(t,{text_slide_in_start},{text_slide_in_end}), {overlay_y_start} + ({overlay_y_final}-({overlay_y_start})) * pow((t-{text_slide_in_start})/{text_slide_in_end-text_slide_in_start}, 0.7), if(between(t,{text_slide_in_end},{text_slide_out_start}), {overlay_y_final}, if(between(t,{text_slide_out_start},{text_slide_out_end}), {overlay_y_final} + ({overlay_y_start}-({overlay_y_final})) * pow((t-{text_slide_out_start})/{text_slide_out_end-text_slide_out_start}, 1.5), {overlay_y_start})))':enable=between(t\\,{text_slide_in_start}\\,{text_slide_out_end})[final]"""
+            # Simplified text overlay with linear interpolation for better FFmpeg compatibility
+            text_y_expr = f"if(lt(t,{text_slide_in_start}),{overlay_y_start},if(lt(t,{text_slide_in_end}),{overlay_y_start}+({overlay_y_final}-{overlay_y_start})*(t-{text_slide_in_start})/{text_slide_in_end-text_slide_in_start},if(lt(t,{text_slide_out_start}),{overlay_y_final},if(lt(t,{text_slide_out_end}),{overlay_y_final}+({overlay_y_start}-{overlay_y_final})*(t-{text_slide_out_start})/{text_slide_out_end-text_slide_out_start},{overlay_y_start}))))"
+            overlay_filter = f"[highlight_video][2:v]overlay=x={overlay_x}:y='{text_y_expr}':enable=between(t\\,{text_slide_in_start}\\,{text_slide_out_end})[final]"
             
             filter_parts.append(overlay_filter)
             

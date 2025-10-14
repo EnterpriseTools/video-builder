@@ -110,10 +110,10 @@ async def render_persona(
             slide_in_duration = 0.4  # 400ms slide in
             slide_out_duration = 0.4  # 400ms slide out
             
-            # Create overlay filter with smooth sliding animation (same easing as intro)
-            # Using easing functions to approximate cubic-bezier(0.25, 0.46, 0.45, 0.94)
-            # The overlay slides from below viewport to final position, stays visible, then slides back down
-            overlay_filter = f"[bg][1:v]overlay=x={overlay_x}:y='if(between(t,{slide_in_start},{slide_in_end}), {overlay_y_start} + ({overlay_y_final}-({overlay_y_start})) * pow((t-{slide_in_start})/{slide_in_duration}, 0.5), if(between(t,{slide_in_end},{slide_out_start}), {overlay_y_final}, if(between(t,{slide_out_start},{slide_out_end}), {overlay_y_final} + (({overlay_y_start})-({overlay_y_final})) * pow((t-{slide_out_start})/{slide_out_duration}, 2), {overlay_y_start})))':enable='between(t,{overlay_start},{overlay_end})'[final]"
+            # Create overlay filter with sliding animation using linear interpolation
+            # Simplified version for better FFmpeg compatibility
+            overlay_y_expr = f"if(lt(t,{slide_in_start}),{overlay_y_start},if(lt(t,{slide_in_end}),{overlay_y_start}+({overlay_y_final}-{overlay_y_start})*(t-{slide_in_start})/{slide_in_duration},if(lt(t,{slide_out_start}),{overlay_y_final},if(lt(t,{slide_out_end}),{overlay_y_final}+({overlay_y_start}-{overlay_y_final})*(t-{slide_out_start})/{slide_out_duration},{overlay_y_start}))))"
+            overlay_filter = f"[bg][1:v]overlay=x={overlay_x}:y='{overlay_y_expr}':enable='between(t,{overlay_start},{overlay_end})'[final]"
             
             filter_parts.append(overlay_filter)
             
