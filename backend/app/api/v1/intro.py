@@ -71,9 +71,9 @@ async def render_intro_video(
         # Build video filter with PNG overlay
         filter_parts = []
         
-        # TEMPORARILY DISABLE OVERLAY TO TEST IF BASIC VIDEO PROCESSING WORKS
-        has_overlay = False
-        if False and (team or full_name or role):
+        # Add PNG overlay if we have intro data
+        has_overlay = bool(team or full_name or role)
+        if has_overlay:
             # Generate the PNG overlay
             overlay_png_path = await overlay_generator.generate_overlay_png(
                 team=team,
@@ -84,15 +84,14 @@ async def render_intro_video(
             
             # Verify the PNG was created successfully
             if os.path.exists(overlay_png_path) and os.path.getsize(overlay_png_path) > 0:
-                # Add the PNG as a second input
-                ffmpeg_cmd.extend(["-i", overlay_png_path])
-                
                 # Position the overlay (simplified - no animation to avoid FFmpeg hanging)
                 overlay_x = 40
                 overlay_y = 940  # 1080 - 100 (overlay height) - 40 (padding) = 940px from top
                 
-                # Ultra-simple static overlay - no enable parameter to avoid FFmpeg hanging
-                overlay_filter = f"[0:v]scale=1920:1080,fps=30[scaled];[scaled][1:v]overlay={overlay_x}:{overlay_y}"
+                # Use movie filter to load PNG directly in the filter (more reliable than second input)
+                # Escape the path for FFmpeg
+                escaped_path = overlay_png_path.replace('\\', '/').replace(':', '\\:')
+                overlay_filter = f"scale=1920:1080,fps=30,movie={escaped_path}[ovr];[in][ovr]overlay={overlay_x}:{overlay_y}"
                 
                 filter_parts.append(overlay_filter)
                 has_overlay = True
@@ -107,29 +106,15 @@ async def render_intro_video(
         # Combine filters
         video_filter = ",".join(filter_parts) if filter_parts else "scale=1920:1080,fps=30"
         
-        # Complete FFmpeg command
-        if has_overlay:
-            # Use filter_complex for multiple inputs
-            ffmpeg_cmd.extend([
-                "-filter_complex", video_filter,
-                "-c:v", "libx264",
-                "-preset", "medium",
-                "-crf", "23",
-                "-c:a", "aac",
-                "-b:a", "192k",
-                str(output_path)
-            ])
-        else:
-            # Use simple video filter for single input
-            ffmpeg_cmd.extend([
-                "-vf", video_filter,
-                "-c:v", "libx264",
-                "-preset", "medium",
-                "-crf", "23",
-                "-c:a", "aac",
-                "-b:a", "192k",
-                str(output_path)
-            ])
+        # Complete FFmpeg command - now always using single input with -vf
+        ffmpeg_cmd.extend([
+            "-vf", video_filter,
+            "-c:v", "libx264",
+            "-preset", "fast",  # Use "fast" preset to speed up encoding
+            "-crf", "23",
+            "-c:a", "copy",  # Just copy audio without re-encoding
+            str(output_path)
+        ])
         
         # Execute FFmpeg
         print(f"DEBUG: FFmpeg command: {' '.join(ffmpeg_cmd)}")
