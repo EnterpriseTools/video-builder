@@ -1,4 +1,5 @@
-import { useState, lazy, Suspense } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
+import { track } from '@vercel/analytics';
 import VideoTemplateCreator from '@/components/shared/video-template-creator';
 import { getTemplateConfig } from '@/lib/templateConfigs';
 import OverlayPreviewSection from '@/components/shared/overlay-preview-section';
@@ -112,6 +113,11 @@ export default function Create() {
     { id: 'closing', name: 'Closing', status: 'empty', config: null, previewData: null }
   ]);
 
+  // Track page view when component mounts
+  useEffect(() => {
+    track('Page View', { page: '/create' });
+  }, []);
+
   // Template name to ID mapping
   const templateNameToId = {
     'Introduction': 'intro',
@@ -205,6 +211,12 @@ export default function Create() {
       alert('No templates configured yet!');
       return;
     }
+    
+    // Track the button click event
+    track('Create Final Presentation Clicked', {
+      templateCount: readyTemplates.length,
+      templates: readyTemplates.map(t => t.id).join(', ')
+    });
     
     setIsRendering(true);
     

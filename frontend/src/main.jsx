@@ -1,5 +1,6 @@
 import React, { Suspense } from 'react';
 import ReactDOM from 'react-dom/client';
+import { Analytics } from '@vercel/analytics/react';
 import AppRouter from '@/routes/Router';
 import ErrorBoundary from '@/components/shared/error-boundary/ErrorBoundary';
 import Spinner from '@/components/shared/spinner/Spinner';
@@ -12,5 +13,6 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         <AppRouter />
       </Suspense>
     </ErrorBoundary>
+    <Analytics />
   </React.StrictMode>
 );
