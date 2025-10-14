@@ -514,34 +514,259 @@ kill -9 <PID>
 
 ## 🚀 Deployment
 
-This application is deployed using a modern, scalable architecture:
+This application is deployed using a modern, scalable cloud architecture with automatic deployments.
 
-### Production Environment
+### Architecture Overview
 
-- **Frontend**: Vercel (https://video-builder-nu.vercel.app/)
-- **Backend**: Railway (https://video-builder-production.up.railway.app/)
+```
+┌─────────────────┐         ┌──────────────────┐
+│   Vercel        │         │    Railway       │
+│   (Frontend)    │────────▶│    (Backend)     │
+│                 │   API   │                  │
+│  React/Vite App │  Calls  │  FastAPI + FFmpeg│
+└─────────────────┘         └──────────────────┘
+```
 
-### Quick Deployment Guide
+### Production URLs
 
-1. **Frontend (Vercel)**:
-   - Connected to GitHub for automatic deployments
-   - Environment variable: `VITE_API_BASE_URL` = Railway backend URL
-   - Builds from `frontend/` directory via `vercel.json`
+- **Frontend**: https://video-builder-nu.vercel.app/
+- **Backend**: https://video-builder-production.up.railway.app/
+- **API Health Check**: https://video-builder-production.up.railway.app/
+- **API Documentation**: https://video-builder-production.up.railway.app/api/docs
 
-2. **Backend (Railway)**:
-   - Connected to GitHub for automatic deployments
-   - Environment variable: `CORS_ORIGINS` = Vercel frontend URL + localhost
-   - Includes FFmpeg for video processing
+### Environment Variables
+
+#### Frontend (Vercel)
+
+**Required:**
+| Variable | Value | Description |
+|----------|-------|-------------|
+| `VITE_API_BASE_URL` | `https://video-builder-production.up.railway.app/api` | Full URL to Railway backend API |
+
+**Configuration:**
+- Set in: Vercel Dashboard → Project Settings → Environment Variables
+- Apply to: Production, Preview, Development (all 3 environments)
+- **Important**: Must redeploy after adding/changing this variable
+
+#### Backend (Railway)
+
+**Required:**
+| Variable | Value | Description |
+|----------|-------|-------------|
+| `CORS_ORIGINS` | `http://localhost:5173,https://video-builder-nu.vercel.app` | Comma-separated list of allowed origins |
+
+**Optional:**
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `ENV` | `development` | Environment name |
+| `PORT` | Auto-set by Railway | Port number (automatically configured) |
 
 ### Configuration Files
 
-- **`vercel.json`**: Vercel build and deployment configuration
-- **`frontend/src/lib/config.js`**: Central API configuration (single source of truth)
-- **`backend/app/core/config.py`**: Backend settings and environment variables
-- **`DEPLOYMENT_CONFIG.md`**: Comprehensive deployment documentation
+#### **`vercel.json`**
+Vercel build and deployment configuration:
+```json
+{
+  "buildCommand": "cd frontend && npm install && npm run build",
+  "outputDirectory": "frontend/dist",
+  "installCommand": "npm install",
+  "framework": null,
+  "devCommand": "cd frontend && npm run dev"
+}
+```
 
-### For detailed deployment instructions, see:
-- **[DEPLOYMENT_CONFIG.md](./DEPLOYMENT_CONFIG.md)** - Complete deployment guide with troubleshooting
+#### **`frontend/src/lib/config.js`** ⭐
+Central API configuration (single source of truth):
+- Exports `API_BASE_URL` used by all API calls
+- Automatically detects development vs production environment
+- Defaults to `/api` in development (proxied by Vite)
+- Uses `VITE_API_BASE_URL` in production
+
+#### **`frontend/vite.config.ts`**
+- Proxy configuration: Routes `/api/*` to `http://localhost:8000` during local development
+- Build configuration: Configures Vite build process
+- SCSS support: Enables SCSS preprocessing
+
+#### **`backend/app/core/config.py`**
+Backend settings and environment variables:
+- Uses Pydantic settings for configuration
+- Reads from `.env` file or environment variables
+- Manages CORS configuration
+
+#### **`backend/app/main.py`**
+FastAPI application entry point:
+- Root health check: `GET /` returns service status
+- API routes: All routes mounted under `/api` prefix
+- CORS middleware: Configured with `CORS_ORIGINS` from settings
+
+### API Base URL Flow
+
+#### Development (Local)
+1. `VITE_API_BASE_URL` is not set
+2. `config.js` defaults to `/api`
+3. Vite proxy routes `/api/*` to `http://localhost:8000`
+4. Works seamlessly without any configuration
+
+#### Production (Vercel)
+1. `VITE_API_BASE_URL` = `https://video-builder-production.up.railway.app/api`
+2. `config.js` uses this value
+3. All API calls go directly to Railway backend
+4. No proxy involved
+
+### Deployment Platforms
+
+#### Vercel (Frontend)
+Automatically:
+- ✅ Detects monorepo structure via `vercel.json`
+- ✅ Builds frontend from `frontend` directory
+- ✅ Deploys to global CDN
+- ✅ Provides preview deployments for PRs
+- ✅ Auto-deploys on git push to main
+
+**Configuration:**
+- Connected to GitHub repository
+- Auto-deployment enabled on main branch
+- Environment variables set in dashboard
+
+#### Railway (Backend)
+Automatically:
+- ✅ Installs FFmpeg (required for video processing)
+- ✅ Sets up Python environment
+- ✅ Configures networking and domains
+- ✅ Manages environment variables
+- ✅ Auto-deploys on git push to main
+
+**Build Command:**
+```bash
+cd backend && pip install pipenv && pipenv install
+```
+
+**Start Command:**
+```bash
+cd backend && pipenv run uvicorn app.main:app --host 0.0.0.0 --port $PORT
+```
+
+### Deployment Checklist
+
+#### Initial Setup
+- [ ] Create Vercel project connected to GitHub
+- [ ] Create Railway project connected to GitHub
+- [ ] Get Railway URL from Railway dashboard
+- [ ] Set `VITE_API_BASE_URL` in Vercel
+- [ ] Set `CORS_ORIGINS` in Railway (include Vercel URL)
+- [ ] Deploy both services
+- [ ] Test production deployment
+
+#### After Code Changes
+- [ ] Commit and push to GitHub (`git push origin main`)
+- [ ] Vercel auto-deploys (watch deployment logs)
+- [ ] Railway auto-deploys (watch deployment logs)
+- [ ] Test the deployed application
+
+#### When Changing URLs
+- [ ] Update `VITE_API_BASE_URL` in Vercel
+- [ ] Update `CORS_ORIGINS` in Railway
+- [ ] Redeploy Vercel (required for env var changes)
+- [ ] Railway auto-redeploys on env var changes
+
+### Deployment Troubleshooting
+
+#### Frontend Issues
+
+**Problem:** API calls return 404
+- **Check**: Verify `VITE_API_BASE_URL` is set in Vercel
+- **Check**: Redeploy Vercel after adding env var
+- **Check**: Network tab shows requests going to Railway URL
+
+**Problem:** CORS errors
+- **Check**: Vercel URL is in Railway's `CORS_ORIGINS`
+- **Check**: No trailing slashes in URLs
+- **Check**: Protocol matches (https://)
+
+**Problem:** Vercel build fails
+- **Check**: `vercel.json` is in root directory
+- **Check**: Frontend dependencies in `frontend/package.json`
+- **Check**: Build command is correct
+- **Solution**: Review Vercel deployment logs for specific errors
+
+#### Backend Issues
+
+**Problem:** FFmpeg not found
+- **Solution**: Railway has FFmpeg built-in, should work automatically
+- **Check**: Railway logs for FFmpeg-related errors
+- **Check**: Service is "Live" in Railway dashboard
+
+**Problem:** Backend won't start
+- **Check**: Start command includes `--host 0.0.0.0`
+- **Check**: `$PORT` variable is used (Railway auto-sets this)
+- **Check**: Python dependencies installed correctly
+- **Check**: Pipfile is in `backend/` directory
+
+**Problem:** Railway build fails
+- **Check**: `Pipfile` is in `backend/` directory
+- **Check**: Python version compatibility (3.13+)
+- **Check**: All dependencies listed in Pipfile
+
+#### API Call Issues
+
+**Problem:** Requests still going to Vercel instead of Railway
+- **Check**: Open DevTools → Console, look for API configuration log
+- **Check**: Should see `API Configuration: { baseUrl: "https://video-builder-production.up.railway.app/api", ... }`
+- **Solution**: If showing `/api`, environment variable isn't applied - redeploy Vercel
+
+**Problem:** Cold start delays (Railway free tier)
+- **Symptom**: First request after idle takes 30-60 seconds
+- **Cause**: Railway free tier spins down after 15 minutes of inactivity
+- **Solution**: This is expected behavior on free tier
+- **Workaround**: Wait for backend to wake up, then subsequent requests are fast
+- **Permanent fix**: Upgrade to Railway paid tier for always-on service
+
+### Performance Considerations
+
+#### Railway Free Tier
+- **Cold starts**: First request after idle takes 30-60 seconds
+- **Sleep after 15 minutes** of inactivity
+- **Solution**: Upgrade to paid tier for always-on service
+
+#### Vercel
+- **CDN deployment**: Fast global delivery
+- **Edge network**: Minimal latency
+- **Preview deployments**: Every PR gets a preview URL
+
+### Security Notes
+
+1. **Never commit `.env` files** - They're in `.gitignore`
+2. **Use environment variables** for sensitive data
+3. **CORS configuration** restricts API access to approved domains
+4. **Environment variables** are set in platform dashboards, not in code
+
+### Maintenance
+
+#### Updating Dependencies
+
+**Frontend:**
+```bash
+cd frontend
+npm update
+npm audit fix
+```
+
+**Backend:**
+```bash
+cd backend
+pipenv update
+pipenv check
+```
+
+#### Monitoring
+
+**Vercel:**
+- Dashboard → Analytics
+- Dashboard → Deployments (view logs)
+
+**Railway:**
+- Dashboard → Metrics
+- Dashboard → Logs (live log streaming)
 
 ## 🤝 Contributing
 
