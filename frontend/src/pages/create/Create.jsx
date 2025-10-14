@@ -2,10 +2,8 @@ import { useState, lazy, Suspense } from 'react';
 import VideoTemplateCreator from '@/components/shared/video-template-creator';
 import { getTemplateConfig } from '@/lib/templateConfigs';
 import OverlayPreviewSection from '@/components/shared/overlay-preview-section';
+import { API_BASE_URL } from '@/lib/config';
 import './Create.scss';
-
-// Get API base URL from environment
-const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api';
 
 // Lazy load overlay components for thumbnails
 const AnnouncementOverlay = lazy(() => import('@/components/announcement-overlay/AnnouncementOverlay'));
@@ -327,7 +325,7 @@ export default function Create() {
         }
       }
       
-      const concatenateResponse = await fetch(`${API_BASE}/concatenate-multipart`, {
+      const concatenateResponse = await fetch(`${API_BASE_URL}/concatenate-multipart`, {
         method: 'POST',
         body: concatenateFormData,
       });

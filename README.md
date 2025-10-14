@@ -512,6 +512,37 @@ kill -9 <PID>
 - Verify overlay generator is working
 - Test with `/test` endpoint first
 
+## 🚀 Deployment
+
+This application is deployed using a modern, scalable architecture:
+
+### Production Environment
+
+- **Frontend**: Vercel (https://video-builder-nu.vercel.app/)
+- **Backend**: Railway (https://video-builder-production.up.railway.app/)
+
+### Quick Deployment Guide
+
+1. **Frontend (Vercel)**:
+   - Connected to GitHub for automatic deployments
+   - Environment variable: `VITE_API_BASE_URL` = Railway backend URL
+   - Builds from `frontend/` directory via `vercel.json`
+
+2. **Backend (Railway)**:
+   - Connected to GitHub for automatic deployments
+   - Environment variable: `CORS_ORIGINS` = Vercel frontend URL + localhost
+   - Includes FFmpeg for video processing
+
+### Configuration Files
+
+- **`vercel.json`**: Vercel build and deployment configuration
+- **`frontend/src/lib/config.js`**: Central API configuration (single source of truth)
+- **`backend/app/core/config.py`**: Backend settings and environment variables
+- **`DEPLOYMENT_CONFIG.md`**: Comprehensive deployment documentation
+
+### For detailed deployment instructions, see:
+- **[DEPLOYMENT_CONFIG.md](./DEPLOYMENT_CONFIG.md)** - Complete deployment guide with troubleshooting
+
 ## 🤝 Contributing
 
 This project follows a modular, modal-based architecture designed for easy extension:

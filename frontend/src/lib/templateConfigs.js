@@ -2,8 +2,7 @@
  * Configuration objects for different video template types
  */
 
-// Get API base URL from environment or use relative path for development
-const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api';
+import { API_BASE_URL } from './config';
 
 export const TEMPLATE_CONFIGS = {
   intro: {
@@ -60,7 +59,7 @@ export const TEMPLATE_CONFIGS = {
     
     // API endpoints
     api: {
-      render: `${API_BASE}/intro/render`
+      render: `${API_BASE_URL}/intro/render`
     },
     
     // Default values
@@ -137,7 +136,7 @@ export const TEMPLATE_CONFIGS = {
     ],
     
     api: {
-      render: `${API_BASE}/announcement/render`
+      render: `${API_BASE_URL}/announcement/render`
     },
     
     defaults: {
@@ -203,7 +202,7 @@ export const TEMPLATE_CONFIGS = {
     ],
     
     api: {
-      render: `${API_BASE}/how-it-works/render`
+      render: `${API_BASE_URL}/how-it-works/render`
     },
     
     defaults: {
@@ -285,7 +284,7 @@ export const TEMPLATE_CONFIGS = {
     ],
     
     api: {
-      render: `${API_BASE}/persona/render`
+      render: `${API_BASE_URL}/persona/render`
     },
     
     defaults: {
@@ -371,7 +370,7 @@ export const TEMPLATE_CONFIGS = {
     ],
     
     api: {
-      render: `${API_BASE}/closing/render`
+      render: `${API_BASE_URL}/closing/render`
     },
     
     defaults: {
@@ -426,7 +425,7 @@ export const TEMPLATE_CONFIGS = {
     textFields: [],
     
     api: {
-      render: `${API_BASE}/demo/render`
+      render: `${API_BASE_URL}/demo/render`
     },
     
     defaults: {},
@@ -482,7 +481,7 @@ export const TEMPLATE_CONFIGS = {
     ],
     
     api: {
-      render: `${API_BASE}/create/render`
+      render: `${API_BASE_URL}/create/render`
     },
     
     defaults: {

@@ -1,9 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import videojs from 'video.js';
 import { downloadBlob } from '@/lib/templateValidation';
-
-// Get API base URL from environment
-const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api';
+import { API_BASE_URL } from '@/lib/config';
 
 /**
  * Custom hook for managing video trim state and operations
@@ -131,7 +129,7 @@ export function useVideoTrim() {
       formData.append('start', startTime);
       formData.append('end', endTime);
 
-      const response = await fetch(`${API_BASE}/trim`, {
+      const response = await fetch(`${API_BASE_URL}/trim`, {
         method: 'POST',
         body: formData
       });
