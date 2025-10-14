@@ -101,43 +101,29 @@ async def render_intro_video(
                 # PNG generation failed, proceed without overlay
                 has_overlay = False
         
-        # If no overlay, we still need to scale the video
-        if not has_overlay:
-            filter_parts.append("scale=1920:1080,fps=30")
-        
-        # Combine filters
-        video_filter = ",".join(filter_parts) if filter_parts else "scale=1920:1080,fps=30"
-        
-        # Complete FFmpeg command
-        if has_overlay:
-            # Use -filter_complex for movie filter (multiple inputs/outputs)
-            ffmpeg_cmd.extend([
-                "-filter_complex", video_filter,
-                "-c:v", "libx264",
-                "-preset", "fast",  # Use "fast" preset to speed up encoding
-                "-crf", "23",
-                "-c:a", "copy",  # Just copy audio without re-encoding
-                str(output_path)
-            ])
-        else:
-            # Use -vf for simple filters (single input/output)
-            ffmpeg_cmd.extend([
-                "-vf", video_filter,
-                "-c:v", "libx264",
-                "-preset", "fast",
-                "-crf", "23",
-                "-c:a", "copy",
-                str(output_path)
-            ])
+        # ULTRA-SIMPLE TEST: Just copy the video without ANY processing
+        # This will test if FFmpeg can complete ANY job at all
+        ffmpeg_cmd.extend([
+            "-c:v", "copy",  # Copy video stream without re-encoding
+            "-c:a", "copy",  # Copy audio stream without re-encoding
+            str(output_path)
+        ])
         
         # Execute FFmpeg
         print(f"DEBUG: FFmpeg command: {' '.join(ffmpeg_cmd)}")
-        print(f"DEBUG: Video filter: {video_filter}")
         print(f"DEBUG: Has overlay: {has_overlay}")
+        print(f"DEBUG: ULTRA-SIMPLE TEST - Just copying video without any filters")
         if has_overlay and overlay_png_path:
             print(f"DEBUG: Overlay PNG size: {os.path.getsize(overlay_png_path)} bytes")
         
-        result = subprocess.run(ffmpeg_cmd, capture_output=True, text=True)
+        # Add a 30-second timeout to see if FFmpeg is hanging or just slow
+        try:
+            result = subprocess.run(ffmpeg_cmd, capture_output=True, text=True, timeout=30)
+        except subprocess.TimeoutExpired:
+            raise HTTPException(
+                status_code=500,
+                detail="FFmpeg processing timed out after 30 seconds - video file may be corrupted or FFmpeg is hanging"
+            )
         
         if result.returncode != 0:
             raise HTTPException(
