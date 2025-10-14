@@ -71,9 +71,9 @@ async def render_intro_video(
         # Build video filter with PNG overlay
         filter_parts = []
         
-        # Add PNG overlay if we have intro data
-        has_overlay = bool(team or full_name or role)
-        if has_overlay:
+        # CRITICAL TEST: Disable overlay completely to test if basic video processing works
+        has_overlay = False
+        if False:
             # Generate the PNG overlay
             overlay_png_path = await overlay_generator.generate_overlay_png(
                 team=team,
