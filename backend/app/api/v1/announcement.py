@@ -107,66 +107,38 @@ async def render_announcement(
         # Create main background canvas
         filter_parts.append(f"color=c={bg_color}:size=1920x1080:duration={audio_duration}:rate=30[bg]")
         
-        # Calculate animation timing for image container
-        image_slide_in_start = 0.3  # Start sliding in at 0.3s
-        image_slide_in_end = 0.9    # Finish sliding in at 0.9s (0.6s animation)
-        image_slide_out_start = max(1.0, audio_duration - 0.5)  # Start sliding out 500ms before end
-        image_slide_out_end = audio_duration  # Finish sliding out at end
-        
-        # Animate the image container sliding in from right and out to right
-        # Start position: x=1920 (off-screen to the right)
-        # Final position: x=960 (right half of screen)
-        image_start_x = 1920  # Completely off-screen to the right
-        image_final_x = 960   # Right half position
+        # Image container position (simplified - no animation)
+        image_x = 960   # Right half position
         
         # Add Wave.png overlay FIRST (lowest z-index - behind everything)
         wave_path = Path(__file__).parent.parent.parent.parent.parent / "frontend" / "public" / "Wave.png"
-        wave_slide_start = 0.1  # Start wave animation right away
-        wave_slide_end = wave_slide_start + 0.5  # 500ms faster slide up animation
         
         # First scale the wave to match CSS sizing: width 120% of viewport (2304px wide)
         wave_width = 2304  # 120% of 1920px
         filter_parts.append(f"[2:v]scale={wave_width}:-1[scaled_wave]")
         
-        # Wave animation: slides up from bottom and stays visible (applied to background first)
-        # Position: left=-10%, bottom=-30% (matches CSS positioning - lowered by 20%)
-        wave_start_x = -192  # -10% of 1920px width
-        wave_final_x = -192  # Same x position throughout
-        # Use numeric values to avoid FFmpeg hanging - wave is typically ~700px high
-        # Final position shows about 50% of wave (350px visible)
-        wave_start_y = 1080  # Start completely below screen
-        wave_final_y = 730  # Show about 50% of wave image
-        # Simplified wave overlay with linear interpolation instead of pow()
-        wave_y_expr = f"if(lt(t,{wave_slide_start}),{wave_start_y},if(lt(t,{wave_slide_end}),{wave_start_y}+({wave_final_y}-{wave_start_y})*(t-{wave_slide_start})/{wave_slide_end-wave_slide_start},{wave_final_y}))"
-        wave_overlay = f"[bg][scaled_wave]overlay=x={wave_final_x}:y='{wave_y_expr}':enable=gte(t\\,{wave_slide_start})[wave_bg]"
+        # Wave positioning (simplified - no animation to avoid FFmpeg hanging)
+        wave_x = -192  # -10% of 1920px width
+        wave_y = 730  # Show about 50% of wave image
+        # Simple static overlay
+        wave_overlay = f"[bg][scaled_wave]overlay={wave_x}:{wave_y}[wave_bg]"
         
         filter_parts.append(wave_overlay)
         
-        # Create animated overlay for the image container with linear interpolation (on top of wave)
-        image_x_expr = f"if(lt(t,{image_slide_in_start}),{image_start_x},if(lt(t,{image_slide_in_end}),{image_start_x}+({image_final_x}-{image_start_x})*(t-{image_slide_in_start})/{image_slide_in_end-image_slide_in_start},if(lt(t,{image_slide_out_start}),{image_final_x},if(lt(t,{image_slide_out_end}),{image_final_x}+({image_start_x}-{image_final_x})*(t-{image_slide_out_start})/{image_slide_out_end-image_slide_out_start},{image_start_x}))))"
-        animated_overlay = f"[wave_bg][final_container]overlay=x='{image_x_expr}':y=0[base_video]"
+        # Create static overlay for the image container (simplified - no animation)
+        image_overlay = f"[wave_bg][final_container]overlay={image_x}:0[base_video]"
+        filter_parts.append(image_overlay)
         
-        filter_parts.append(animated_overlay)
-        
-        # Add Highlight.png overlay (same z-index as wave, slides from top)
+        # Add Highlight.png overlay (simplified - no animation)
         highlight_path = Path(__file__).parent.parent.parent.parent.parent / "frontend" / "public" / "highlight.png"
-        highlight_slide_start = 0.2  # Start highlight animation slightly after wave
-        highlight_slide_end = highlight_slide_start + 0.6  # 600ms slide down animation
         
         # Scale highlight to original size (no scaling)
         filter_parts.append(f"[3:v]scale=iw:ih[scaled_highlight]")
         
-        # Highlight animation: slides down from top and stays visible
-        # Position: top-aligned, horizontally centered
-        # Use numeric values to avoid FFmpeg hanging - highlight is typically ~1000px wide
-        highlight_start_x = 460  # Center horizontally: (1920 - 1000) / 2 = 460px
-        highlight_final_x = 460  # Same x position throughout
-        highlight_start_y = -400  # Start completely above screen (assuming ~400px height)
-        highlight_final_y = -100  # Final position: partially visible at top
-        # Simplified highlight overlay with linear interpolation
-        highlight_y_expr = f"if(lt(t,{highlight_slide_start}),{highlight_start_y},if(lt(t,{highlight_slide_end}),{highlight_start_y}+({highlight_final_y}-{highlight_start_y})*(t-{highlight_slide_start})/{highlight_slide_end-highlight_slide_start},{highlight_final_y}))"
-        highlight_overlay = f"[base_video][scaled_highlight]overlay=x={highlight_final_x}:y='{highlight_y_expr}':enable=gte(t\\,{highlight_slide_start})[highlight_video]"
-        
+        # Highlight positioning (simplified - static)
+        highlight_x = 460  # Center horizontally: (1920 - 1000) / 2 = 460px
+        highlight_y = -100  # Position: partially visible at top
+        highlight_overlay = f"[base_video][scaled_highlight]overlay={highlight_x}:{highlight_y}[highlight_video]"
         filter_parts.append(highlight_overlay)
         
         if has_overlay and overlay_path:
@@ -174,22 +146,12 @@ async def render_announcement(
             overlay_start = 0.5  # Start 0.5s into video
             overlay_end = max(1.0, audio_duration - 0.5)  # End 0.5s before video ends
             
-            # Create sliding animation for text overlay (slide up from 100px below final position)
-            text_slide_in_start = 0.5  # Start text animation slightly after image (0.5s)
-            text_slide_in_end = text_slide_in_start + 0.6  # 600ms slide up animation
-            text_slide_out_start = overlay_end - 0.3  # Start sliding out 300ms before end (faster exit)
-            text_slide_out_end = overlay_end
-            
-            # Position the overlay on the left side (since image is on right)
+            # Position the overlay on the left side (simplified - no animation)
             overlay_x = 100  # Position from left edge with some margin
-            # Use numeric values to avoid FFmpeg hanging - assuming text overlay ~200px high
-            # Center vertically: (1080 - 200) / 2 = 440px
-            overlay_y_final = 440  # Center vertically
-            overlay_y_start = 540  # Start position: 100px below final position
+            overlay_y = 440  # Center vertically
             
-            # Simplified text overlay with linear interpolation for better FFmpeg compatibility
-            text_y_expr = f"if(lt(t,{text_slide_in_start}),{overlay_y_start},if(lt(t,{text_slide_in_end}),{overlay_y_start}+({overlay_y_final}-{overlay_y_start})*(t-{text_slide_in_start})/{text_slide_in_end-text_slide_in_start},if(lt(t,{text_slide_out_start}),{overlay_y_final},if(lt(t,{text_slide_out_end}),{overlay_y_final}+({overlay_y_start}-{overlay_y_final})*(t-{text_slide_out_start})/{text_slide_out_end-text_slide_out_start},{overlay_y_start}))))"
-            overlay_filter = f"[highlight_video][1:v]overlay=x={overlay_x}:y='{text_y_expr}':enable=between(t\\,{text_slide_in_start}\\,{text_slide_out_end})[final]"
+            # Simple static text overlay
+            overlay_filter = f"[highlight_video][1:v]overlay={overlay_x}:{overlay_y}:enable=between(t\\,{overlay_start}\\,{overlay_end})[final]"
             
             filter_parts.append(overlay_filter)
             

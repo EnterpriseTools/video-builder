@@ -95,26 +95,12 @@ async def render_persona(
             overlay_start = 0.5
             overlay_end = max(1.0, audio_duration - 0.5)
             
-            # Calculate slide animation timing (same as intro template)
-            slide_in_start = overlay_start  # 0.5s
-            slide_in_end = overlay_start + 0.4  # 0.9s (400ms animation)
-            slide_out_start = overlay_end - 0.4  # Start sliding out 400ms before end
-            slide_out_end = overlay_end  # End of overlay period
-            
-            # Position the content-sized overlay with sliding animation (bottom-right)
-            # Use numeric values to avoid FFmpeg hanging - assuming text overlay ~200px wide x 100px high
+            # Position the overlay (bottom-right, simplified - no animation)
             overlay_x = 1672  # 1920 - 200 - 48 = 1672px from left (48px from right)
-            overlay_y_final = 932  # 1080 - 100 - 48 = 932px from top (48px from bottom)
-            overlay_y_start = 1100  # 1100px from top (below viewport, hidden)
+            overlay_y = 932  # 1080 - 100 - 48 = 932px from top (48px from bottom)
             
-            # Animation timing
-            slide_in_duration = 0.4  # 400ms slide in
-            slide_out_duration = 0.4  # 400ms slide out
-            
-            # Create overlay filter with sliding animation using linear interpolation
-            # Simplified version for better FFmpeg compatibility
-            overlay_y_expr = f"if(lt(t,{slide_in_start}),{overlay_y_start},if(lt(t,{slide_in_end}),{overlay_y_start}+({overlay_y_final}-{overlay_y_start})*(t-{slide_in_start})/{slide_in_duration},if(lt(t,{slide_out_start}),{overlay_y_final},if(lt(t,{slide_out_end}),{overlay_y_final}+({overlay_y_start}-{overlay_y_final})*(t-{slide_out_start})/{slide_out_duration},{overlay_y_start}))))"
-            overlay_filter = f"[bg][1:v]overlay=x={overlay_x}:y='{overlay_y_expr}':enable='between(t,{overlay_start},{overlay_end})'[final]"
+            # Simple static overlay
+            overlay_filter = f"[bg][1:v]overlay={overlay_x}:{overlay_y}:enable='between(t,{overlay_start},{overlay_end})'[final]"
             
             filter_parts.append(overlay_filter)
             

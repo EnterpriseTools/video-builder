@@ -87,34 +87,12 @@ async def render_intro_video(
                 # Add the PNG as a second input
                 ffmpeg_cmd.extend(["-i", overlay_png_path])
                 
-                # Calculate slide animation timing
-                slide_in_start = overlay_start  # 0.5s
-                slide_in_end = overlay_start + 0.4  # 0.9s (400ms animation)
-                slide_out_start = overlay_end - 0.4  # Start sliding out 400ms before end
-                slide_out_end = overlay_end  # End of overlay period
-                
-                # Position the content-sized overlay with sliding animation
+                # Position the overlay (simplified - no animation to avoid FFmpeg hanging)
                 overlay_x = 40
-                # Use numeric values instead of string expressions to avoid FFmpeg hanging
-                overlay_y_final = 940  # 1080 - 100 (overlay height) - 40 (padding) = 940px from top
-                overlay_y_start = 1100  # 1100px from top (below viewport, hidden)
+                overlay_y = 940  # 1080 - 100 (overlay height) - 40 (padding) = 940px from top
                 
-                # Animation timing
-                slide_in_duration = 0.4  # 400ms slide in
-                slide_out_duration = 0.4  # 400ms slide out
-                
-                # Create overlay filter with sliding animation using linear interpolation
-                # Simplified version for better FFmpeg compatibility
-                overlay_y_expr = (
-                    f"if(lt(t,{slide_in_start}),{overlay_y_start},"
-                    f"if(lt(t,{slide_in_end}),"
-                    f"{overlay_y_start}+({overlay_y_final}-{overlay_y_start})*(t-{slide_in_start})/{slide_in_duration},"
-                    f"if(lt(t,{slide_out_start}),{overlay_y_final},"
-                    f"if(lt(t,{slide_out_end}),"
-                    f"{overlay_y_final}+({overlay_y_start}-{overlay_y_final})*(t-{slide_out_start})/{slide_out_duration},"
-                    f"{overlay_y_start}))))"
-                )
-                overlay_filter = f"[0:v]scale=1920:1080,fps=30[scaled];[scaled][1:v]overlay=x={overlay_x}:y='{overlay_y_expr}':enable='between(t,{overlay_start},{overlay_end})'"
+                # Simple static overlay - animations removed temporarily to fix FFmpeg hanging issue
+                overlay_filter = f"[0:v]scale=1920:1080,fps=30[scaled];[scaled][1:v]overlay={overlay_x}:{overlay_y}:enable='between(t,{overlay_start},{overlay_end})'"
                 
                 filter_parts.append(overlay_filter)
                 has_overlay = True

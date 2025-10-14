@@ -121,24 +121,15 @@ async def render_closing(
         
         if has_overlay and overlay_path:
             # Calculate overlay timing - show for most of the video duration
-            overlay_start = 0.6  # Start 0.6s into video (slightly later than announcement)
+            overlay_start = 0.6  # Start 0.6s into video
             overlay_end = max(1.0, audio_duration - 0.5)  # End 0.5s before video ends
             
-            # Create sliding animation for text overlay
-            text_slide_in_start = 0.6  # Start text animation 0.6s
-            text_slide_in_end = text_slide_in_start + 0.7  # 700ms slide up animation
-            text_slide_out_start = overlay_end - 0.4  # Start sliding out 400ms before end
-            text_slide_out_end = overlay_end
-            
-            # Position the overlay centered (no image to work around)
-            # Use numeric values to avoid FFmpeg hanging - assuming text overlay ~800px wide x 400px high
+            # Position the overlay centered (simplified - no animation)
             overlay_x = 560  # Center horizontally: (1920 - 800) / 2 = 560px
-            overlay_y_final = 340  # Center vertically: (1080 - 400) / 2 = 340px
-            overlay_y_start = 460  # Start position: 120px below final position
+            overlay_y = 340  # Center vertically: (1080 - 400) / 2 = 340px
             
-            # Simplified text overlay with linear interpolation for better FFmpeg compatibility
-            text_y_expr = f"if(lt(t,{text_slide_in_start}),{overlay_y_start},if(lt(t,{text_slide_in_end}),{overlay_y_start}+({overlay_y_final}-{overlay_y_start})*(t-{text_slide_in_start})/{text_slide_in_end-text_slide_in_start},if(lt(t,{text_slide_out_start}),{overlay_y_final},if(lt(t,{text_slide_out_end}),{overlay_y_final}+({overlay_y_start}-{overlay_y_final})*(t-{text_slide_out_start})/{text_slide_out_end-text_slide_out_start},{overlay_y_start}))))"
-            overlay_filter = f"[highlight_video][2:v]overlay=x={overlay_x}:y='{text_y_expr}':enable=between(t\\,{text_slide_in_start}\\,{text_slide_out_end})[final]"
+            # Simple static text overlay
+            overlay_filter = f"[highlight_video][2:v]overlay={overlay_x}:{overlay_y}:enable=between(t\\,{overlay_start}\\,{overlay_end})[final]"
             
             filter_parts.append(overlay_filter)
             

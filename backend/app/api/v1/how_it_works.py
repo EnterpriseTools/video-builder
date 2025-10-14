@@ -91,62 +91,38 @@ async def render_how_it_works(
         wave_width = 2304  # 120% of 1920px
         filter_parts.append(f"[0:v]scale={wave_width}:-1[scaled_wave]")
         
-        # Calculate outro timing for wave and highlight animations (500ms before end)
-        wave_outro_start = max(1.0, audio_duration - 0.5)  # Start outro 500ms before end
-        wave_outro_end = audio_duration  # End of video
-        
-        # Wave positioning with outro animation: slides down at the end
-        # Position: left=-10%, bottom=-30% (matches announcement CSS positioning)
-        # Use numeric values to avoid FFmpeg hanging - wave is typically ~700px high
+        # Wave positioning (simplified - no animation)
         wave_x = -192  # -10% of 1920px width
-        wave_y_normal = 730  # Normal position: show about 50% of wave image
-        wave_y_outro = 1180  # Outro position: completely below viewport (1080 + 100)
+        wave_y = 730  # Position: show about 50% of wave image
         
-        # Simplified wave overlay with linear interpolation
-        wave_y_expr = f"if(lt(t,{wave_outro_start}),{wave_y_normal},if(lt(t,{wave_outro_end}),{wave_y_normal}+({wave_y_outro}-{wave_y_normal})*(t-{wave_outro_start})/{wave_outro_end-wave_outro_start},{wave_y_outro}))"
-        wave_overlay = f"[bg][scaled_wave]overlay=x={wave_x}:y='{wave_y_expr}':enable=lte(t\\,{audio_duration})[wave_bg]"
+        # Simple static overlay
+        wave_overlay = f"[bg][scaled_wave]overlay={wave_x}:{wave_y}[wave_bg]"
         
         filter_parts.append(wave_overlay)
         
-        # Add Highlight.png overlay (same positioning as announcement template)
+        # Add Highlight.png overlay (simplified - no animation)
         highlight_path = Path(__file__).parent.parent.parent.parent.parent / "frontend" / "public" / "highlight.png"
         
         # Scale highlight to original size (no scaling - same as announcement)
         filter_parts.append(f"[1:v]scale=iw:ih[scaled_highlight]")
         
-        # Highlight positioning with outro animation: slides up at the end
-        # Position: top-aligned, horizontally centered (same as announcement)
-        # Use numeric values to avoid FFmpeg hanging - highlight is typically ~1000px wide
+        # Highlight positioning (simplified - static)
         highlight_x = 460  # Center horizontally: (1920 - 1000) / 2 = 460px
-        highlight_y_normal = -100  # Normal position: partially visible at top
-        highlight_y_outro = -400  # Outro position: further up and out of view
-        
-        # Simplified highlight overlay with linear interpolation
-        highlight_y_expr = f"if(lt(t,{wave_outro_start}),{highlight_y_normal},if(lt(t,{wave_outro_end}),{highlight_y_normal}+({highlight_y_outro}-{highlight_y_normal})*(t-{wave_outro_start})/{wave_outro_end-wave_outro_start},{highlight_y_outro}))"
-        highlight_overlay = f"[wave_bg][scaled_highlight]overlay=x={highlight_x}:y='{highlight_y_expr}':enable=lte(t\\,{audio_duration})[highlight_video]"
-        
+        highlight_y = -100  # Position: partially visible at top
+        highlight_overlay = f"[wave_bg][scaled_highlight]overlay={highlight_x}:{highlight_y}[highlight_video]"
         filter_parts.append(highlight_overlay)
         
         if has_overlay and overlay_path:
             # Calculate overlay timing - show for most of the video duration
-            overlay_start = 0.6  # Start 0.6s into video (slightly later than announcement)
+            overlay_start = 0.6  # Start 0.6s into video
             overlay_end = max(1.0, audio_duration - 0.5)  # End 0.5s before video ends
             
-            # Create sliding animation for text overlay
-            text_slide_in_start = 0.6  # Start text animation 0.6s
-            text_slide_in_end = text_slide_in_start + 0.7  # 700ms slide up animation
-            text_slide_out_start = overlay_end - 0.4  # Start sliding out 400ms before end
-            text_slide_out_end = overlay_end
-            
-            # Position the overlay centered (no image to work around)
-            # Use numeric values to avoid FFmpeg hanging - assuming text overlay ~800px wide x 400px high
+            # Position the overlay centered (simplified - no animation)
             overlay_x = 560  # Center horizontally: (1920 - 800) / 2 = 560px
-            overlay_y_final = 340  # Center vertically: (1080 - 400) / 2 = 340px
-            overlay_y_start = 460  # Start position: 120px below final position
+            overlay_y = 340  # Center vertically: (1080 - 400) / 2 = 340px
             
-            # Simplified text overlay with linear interpolation for better FFmpeg compatibility
-            text_y_expr = f"if(lt(t,{text_slide_in_start}),{overlay_y_start},if(lt(t,{text_slide_in_end}),{overlay_y_start}+({overlay_y_final}-{overlay_y_start})*(t-{text_slide_in_start})/{text_slide_in_end-text_slide_in_start},if(lt(t,{text_slide_out_start}),{overlay_y_final},if(lt(t,{text_slide_out_end}),{overlay_y_final}+({overlay_y_start}-{overlay_y_final})*(t-{text_slide_out_start})/{text_slide_out_end-text_slide_out_start},{overlay_y_start}))))"
-            overlay_filter = f"[highlight_video][2:v]overlay=x={overlay_x}:y='{text_y_expr}':enable=between(t\\,{text_slide_in_start}\\,{text_slide_out_end})[final]"
+            # Simple static text overlay
+            overlay_filter = f"[highlight_video][2:v]overlay={overlay_x}:{overlay_y}:enable=between(t\\,{overlay_start}\\,{overlay_end})[final]"
             
             filter_parts.append(overlay_filter)
             
