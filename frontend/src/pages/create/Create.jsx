@@ -4,6 +4,9 @@ import { getTemplateConfig } from '@/lib/templateConfigs';
 import OverlayPreviewSection from '@/components/shared/overlay-preview-section';
 import './Create.scss';
 
+// Get API base URL from environment
+const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api';
+
 // Lazy load overlay components for thumbnails
 const AnnouncementOverlay = lazy(() => import('@/components/announcement-overlay/AnnouncementOverlay'));
 const HowItWorksOverlay = lazy(() => import('@/components/how-it-works-overlay/HowItWorksOverlay'));
@@ -324,7 +327,7 @@ export default function Create() {
         }
       }
       
-      const concatenateResponse = await fetch('/api/concatenate-multipart', {
+      const concatenateResponse = await fetch(`${API_BASE}/concatenate-multipart`, {
         method: 'POST',
         body: concatenateFormData,
       });
