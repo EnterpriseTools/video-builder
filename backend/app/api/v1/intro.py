@@ -89,9 +89,11 @@ async def render_intro_video(
                 overlay_y = 940  # 1080 - 100 (overlay height) - 40 (padding) = 940px from top
                 
                 # Use movie filter to load PNG directly in the filter (more reliable than second input)
+                # Must use -filter_complex for movie filter
                 # Escape the path for FFmpeg
                 escaped_path = overlay_png_path.replace('\\', '/').replace(':', '\\:')
-                overlay_filter = f"scale=1920:1080,fps=30,movie={escaped_path}[ovr];[in][ovr]overlay={overlay_x}:{overlay_y}"
+                # Correct syntax: scale/fps the input, load movie, then overlay
+                overlay_filter = f"[0:v]scale=1920:1080,fps=30[base];movie={escaped_path}[ovr];[base][ovr]overlay={overlay_x}:{overlay_y}"
                 
                 filter_parts.append(overlay_filter)
                 has_overlay = True
@@ -106,15 +108,27 @@ async def render_intro_video(
         # Combine filters
         video_filter = ",".join(filter_parts) if filter_parts else "scale=1920:1080,fps=30"
         
-        # Complete FFmpeg command - now always using single input with -vf
-        ffmpeg_cmd.extend([
-            "-vf", video_filter,
-            "-c:v", "libx264",
-            "-preset", "fast",  # Use "fast" preset to speed up encoding
-            "-crf", "23",
-            "-c:a", "copy",  # Just copy audio without re-encoding
-            str(output_path)
-        ])
+        # Complete FFmpeg command
+        if has_overlay:
+            # Use -filter_complex for movie filter (multiple inputs/outputs)
+            ffmpeg_cmd.extend([
+                "-filter_complex", video_filter,
+                "-c:v", "libx264",
+                "-preset", "fast",  # Use "fast" preset to speed up encoding
+                "-crf", "23",
+                "-c:a", "copy",  # Just copy audio without re-encoding
+                str(output_path)
+            ])
+        else:
+            # Use -vf for simple filters (single input/output)
+            ffmpeg_cmd.extend([
+                "-vf", video_filter,
+                "-c:v", "libx264",
+                "-preset", "fast",
+                "-crf", "23",
+                "-c:a", "copy",
+                str(output_path)
+            ])
         
         # Execute FFmpeg
         print(f"DEBUG: FFmpeg command: {' '.join(ffmpeg_cmd)}")
