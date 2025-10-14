@@ -7,7 +7,7 @@ export default function App() {
   const [health, setHealth] = useState(null);
 
   useEffect(() => {
-    api.get('/health')
+    api.get('/api/health')
       .then(setHealth)
       .catch((err) => console.error(err));
   }, []);
