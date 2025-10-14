@@ -325,7 +325,7 @@ export default function Create() {
         }
       }
       
-      const concatenateResponse = await fetch(`${API_BASE_URL}/concatenate-multipart`, {
+      const concatenateResponse = await fetch(`${API_BASE_URL}/api/concatenate-multipart`, {
         method: 'POST',
         body: concatenateFormData,
       });

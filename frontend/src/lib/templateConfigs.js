@@ -59,7 +59,7 @@ export const TEMPLATE_CONFIGS = {
     
     // API endpoints
     api: {
-      render: `${API_BASE_URL}/intro/render`
+      render: `${API_BASE_URL}/api/intro/render`
     },
     
     // Default values
@@ -136,7 +136,7 @@ export const TEMPLATE_CONFIGS = {
     ],
     
     api: {
-      render: `${API_BASE_URL}/announcement/render`
+      render: `${API_BASE_URL}/api/announcement/render`
     },
     
     defaults: {
@@ -202,7 +202,7 @@ export const TEMPLATE_CONFIGS = {
     ],
     
     api: {
-      render: `${API_BASE_URL}/how-it-works/render`
+      render: `${API_BASE_URL}/api/how-it-works/render`
     },
     
     defaults: {
@@ -284,7 +284,7 @@ export const TEMPLATE_CONFIGS = {
     ],
     
     api: {
-      render: `${API_BASE_URL}/persona/render`
+      render: `${API_BASE_URL}/api/persona/render`
     },
     
     defaults: {
@@ -370,7 +370,7 @@ export const TEMPLATE_CONFIGS = {
     ],
     
     api: {
-      render: `${API_BASE_URL}/closing/render`
+      render: `${API_BASE_URL}/api/closing/render`
     },
     
     defaults: {
@@ -425,7 +425,7 @@ export const TEMPLATE_CONFIGS = {
     textFields: [],
     
     api: {
-      render: `${API_BASE_URL}/demo/render`
+      render: `${API_BASE_URL}/api/demo/render`
     },
     
     defaults: {},
@@ -481,7 +481,7 @@ export const TEMPLATE_CONFIGS = {
     ],
     
     api: {
-      render: `${API_BASE_URL}/create/render`
+      render: `${API_BASE_URL}/api/create/render`
     },
     
     defaults: {
