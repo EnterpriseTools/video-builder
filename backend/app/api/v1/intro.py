@@ -116,10 +116,32 @@ async def render_intro_video(
         if has_overlay and overlay_png_path:
             print(f"DEBUG: Overlay PNG size: {os.path.getsize(overlay_png_path)} bytes")
         
-        # Add a 30-second timeout to see if FFmpeg is hanging or just slow
+        # Use Popen with PIPE to avoid deadlock on large outputs
+        # This allows us to read output in real-time and avoid buffer blocking
         try:
-            result = subprocess.run(ffmpeg_cmd, capture_output=True, text=True, timeout=30)
+            process = subprocess.Popen(
+                ffmpeg_cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True
+            )
+            
+            # Wait for completion with timeout
+            stdout, stderr = process.communicate(timeout=30)
+            
+            # Create result object similar to subprocess.run
+            class Result:
+                def __init__(self, returncode, stdout, stderr):
+                    self.returncode = returncode
+                    self.stdout = stdout
+                    self.stderr = stderr
+            
+            result = Result(process.returncode, stdout, stderr)
+            
         except subprocess.TimeoutExpired:
+            process.kill()  # Kill the process if it times out
+            stdout, stderr = process.communicate()  # Get any output before killing
+            print(f"DEBUG: FFmpeg timed out. Last output: {stderr[-500:]}")  # Print last 500 chars
             raise HTTPException(
                 status_code=500,
                 detail="FFmpeg processing timed out after 30 seconds - video file may be corrupted or FFmpeg is hanging"
