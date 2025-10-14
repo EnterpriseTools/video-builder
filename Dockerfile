@@ -10,15 +10,19 @@ RUN apt-get update && \
 # Set working directory
 WORKDIR /app
 
-# Copy Pipfile and Pipfile.lock first for better caching
-COPY Pipfile Pipfile.lock ./
+# Copy Pipfile and Pipfile.lock from backend directory
+COPY backend/Pipfile backend/Pipfile.lock ./
 
 # Install Python dependencies
 RUN pip install --no-cache-dir pipenv && \
     pipenv install --system --deploy
 
-# Copy the rest of the application
-COPY . .
+# Copy the backend application
+COPY backend/ ./
+
+# Copy frontend public assets (needed for video overlays)
+# The backend code references these for video overlays  
+COPY frontend/public ./frontend/public
 
 # Expose port (Railway will set this via $PORT)
 EXPOSE 8080
