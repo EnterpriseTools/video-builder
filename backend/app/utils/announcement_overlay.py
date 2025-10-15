@@ -71,6 +71,11 @@ class AnnouncementOverlayGenerator:
             title_font = get_font(PRIMARY_FONT_PATH, AnnouncementStyles.TITLE_SIZE)
             desc_font = get_font(PRIMARY_FONT_PATH, AnnouncementStyles.DESCRIPTION_SIZE)
             
+            # Debug: Print actual font sizes being used
+            print(f"DEBUG: Title font size: {AnnouncementStyles.TITLE_SIZE}px")
+            print(f"DEBUG: Description font size: {AnnouncementStyles.DESCRIPTION_SIZE}px")
+            print(f"DEBUG: Canvas dimensions: {base_width}x{base_height}")
+            
             # No background - just transparent text overlay to match screenshot
             # The background will be handled by the video composition
             
