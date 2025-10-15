@@ -1,5 +1,6 @@
 import tempfile
 import subprocess
+import urllib.request
 from pathlib import Path
 from typing import Optional
 from fastapi import APIRouter, File, Form, UploadFile, HTTPException
@@ -82,10 +83,18 @@ async def render_announcement(
         # Create output video
         output_path = temp_dir / f"announcement-{title or 'video'}.mp4"
         
-        # Multi-layer composition with animations
-        wave_path = "https://video-builder-nu.vercel.app/Wave.png"
-        highlight_path = "https://video-builder-nu.vercel.app/highlight.png"
+        # Download Wave.png and highlight.png from Vercel CDN to temp directory
+        # movie filter requires local files, not URLs
+        wave_url = "https://video-builder-nu.vercel.app/Wave.png"
+        highlight_url = "https://video-builder-nu.vercel.app/highlight.png"
         
+        wave_path = temp_dir / "Wave.png"
+        highlight_path = temp_dir / "highlight.png"
+        
+        urllib.request.urlretrieve(wave_url, wave_path)
+        urllib.request.urlretrieve(highlight_url, highlight_path)
+        
+        # Multi-layer composition with animations
         filter_parts = []
         
         # Layer 1: Background color

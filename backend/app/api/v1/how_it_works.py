@@ -1,5 +1,6 @@
 import tempfile
 import subprocess
+import urllib.request
 from pathlib import Path
 from typing import Optional
 from fastapi import APIRouter, File, Form, UploadFile, HTTPException
@@ -74,6 +75,17 @@ async def render_how_it_works(
         # Create output video
         output_path = temp_dir / f"how-it-works-{title or 'video'}.mp4"
         
+        # Download Wave.png and highlight.png from Vercel CDN to temp directory
+        # movie filter requires local files, not URLs
+        wave_url = "https://video-builder-nu.vercel.app/Wave.png"
+        highlight_url = "https://video-builder-nu.vercel.app/highlight.png"
+        
+        wave_path = temp_dir / "Wave.png"
+        highlight_path = temp_dir / "highlight.png"
+        
+        urllib.request.urlretrieve(wave_url, wave_path)
+        urllib.request.urlretrieve(highlight_url, highlight_path)
+        
         # Build FFmpeg command with how-it-works specific styling (audio + text overlay only)
         filter_parts = []
         
@@ -84,9 +96,6 @@ async def render_how_it_works(
         filter_parts.append(f"color=c={bg_color}:size=1920x1080:duration={audio_duration}:rate=30[bg]")
         
         # Add Wave.png overlay with slide-in animation
-        # Using Vercel CDN URL instead of local file path
-        wave_path = "https://video-builder-nu.vercel.app/Wave.png"
-        
         # Load wave using movie filter for animations
         filter_parts.append(f"movie={wave_path}:loop=0,setpts=N/(FRAME_RATE*TB),scale=2304:-1[wave]")
         
@@ -97,9 +106,6 @@ async def render_how_it_works(
         filter_parts.append(wave_overlay)
         
         # Add Highlight.png overlay with fade in animation
-        # Using Vercel CDN URL instead of local file path
-        highlight_path = "https://video-builder-nu.vercel.app/highlight.png"
-        
         # Load highlight with movie filter
         filter_parts.append(f"movie={highlight_path}:loop=0,setpts=N/(FRAME_RATE*TB)[highlight]")
         # Fade in over 0.3 seconds
