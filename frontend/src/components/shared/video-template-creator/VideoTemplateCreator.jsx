@@ -315,7 +315,6 @@ export default function VideoTemplateCreator({ config }) {
           <div className="preview-section">
             <div className="preview-header">
               <h2>Preview:</h2>
-              <span className="required-badge">Required</span>
             </div>
             <div className="preview-content">
               {hasRequiredFiles ? (
