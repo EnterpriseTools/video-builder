@@ -14,8 +14,14 @@ import {
  * @returns {Object} - Hook state and methods
  */
 export function useVideoTemplate(config) {
-  // Initialize text data with defaults
+  // Initialize text data with saved data (if editing) or defaults
   const [textData, setTextData] = useState(() => {
+    // If editing with saved data, use that
+    if (config.initialData?.textData) {
+      return { ...config.initialData.textData };
+    }
+    
+    // Otherwise use defaults
     const initialData = { ...config.defaults };
     // Apply default values from field configs
     config.textFields.forEach(field => {
@@ -30,13 +36,20 @@ export function useVideoTemplate(config) {
   const [files, setFiles] = useState(() => {
     const initialFiles = {};
     config.files.forEach(fileConfig => {
-      initialFiles[fileConfig.id] = {
-        file: null,
-        name: null,
-        preview: null,
-        duration: 0,
-        thumbnail: null
-      };
+      // If editing with saved data, restore file info
+      if (config.initialData?.files?.[fileConfig.id]?.file) {
+        initialFiles[fileConfig.id] = {
+          ...config.initialData.files[fileConfig.id]
+        };
+      } else {
+        initialFiles[fileConfig.id] = {
+          file: null,
+          name: null,
+          preview: null,
+          duration: 0,
+          thumbnail: null
+        };
+      }
     });
     return initialFiles;
   });
@@ -264,6 +277,34 @@ export function useVideoTemplate(config) {
   }, [files]);
 
   // Cleanup function for component unmount
+  // Reset all data (text and files)
+  const handleReset = useCallback(() => {
+    // Clear text data
+    const resetTextData = { ...config.defaults };
+    config.textFields.forEach(field => {
+      if (field.defaultValue && !resetTextData[field.id]) {
+        resetTextData[field.id] = field.defaultValue;
+      }
+    });
+    setTextData(resetTextData);
+    
+    // Clear files
+    const resetFiles = {};
+    config.files.forEach(fileConfig => {
+      resetFiles[fileConfig.id] = {
+        file: null,
+        name: null,
+        preview: null,
+        duration: 0,
+        thumbnail: null
+      };
+    });
+    setFiles(resetFiles);
+    
+    // Clear error
+    setError('');
+  }, [config]);
+
   const cleanup = useCallback(() => {
     // Revoke all object URLs to prevent memory leaks
     Object.values(files).forEach(fileData => {
@@ -290,6 +331,8 @@ export function useVideoTemplate(config) {
     // Text handlers
     handleTextChange,
 
+    // Reset handler
+    handleReset,
 
     // Render handlers
     renderVideo,

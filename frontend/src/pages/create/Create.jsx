@@ -75,7 +75,7 @@ function renderPreviewThumbnail(template) {
 }
 
 // Wrapper component that intercepts the render action
-function VideoTemplateModalWrapper({ templateId, onDone, onCancel }) {
+function VideoTemplateModalWrapper({ templateId, onDone, onCancel, initialData }) {
   const config = getTemplateConfig(templateId);
   
   // We need to modify the config to intercept the render action
@@ -85,7 +85,8 @@ function VideoTemplateModalWrapper({ templateId, onDone, onCancel }) {
       // Instead of rendering, call onDone with the configured data
       onDone(templateData);
     },
-    onCancel: onCancel // Pass cancel function through config
+    onCancel: onCancel, // Pass cancel function through config
+    initialData: initialData // Pass saved data for editing
   };
 
   return (
@@ -104,12 +105,12 @@ export default function Create() {
 
   // Timeline state - templates in fixed order
   const [templates, setTemplates] = useState([
-    { id: 'intro', name: 'Introduction', status: 'empty', config: null, previewData: null },
-    { id: 'announcement', name: 'Feature', status: 'empty', config: null, previewData: null },
-    { id: 'how-it-works', name: 'Context', status: 'empty', config: null, previewData: null },
-    { id: 'persona', name: 'Who it\'s for', status: 'empty', config: null, previewData: null },
-    { id: 'demo', name: 'Demo', status: 'empty', config: null, previewData: null },
-    { id: 'closing', name: 'Closing', status: 'empty', config: null, previewData: null }
+    { id: 'intro', name: 'Introduction', status: 'empty', config: null, previewData: null, savedData: null },
+    { id: 'announcement', name: 'Feature', status: 'empty', config: null, previewData: null, savedData: null },
+    { id: 'how-it-works', name: 'Context', status: 'empty', config: null, previewData: null, savedData: null },
+    { id: 'persona', name: 'Who it\'s for', status: 'empty', config: null, previewData: null, savedData: null },
+    { id: 'demo', name: 'Demo', status: 'empty', config: null, previewData: null, savedData: null },
+    { id: 'closing', name: 'Closing', status: 'empty', config: null, previewData: null, savedData: null }
   ]);
 
   // Template name to ID mapping
@@ -124,7 +125,12 @@ export default function Create() {
 
   const handleAddClick = (templateName) => {
     const templateId = templateNameToId[templateName];
-    setSelectedTemplate({ name: templateName, id: templateId });
+    const template = templates.find(t => t.id === templateId);
+    setSelectedTemplate({ 
+      name: templateName, 
+      id: templateId,
+      savedData: template?.savedData || null // Pass saved data if editing
+    });
     setIsModalOpen(true);
   };
 
@@ -173,7 +179,8 @@ export default function Create() {
               ...template, 
               status: 'ready', 
               config: templateData,
-              previewData: stablePreviewData
+              previewData: stablePreviewData,
+              savedData: templateData // Save for editing later
             }
           : template
       ));
@@ -187,7 +194,8 @@ export default function Create() {
               ...template, 
               status: 'ready', 
               config: templateData,
-              previewData: {}
+              previewData: {},
+              savedData: templateData // Save for editing later
             }
           : template
       ));
@@ -473,6 +481,7 @@ export default function Create() {
                 templateId={selectedTemplate.id}
                 onDone={handleTemplateDone}
                 onCancel={closeModal}
+                initialData={selectedTemplate.savedData}
               />
             </div>
           </div>

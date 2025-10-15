@@ -27,6 +27,8 @@ export default function VideoTemplateCreator({ config }) {
     // Text handlers
     handleTextChange,
 
+    // Reset handler
+    handleReset,
 
     // Render handlers
     renderVideo,
@@ -349,11 +351,13 @@ export default function VideoTemplateCreator({ config }) {
             Cancel
           </Button>
           <div className="action-main">
-          {/* TODO: Add trim clip button 
-          <Button variant="secondary" size="medium">
-            Trim Clip
-          </Button>
-          */}
+            <Button 
+              variant="secondary" 
+              size="medium"
+              onClick={handleReset}
+            >
+              Reset
+            </Button>
             <Button
               onClick={renderVideo}
               disabled={rendering}
