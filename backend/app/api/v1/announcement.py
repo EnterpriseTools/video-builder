@@ -87,7 +87,7 @@ async def render_announcement(
         
         cmd = [
             "ffmpeg", "-y",
-            "-loglevel", "warning",  # Show warnings and errors, but not verbose progress
+            "-loglevel", "info",  # Show all output for debugging
             "-loop", "1", "-i", str(image_path),  # Input image
             "-i", str(audio_path),                 # Input audio
             "-vf", "scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(1920-iw)/2:(1080-ih)/2:color=0x0C090E",
@@ -134,12 +134,16 @@ async def render_announcement(
                 detail="FFmpeg processing timed out after 60 seconds"
             )
         
+        print(f"DEBUG: FFmpeg return code: {result.returncode}")
+        print(f"DEBUG: FFmpeg stderr length: {len(result.stderr)}")
+        print(f"DEBUG: FFmpeg stdout length: {len(result.stdout)}")
+        
         if result.returncode != 0:
             print(f"FFmpeg stderr: {result.stderr}")
             print(f"FFmpeg stdout: {result.stdout}")
             raise HTTPException(
                 status_code=500, 
-                detail=f"Video processing failed: {result.stderr}"
+                detail=f"Video processing failed (exit code {result.returncode}): {result.stderr}"
             )
         
         # Verify output file was created
