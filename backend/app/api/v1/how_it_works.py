@@ -105,26 +105,24 @@ async def render_how_it_works(
         wave_overlay = f"[bg][wave]overlay=-192:'if(lt(t,0.5),{wave_y_start}+({wave_y_end}-{wave_y_start})*t/0.5,{wave_y_end})'[wave_bg]"
         filter_parts.append(wave_overlay)
         
-        # Add Highlight.png overlay with fade in animation
+        # Add Highlight.png overlay with fade in animation (match Feature template position)
         # Load highlight with movie filter
         filter_parts.append(f"movie={highlight_path}:loop=0,setpts=N/(FRAME_RATE*TB)[highlight]")
         # Fade in over 0.3 seconds
         filter_parts.append(f"[highlight]fade=t=in:st=0:d=0.3:alpha=1[faded_highlight]")
         
-        # Position centered horizontally, partially visible at top
-        highlight_x = 460  # Center horizontally: (1920 - 1000) / 2 = 460px
-        highlight_y = -100  # Position: partially visible at top
-        highlight_overlay = f"[wave_bg][faded_highlight]overlay={highlight_x}:{highlight_y}[highlight_video]"
+        # Position: center top aligned, mostly off-screen (same as Feature template)
+        highlight_overlay = f"[wave_bg][faded_highlight]overlay=(W-w)/2:-300[highlight_video]"
         filter_parts.append(highlight_overlay)
         
         if has_overlay and overlay_path:
-            # Slide in from right over 0.5 seconds
-            overlay_x_start = 1920  # Off-screen right
-            overlay_x_end = 560  # Center horizontally: (1920 - 800) / 2 = 560px
-            overlay_y = 340  # Center vertically: (1080 - 400) / 2 = 340px
+            # Center text overlay (no animation)
+            # Overlay is 1000px wide (HowItWorksStyles.BASE_WIDTH)
+            overlay_x = 460  # Center horizontally: (1920 - 1000) / 2 = 460px
+            overlay_y = 365  # Center vertically: (1080 - 350) / 2 = 365px (approximate)
             
-            # Text overlay with slide animation from right
-            overlay_filter = f"[highlight_video][0:v]overlay='if(lt(t,0.5),{overlay_x_start}+({overlay_x_end}-{overlay_x_start})*t/0.5,{overlay_x_end})':{overlay_y}[final]"
+            # Text overlay - static position, no animation
+            overlay_filter = f"[highlight_video][0:v]overlay={overlay_x}:{overlay_y}[final]"
             filter_parts.append(overlay_filter)
             
             # FFmpeg command with overlay (no image input, text overlay is input 0)
