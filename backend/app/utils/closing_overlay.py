@@ -204,7 +204,18 @@ class ClosingOverlayGenerator:
             
             # Save the image
             img.save(output_path, 'PNG')
-            print(f"Closing overlay generated: {output_path}")
+            
+            # Debug: Print overlay info
+            print(f"DEBUG: Closing overlay generated: {output_path}")
+            print(f"DEBUG: Overlay size: {img.size}")
+            print(f"DEBUG: Overlay mode: {img.mode}")
+            print(f"DEBUG: File size: {Path(output_path).stat().st_size} bytes")
+            print(f"DEBUG: Has title: {bool(title)}")
+            print(f"DEBUG: Has subtitle: {bool(subtitle)}")
+            print(f"DEBUG: Has email: {bool(email)}")
+            print(f"DEBUG: Has team_name: {bool(team_name)}")
+            print(f"DEBUG: Has director_name: {bool(director_name)}")
+            
             return output_path
             
         except ImportError:

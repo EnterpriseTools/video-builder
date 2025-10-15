@@ -122,6 +122,10 @@ async def render_closing(
         if has_overlay and overlay_path:
             # Closing text overlay is full-screen (1920x1080), so position at 0,0
             # No animation needed - text is already positioned correctly in the PNG
+            print(f"DEBUG: Using overlay at path: {overlay_path}")
+            print(f"DEBUG: Overlay file exists: {Path(overlay_path).exists()}")
+            if Path(overlay_path).exists():
+                print(f"DEBUG: Overlay file size: {Path(overlay_path).stat().st_size} bytes")
             overlay_filter = f"[highlight_video][0:v]overlay=0:0[final]"
             filter_parts.append(overlay_filter)
             
@@ -159,6 +163,9 @@ async def render_closing(
             ]
         
         # Execute FFmpeg command
+        print(f"DEBUG: has_overlay = {has_overlay}")
+        print(f"DEBUG: overlay_path = {overlay_path}")
+        print(f"DEBUG: Filter parts: {filter_parts}")
         print(f"Running FFmpeg command: {' '.join(cmd)}")
         
         # Use Popen to avoid subprocess deadlock on large outputs
