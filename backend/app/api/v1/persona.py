@@ -86,21 +86,18 @@ async def render_persona(
         # Build FFmpeg command with persona-specific styling
         filter_parts = []
         
-        # Create fullscreen image with specified duration (using simple scale like intro template)
-        bg_filter = f"[0:v]scale=1920:1080,setsar=1,fps=30[bg]"
+        # Create fullscreen image with fade in animation
+        bg_filter = f"[0:v]scale=1920:1080,setsar=1,fps=30,fade=t=in:st=0:d=0.5[bg]"
         filter_parts.append(bg_filter)
         
         if has_overlay and overlay_path:
-            # Calculate overlay timing - show for most of the video duration
-            overlay_start = 0.5
-            overlay_end = max(1.0, audio_duration - 0.5)
-            
-            # Position the overlay (bottom-right, simplified - no animation)
+            # Slide up from bottom-right corner over 0.5 seconds
             overlay_x = 1672  # 1920 - 200 - 48 = 1672px from left (48px from right)
-            overlay_y = 932  # 1080 - 100 - 48 = 932px from top (48px from bottom)
+            overlay_y_start = 1080  # Below screen
+            overlay_y_end = 932  # 1080 - 100 - 48 = 932px from top (48px from bottom)
             
-            # Ultra-simple static overlay - no enable parameter
-            overlay_filter = f"[bg][1:v]overlay={overlay_x}:{overlay_y}[final]"
+            # Text overlay with slide up animation from bottom
+            overlay_filter = f"[bg][1:v]overlay={overlay_x}:'if(lt(t,0.5),{overlay_y_start}+({overlay_y_end}-{overlay_y_start})*t/0.5,{overlay_y_end})'[final]"
             
             filter_parts.append(overlay_filter)
             
@@ -114,11 +111,8 @@ async def render_persona(
                 "-map", "[final]",
                 "-map", "2:a",
                 "-c:v", "libx264",
-                "-preset", "ultrafast",  # Reduce memory/CPU
-                "-crf", "28",
-                "-maxrate", "2M",
-                "-bufsize", "4M",
-                "-threads", "2",
+                "-preset", "fast",  # Good balance of speed/quality (restored from ultrafast)
+                "-crf", "23",  # Standard high quality (restored from 28)
                 "-c:a", "aac",
                 "-b:a", "192k",
                 "-t", str(audio_duration),
@@ -135,11 +129,8 @@ async def render_persona(
                 "-map", "[bg]",
                 "-map", "1:a",
                 "-c:v", "libx264",
-                "-preset", "ultrafast",  # Reduce memory/CPU
-                "-crf", "28",
-                "-maxrate", "2M",
-                "-bufsize", "4M",
-                "-threads", "2",
+                "-preset", "fast",  # Good balance of speed/quality (restored from ultrafast)
+                "-crf", "23",  # Standard high quality (restored from 28)
                 "-c:a", "aac",
                 "-b:a", "192k",
                 "-t", str(audio_duration),

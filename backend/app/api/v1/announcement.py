@@ -82,26 +82,90 @@ async def render_announcement(
         # Create output video
         output_path = temp_dir / f"announcement-{title or 'video'}.mp4"
         
-        # SIMPLIFIED VERSION: Remove all overlays to test basic processing
-        # Just create a simple video with image and audio
+        # Multi-layer composition with animations
+        wave_path = "https://video-builder-nu.vercel.app/Wave.png"
+        highlight_path = "https://video-builder-nu.vercel.app/highlight.png"
         
-        cmd = [
-            "ffmpeg", "-y",
-            "-loglevel", "error",  # Reduce output to prevent buffer issues
-            "-loop", "1", "-i", str(image_path),  # Input image
-            "-i", str(audio_path),                 # Input audio
-            "-vf", "scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(1920-iw)/2:(1080-ih)/2:color=0x0C090E",
-            "-c:v", "libx264",
-            "-c:a", "aac",
-            "-t", str(audio_duration),
-            "-pix_fmt", "yuv420p",
-            "-preset", "ultrafast",  # Fastest preset to reduce memory/CPU usage
-            "-crf", "28",  # Lower quality but much faster
-            "-maxrate", "2M",  # Limit bitrate to reduce memory
-            "-bufsize", "4M",  # Set buffer size
-            "-threads", "2",  # Limit CPU threads to reduce resource usage
-            str(output_path)
-        ]
+        filter_parts = []
+        
+        # Layer 1: Background color
+        filter_parts.append(f"color=c=0x0C090E:size=1920x1080:duration={audio_duration}:rate=30[bg]")
+        
+        # Layer 2: Wave overlay with slide-in animation from bottom
+        # Scale wave to 2304px wide (120% of 1920)
+        filter_parts.append(f"movie={wave_path}:loop=0,setpts=N/(FRAME_RATE*TB),scale=2304:-1[wave]")
+        # Slide in from bottom over 0.5 seconds
+        wave_y_start = 1080  # Below screen
+        wave_y_end = 730  # Final position
+        wave_overlay = f"[bg][wave]overlay=-192:'if(lt(t,0.5),{wave_y_start}+({wave_y_end}-{wave_y_start})*t/0.5,{wave_y_end})'[wave_bg]"
+        filter_parts.append(wave_overlay)
+        
+        # Layer 3: Image container with fade in
+        # Scale image to fit in 896x1016 container
+        filter_parts.append(f"[0:v]scale=896:1016:force_original_aspect_ratio=decrease[scaled_image]")
+        # Pad to 960x1080 with transparent background
+        filter_parts.append(f"[scaled_image]pad=960:1080:(960-iw)/2:(1080-ih)/2:color=0x00000000[container]")
+        # Fade in over 0.5 seconds
+        filter_parts.append(f"[container]fade=t=in:st=0:d=0.5:alpha=1[faded_container]")
+        # Position on right side
+        image_x = 960
+        image_overlay = f"[wave_bg][faded_container]overlay={image_x}:0[base]"
+        filter_parts.append(image_overlay)
+        
+        # Layer 4: Highlight overlay with scale animation
+        filter_parts.append(f"movie={highlight_path}:loop=0,setpts=N/(FRAME_RATE*TB)[highlight]")
+        # Scale from 0.8 to 1.0 over 0.5 seconds for gentle zoom effect
+        highlight_scale = "iw*if(lt(t,0.5),0.8+(0.2*t/0.5),1.0)"
+        filter_parts.append(f"[highlight]scale='{highlight_scale}':'{highlight_scale}'[scaled_highlight]")
+        # Position centered horizontally, partially visible at top
+        highlight_x = 460  # Center horizontally: (1920 - 1000) / 2 = 460px
+        highlight_y = -100  # Position: partially visible at top
+        highlight_overlay = f"[base][scaled_highlight]overlay={highlight_x}:{highlight_y}[highlight_video]"
+        filter_parts.append(highlight_overlay)
+        
+        # Layer 5: Text overlay with slide-in animation from left
+        if has_overlay and overlay_path:
+            # Slide in from left over 0.5 seconds
+            overlay_x_start = -400  # Off-screen left
+            overlay_x_end = 100  # Final position with margin
+            overlay_y = 440  # Center vertically
+            overlay_filter = f"[highlight_video][1:v]overlay='if(lt(t,0.5),{overlay_x_start}+({overlay_x_end}-{overlay_x_start})*t/0.5,{overlay_x_end})':{overlay_y}[final]"
+            filter_parts.append(overlay_filter)
+            
+            # FFmpeg command with text overlay
+            cmd = [
+                "ffmpeg", "-y", "-loglevel", "error",
+                "-loop", "1", "-i", str(image_path),   # Input image (0)
+                "-i", str(overlay_path),               # Input overlay PNG (1)
+                "-i", str(audio_path),                 # Input audio (2)
+                "-filter_complex", ";".join(filter_parts),
+                "-map", "[final]",
+                "-map", "2:a",
+                "-c:v", "libx264",
+                "-preset", "fast",
+                "-crf", "23",
+                "-c:a", "aac",
+                "-t", str(audio_duration),
+                "-pix_fmt", "yuv420p",
+                str(output_path)
+            ]
+        else:
+            # No text overlay - just end with highlight layer
+            cmd = [
+                "ffmpeg", "-y", "-loglevel", "error",
+                "-loop", "1", "-i", str(image_path),   # Input image (0)
+                "-i", str(audio_path),                 # Input audio (1)
+                "-filter_complex", ";".join(filter_parts),
+                "-map", "[highlight_video]",
+                "-map", "1:a",
+                "-c:v", "libx264",
+                "-preset", "fast",
+                "-crf", "23",
+                "-c:a", "aac",
+                "-t", str(audio_duration),
+                "-pix_fmt", "yuv420p",
+                str(output_path)
+            ]
         
         # Execute FFmpeg command
         print(f"Running FFmpeg command: {' '.join(cmd)}")

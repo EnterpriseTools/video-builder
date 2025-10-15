@@ -235,12 +235,10 @@ async def concatenate_videos_multipart(
             "-safe", "0", 
             "-i", str(concat_list_path),
             "-c:v", "libx264",
-            "-preset", "ultrafast",  # Reduce memory/CPU for concatenation
-            "-crf", "28",
-            "-maxrate", "2M",
-            "-bufsize", "4M",
-            "-threads", "2",
+            "-preset", "fast",  # Good balance of speed/quality (restored from ultrafast)
+            "-crf", "23",  # Standard high quality (restored from 28)
             "-c:a", "aac",
+            "-b:a", "192k",  # Better audio quality
             "-r", "30",  # 30fps
             "-s", "1920x1080",  # 1920x1080 resolution
             "-pix_fmt", "yuv420p",

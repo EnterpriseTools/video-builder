@@ -83,67 +83,55 @@ async def render_how_it_works(
         # Create main background canvas (no image, just background)
         filter_parts.append(f"color=c={bg_color}:size=1920x1080:duration={audio_duration}:rate=30[bg]")
         
-        # Add Wave.png overlay FIRST (lowest z-index - behind everything)
-        # Same positioning as announcement template but without intro animation
+        # Add Wave.png overlay with slide-in animation
         # Using Vercel CDN URL instead of local file path
         wave_path = "https://video-builder-nu.vercel.app/Wave.png"
         
-        # Scale the wave to match announcement template sizing: width 120% of viewport (2304px wide)
-        wave_width = 2304  # 120% of 1920px
-        filter_parts.append(f"[0:v]scale={wave_width}:-1[scaled_wave]")
+        # Load wave using movie filter for animations
+        filter_parts.append(f"movie={wave_path}:loop=0,setpts=N/(FRAME_RATE*TB),scale=2304:-1[wave]")
         
-        # Wave positioning (simplified - no animation)
-        wave_x = -192  # -10% of 1920px width
-        wave_y = 730  # Position: show about 50% of wave image
-        
-        # Simple static overlay
-        wave_overlay = f"[bg][scaled_wave]overlay={wave_x}:{wave_y}[wave_bg]"
-        
+        # Slide in from bottom over 0.5 seconds
+        wave_y_start = 1080  # Below screen
+        wave_y_end = 730  # Final position
+        wave_overlay = f"[bg][wave]overlay=-192:'if(lt(t,0.5),{wave_y_start}+({wave_y_end}-{wave_y_start})*t/0.5,{wave_y_end})'[wave_bg]"
         filter_parts.append(wave_overlay)
         
-        # Add Highlight.png overlay (simplified - no animation)
+        # Add Highlight.png overlay with fade in animation
         # Using Vercel CDN URL instead of local file path
         highlight_path = "https://video-builder-nu.vercel.app/highlight.png"
         
-        # Scale highlight to original size (no scaling - same as announcement)
-        filter_parts.append(f"[1:v]scale=iw:ih[scaled_highlight]")
+        # Load highlight with movie filter
+        filter_parts.append(f"movie={highlight_path}:loop=0,setpts=N/(FRAME_RATE*TB)[highlight]")
+        # Fade in over 0.3 seconds
+        filter_parts.append(f"[highlight]fade=t=in:st=0:d=0.3:alpha=1[faded_highlight]")
         
-        # Highlight positioning (simplified - static)
+        # Position centered horizontally, partially visible at top
         highlight_x = 460  # Center horizontally: (1920 - 1000) / 2 = 460px
         highlight_y = -100  # Position: partially visible at top
-        highlight_overlay = f"[wave_bg][scaled_highlight]overlay={highlight_x}:{highlight_y}[highlight_video]"
+        highlight_overlay = f"[wave_bg][faded_highlight]overlay={highlight_x}:{highlight_y}[highlight_video]"
         filter_parts.append(highlight_overlay)
         
         if has_overlay and overlay_path:
-            # Calculate overlay timing - show for most of the video duration
-            overlay_start = 0.6  # Start 0.6s into video
-            overlay_end = max(1.0, audio_duration - 0.5)  # End 0.5s before video ends
-            
-            # Position the overlay centered (simplified - no animation)
-            overlay_x = 560  # Center horizontally: (1920 - 800) / 2 = 560px
+            # Slide in from right over 0.5 seconds
+            overlay_x_start = 1920  # Off-screen right
+            overlay_x_end = 560  # Center horizontally: (1920 - 800) / 2 = 560px
             overlay_y = 340  # Center vertically: (1080 - 400) / 2 = 340px
             
-            # Ultra-simple static text overlay - no enable parameter
-            overlay_filter = f"[highlight_video][2:v]overlay={overlay_x}:{overlay_y}[final]"
-            
+            # Text overlay with slide animation from right
+            overlay_filter = f"[highlight_video][0:v]overlay='if(lt(t,0.5),{overlay_x_start}+({overlay_x_end}-{overlay_x_start})*t/0.5,{overlay_x_end})':{overlay_y}[final]"
             filter_parts.append(overlay_filter)
             
-            # FFmpeg command with overlay (no image input)
+            # FFmpeg command with overlay (no image input, text overlay is input 0)
             cmd = [
                 "ffmpeg", "-y", "-loglevel", "error",
-                "-loop", "1", "-i", str(wave_path),   # Input Wave.png (0)
-                "-loop", "1", "-i", str(highlight_path), # Input highlight.png (1)
-                "-i", str(overlay_path),               # Input overlay PNG (2)
-                "-i", str(audio_path),                 # Input audio (3)
+                "-i", str(overlay_path),               # Input overlay PNG (0)
+                "-i", str(audio_path),                 # Input audio (1)
                 "-filter_complex", ";".join(filter_parts),
                 "-map", "[final]",                     # Use final video output
-                "-map", "3:a",                         # Use audio from fourth input
+                "-map", "1:a",                         # Use audio from second input
                 "-c:v", "libx264",
-                "-preset", "ultrafast",  # Reduce memory/CPU
-                "-crf", "28",
-                "-maxrate", "2M",
-                "-bufsize", "4M",
-                "-threads", "2",
+                "-preset", "fast",  # Good balance of speed/quality (restored from ultrafast)
+                "-crf", "23",  # Standard high quality (restored from 28)
                 "-c:a", "aac",
                 "-t", str(audio_duration),
                 "-pix_fmt", "yuv420p",
@@ -153,18 +141,13 @@ async def render_how_it_works(
             # No text overlay - just wave + highlight + audio with background
             cmd = [
                 "ffmpeg", "-y", "-loglevel", "error",
-                "-loop", "1", "-i", str(wave_path),   # Input Wave.png (0)
-                "-loop", "1", "-i", str(highlight_path), # Input highlight.png (1)
-                "-i", str(audio_path),                 # Input audio (2)
+                "-i", str(audio_path),                 # Input audio (0)
                 "-filter_complex", ";".join(filter_parts),  # Use highlight_video as final
                 "-map", "[highlight_video]",           # Use highlight_video as final
-                "-map", "2:a",                         # Use audio from third input
+                "-map", "0:a",                         # Use audio from first input
                 "-c:v", "libx264",
-                "-preset", "ultrafast",  # Reduce memory/CPU
-                "-crf", "28",
-                "-maxrate", "2M",
-                "-bufsize", "4M",
-                "-threads", "2",
+                "-preset", "fast",  # Good balance of speed/quality (restored from ultrafast)
+                "-crf", "23",  # Standard high quality (restored from 28)
                 "-c:a", "aac",
                 "-t", str(audio_duration),
                 "-pix_fmt", "yuv420p",

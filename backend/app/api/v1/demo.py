@@ -49,11 +49,8 @@ async def render_demo(
             "ffmpeg", "-y", "-loglevel", "error",
             "-i", str(video_path),
             "-c:v", "libx264",
-            "-preset", "ultrafast",  # Reduce memory/CPU
-            "-crf", "28",
-            "-maxrate", "2M",
-            "-bufsize", "4M",
-            "-threads", "2",
+            "-preset", "fast",  # Good balance of speed/quality (restored from ultrafast)
+            "-crf", "23",  # Standard high quality (restored from 28)
             "-c:a", "aac",
             "-b:a", "192k",
             "-movflags", "+faststart",  # Optimize for web playback
