@@ -93,9 +93,10 @@ class AnnouncementOverlayGenerator:
                 
                 for line in title_lines:
                     bbox = draw.textbbox((0, 0), line, font=title_font)
-                    x = 0  # Left-aligned
+                    text_width = bbox[2] - bbox[0]
+                    x = (base_width - text_width) // 2  # Center horizontally
                     
-                    print(f"DEBUG: Line '{line}' bbox: {bbox}, width: {bbox[2]-bbox[0]}px, height: {bbox[3]-bbox[1]}px")
+                    print(f"DEBUG: Line '{line}' bbox: {bbox}, width: {text_width}px, height: {bbox[3]-bbox[1]}px, x: {x}")
                     
                     # Draw text with configured shadow
                     shadow_x, shadow_y = AnnouncementStyles.TITLE_SHADOW
@@ -118,7 +119,8 @@ class AnnouncementOverlayGenerator:
                 
                 for line in desc_lines:
                     bbox = draw.textbbox((0, 0), line, font=desc_font)
-                    x = 0  # Left-aligned
+                    text_width = bbox[2] - bbox[0]
+                    x = (base_width - text_width) // 2  # Center horizontally
                     
                     # Draw text with configured shadow
                     shadow_x, shadow_y = AnnouncementStyles.DESCRIPTION_SHADOW
