@@ -14,8 +14,14 @@ import {
  * @returns {Object} - Hook state and methods
  */
 export function useVideoTemplate(config) {
-  // Initialize text data with defaults
+  // Initialize text data with saved data (if editing) or defaults
   const [textData, setTextData] = useState(() => {
+    // If editing with saved data, use that
+    if (config.initialData?.textData) {
+      return { ...config.initialData.textData };
+    }
+    
+    // Otherwise use defaults
     const initialData = { ...config.defaults };
     // Apply default values from field configs
     config.textFields.forEach(field => {
@@ -30,13 +36,20 @@ export function useVideoTemplate(config) {
   const [files, setFiles] = useState(() => {
     const initialFiles = {};
     config.files.forEach(fileConfig => {
-      initialFiles[fileConfig.id] = {
-        file: null,
-        name: null,
-        preview: null,
-        duration: 0,
-        thumbnail: null
-      };
+      // If editing with saved data, restore file info
+      if (config.initialData?.files?.[fileConfig.id]?.file) {
+        initialFiles[fileConfig.id] = {
+          ...config.initialData.files[fileConfig.id]
+        };
+      } else {
+        initialFiles[fileConfig.id] = {
+          file: null,
+          name: null,
+          preview: null,
+          duration: 0,
+          thumbnail: null
+        };
+      }
     });
     return initialFiles;
   });
@@ -66,9 +79,15 @@ export function useVideoTemplate(config) {
       .every(fileConfig => files[fileConfig.id].file);
   }, [config.files, files]);
 
+  const hasRequiredTextFields = useCallback(() => {
+    return config.textFields
+      .filter(field => field.required)
+      .every(field => textData[field.id] && textData[field.id].trim());
+  }, [config.textFields, textData]);
+
   const canRender = useCallback(() => {
-    return hasRequiredFiles();
-  }, [hasRequiredFiles]);
+    return hasRequiredFiles() && hasRequiredTextFields();
+  }, [hasRequiredFiles, hasRequiredTextFields]);
 
   // Handle file uploads
   const handleFileUpload = useCallback(async (fileId, event) => {
@@ -183,9 +202,22 @@ export function useVideoTemplate(config) {
       .filter(fileConfig => fileConfig.required)
       .filter(fileConfig => !files[fileConfig.id].file);
 
+    // Validate required text fields
+    const missingTextFields = config.textFields
+      .filter(field => field.required)
+      .filter(field => !textData[field.id] || !textData[field.id].trim());
+
+    const missingItems = [];
     if (missingFiles.length > 0) {
-      const fileNames = missingFiles.map(f => f.label.toLowerCase()).join(' and ');
-      setError(`Please upload ${fileNames} first`);
+      missingItems.push(...missingFiles.map(f => f.label.toLowerCase()));
+    }
+    if (missingTextFields.length > 0) {
+      missingItems.push(...missingTextFields.map(f => f.label.toLowerCase()));
+    }
+
+    if (missingItems.length > 0) {
+      const itemNames = missingItems.join(', ');
+      setError(`Please fill out required fields: ${itemNames}`);
       return;
     }
 
@@ -289,7 +321,6 @@ export function useVideoTemplate(config) {
 
     // Text handlers
     handleTextChange,
-
 
     // Render handlers
     renderVideo,

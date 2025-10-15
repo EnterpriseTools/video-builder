@@ -27,7 +27,6 @@ export default function VideoTemplateCreator({ config }) {
     // Text handlers
     handleTextChange,
 
-
     // Render handlers
     renderVideo,
 
@@ -342,29 +341,22 @@ export default function VideoTemplateCreator({ config }) {
       <div className="template-actions">
         <div className="action-buttons">
           <Button 
-            variant="tertiary" 
+            variant="destructive" 
             size="medium"
-            onClick={config.onCancel}
+            onClick={config.onDelete}
           >
-            Cancel
+            Delete
           </Button>
-          <div className="action-main">
-          {/* TODO: Add trim clip button 
-          <Button variant="secondary" size="medium">
-            Trim Clip
+            
+          <Button
+            onClick={renderVideo}
+            disabled={!canRender || rendering}
+            loading={rendering}
+            variant="primary"
+            size="medium"
+          >
+            Save Changes
           </Button>
-          */}
-            <Button
-              onClick={renderVideo}
-              disabled={rendering}
-              loading={rendering}
-              variant="primary"
-              size="medium"
-            >
-              {config.onRenderIntercept ? 'Done' : 'Done'}
-            </Button>
-          
-          </div>
         </div>
       </div>
 
