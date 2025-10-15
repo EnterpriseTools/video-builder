@@ -124,9 +124,9 @@ async def render_announcement(
         filter_parts.append(f"movie={highlight_path}:loop=0,setpts=N/(FRAME_RATE*TB)[highlight]")
         # Fade in over 0.3 seconds (simpler than scale animation, better performance)
         filter_parts.append(f"[highlight]fade=t=in:st=0:d=0.3:alpha=1[faded_highlight]")
-        # Position centered horizontally, partially visible at top
+        # Position top center aligned (more visible than before)
         highlight_x = 460  # Center horizontally: (1920 - 1000) / 2 = 460px
-        highlight_y = -100  # Position: partially visible at top
+        highlight_y = -50  # Position: top aligned, more visible
         highlight_overlay = f"[base][faded_highlight]overlay={highlight_x}:{highlight_y}[highlight_video]"
         filter_parts.append(highlight_overlay)
         
