@@ -163,7 +163,37 @@ async def render_how_it_works(
         
         # Execute FFmpeg command
         print(f"Running FFmpeg command: {' '.join(cmd)}")
-        result = subprocess.run(cmd, capture_output=True, text=True, cwd=temp_dir)
+        
+        # Use Popen to avoid subprocess deadlock on large outputs
+        try:
+            process = subprocess.Popen(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                cwd=temp_dir
+            )
+            
+            # Wait for completion with timeout
+            stdout, stderr = process.communicate(timeout=60)
+            
+            # Create result object similar to subprocess.run
+            class Result:
+                def __init__(self, returncode, stdout, stderr):
+                    self.returncode = returncode
+                    self.stdout = stdout
+                    self.stderr = stderr
+            
+            result = Result(process.returncode, stdout, stderr)
+            
+        except subprocess.TimeoutExpired:
+            process.kill()
+            stdout, stderr = process.communicate()
+            print(f"FFmpeg timed out. Last output: {stderr[-500:]}")
+            raise HTTPException(
+                status_code=500,
+                detail="FFmpeg processing timed out after 60 seconds"
+            )
         
         if result.returncode != 0:
             print(f"FFmpeg stderr: {result.stderr}")
