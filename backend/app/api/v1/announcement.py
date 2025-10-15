@@ -109,16 +109,15 @@ async def render_announcement(
         wave_overlay = f"[bg][wave]overlay=-192:'if(lt(t,0.5),{wave_y_start}+({wave_y_end}-{wave_y_start})*t/0.5,{wave_y_end})'[wave_bg]"
         filter_parts.append(wave_overlay)
         
-        # Layer 3: Image container with fade in
+        # Layer 3: Image container with slide-in animation from right
         # Scale image to fit in 896x1016 container
         filter_parts.append(f"[0:v]scale=896:1016:force_original_aspect_ratio=decrease[scaled_image]")
         # Pad to 960x1080 with transparent background
         filter_parts.append(f"[scaled_image]pad=960:1080:(960-iw)/2:(1080-ih)/2:color=0x00000000[container]")
-        # Fade in over 0.5 seconds
-        filter_parts.append(f"[container]fade=t=in:st=0:d=0.5:alpha=1[faded_container]")
-        # Position on right side
-        image_x = 960
-        image_overlay = f"[wave_bg][faded_container]overlay={image_x}:0[base]"
+        # Slide in from right over 0.5 seconds (no fade, just slide)
+        image_x_start = 1920  # Off-screen right (100% out of viewport)
+        image_x_end = 960  # Final position (right half of screen)
+        image_overlay = f"[wave_bg][container]overlay='if(lt(t,0.5),{image_x_start}+({image_x_end}-{image_x_start})*t/0.5,{image_x_end})':0[base]"
         filter_parts.append(image_overlay)
         
         # Layer 4: Highlight overlay with fade in (scale animation removed for performance)
