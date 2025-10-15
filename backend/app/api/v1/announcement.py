@@ -124,8 +124,9 @@ async def render_announcement(
         # Layer 4: Highlight overlay with scale animation
         filter_parts.append(f"movie={highlight_path}:loop=0,setpts=N/(FRAME_RATE*TB)[highlight]")
         # Scale from 0.8 to 1.0 over 0.5 seconds for gentle zoom effect
+        # Use eval=frame to allow time-based expressions
         highlight_scale = "iw*if(lt(t,0.5),0.8+(0.2*t/0.5),1.0)"
-        filter_parts.append(f"[highlight]scale='{highlight_scale}':'{highlight_scale}'[scaled_highlight]")
+        filter_parts.append(f"[highlight]scale='w={highlight_scale}:h={highlight_scale}:eval=frame'[scaled_highlight]")
         # Position centered horizontally, partially visible at top
         highlight_x = 460  # Center horizontally: (1920 - 1000) / 2 = 460px
         highlight_y = -100  # Position: partially visible at top
