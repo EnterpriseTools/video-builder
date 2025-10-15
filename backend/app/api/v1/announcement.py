@@ -104,7 +104,7 @@ async def render_announcement(
         # Layer 2: Highlight overlay (z-index: 1, below everything)
         filter_parts.append(f"movie={highlight_path}:loop=0,setpts=N/(FRAME_RATE*TB)[highlight]")
         # Position center top aligned, mostly off-screen (only bottom portion visible)
-        highlight_overlay = f"[bg][highlight]overlay=(W-w)/2:-200[highlight_layer]"
+        highlight_overlay = f"[bg][highlight]overlay=(W-w)/2:-300[highlight_layer]"
         filter_parts.append(highlight_overlay)
         
         # Layer 3: Wave overlay with slide-in animation (z-index: 1, same as highlight)
