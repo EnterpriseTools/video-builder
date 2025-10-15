@@ -69,11 +69,10 @@ async def render_intro_video(
         ffmpeg_cmd = ["ffmpeg", "-y", "-loglevel", "error", "-i", str(input_path)]
         
         # Build video filter with PNG overlay
-        filter_parts = []
-        
-        # CRITICAL TEST: Disable overlay completely to test if basic video processing works
         has_overlay = False
-        if False:
+        
+        # Check if we have any text to overlay
+        if team or full_name or role:
             # Generate the PNG overlay
             overlay_png_path = await overlay_generator.generate_overlay_png(
                 team=team,
@@ -84,37 +83,43 @@ async def render_intro_video(
             
             # Verify the PNG was created successfully
             if os.path.exists(overlay_png_path) and os.path.getsize(overlay_png_path) > 0:
-                # Position the overlay (simplified - no animation to avoid FFmpeg hanging)
-                overlay_x = 40
-                overlay_y = 940  # 1080 - 100 (overlay height) - 40 (padding) = 940px from top
-                
-                # Use movie filter to load PNG directly in the filter (more reliable than second input)
-                # Must use -filter_complex for movie filter
-                # Escape the path for FFmpeg
-                escaped_path = overlay_png_path.replace('\\', '/').replace(':', '\\:')
-                # Correct syntax: scale/fps the input, load movie, then overlay
-                overlay_filter = f"[0:v]scale=1920:1080,fps=30[base];movie={escaped_path}[ovr];[base][ovr]overlay={overlay_x}:{overlay_y}"
-                
-                filter_parts.append(overlay_filter)
                 has_overlay = True
+                print(f"DEBUG: Overlay PNG generated: {overlay_png_path} ({os.path.getsize(overlay_png_path)} bytes)")
             else:
-                # PNG generation failed, proceed without overlay
-                has_overlay = False
+                print(f"WARNING: Overlay PNG generation failed or empty file")
         
-        # ULTRA-SIMPLE TEST: Just copy the video without ANY processing
-        # This will test if FFmpeg can complete ANY job at all
-        ffmpeg_cmd.extend([
-            "-c:v", "copy",  # Copy video stream without re-encoding
-            "-c:a", "copy",  # Copy audio stream without re-encoding
-            str(output_path)
-        ])
+        # Build FFmpeg command based on whether we have an overlay
+        if has_overlay and overlay_png_path:
+            # Position the overlay at bottom-left with padding
+            overlay_x = 40
+            overlay_y = 940  # 1080 - 100 (approx overlay height) - 40 (padding)
+            
+            # Use filter_complex with movie filter to load PNG
+            overlay_filter = f"[0:v]scale=1920:1080,fps=30[base];movie={overlay_png_path}[ovr];[base][ovr]overlay={overlay_x}:{overlay_y}"
+            
+            ffmpeg_cmd.extend([
+                "-filter_complex", overlay_filter,
+                "-c:v", "libx264",
+                "-preset", "fast",
+                "-crf", "23",
+                "-c:a", "aac",
+                "-pix_fmt", "yuv420p",
+                str(output_path)
+            ])
+        else:
+            # No overlay - just re-encode the video
+            ffmpeg_cmd.extend([
+                "-c:v", "libx264",
+                "-preset", "fast",
+                "-crf", "23",
+                "-c:a", "aac",
+                "-pix_fmt", "yuv420p",
+                str(output_path)
+            ])
         
         # Execute FFmpeg
         print(f"DEBUG: FFmpeg command: {' '.join(ffmpeg_cmd)}")
         print(f"DEBUG: Has overlay: {has_overlay}")
-        print(f"DEBUG: ULTRA-SIMPLE TEST - Just copying video without any filters")
-        if has_overlay and overlay_png_path:
-            print(f"DEBUG: Overlay PNG size: {os.path.getsize(overlay_png_path)} bytes")
         
         # Use Popen with PIPE to avoid deadlock on large outputs
         # This allows us to read output in real-time and avoid buffer blocking
