@@ -109,26 +109,20 @@ async def render_closing(
         wave_overlay = f"[bg][wave]overlay=-192:'if(lt(t,0.5),{wave_y_start}+({wave_y_end}-{wave_y_start})*t/0.5,{wave_y_end})'[wave_bg]"
         filter_parts.append(wave_overlay)
         
-        # Add Highlight.png overlay with fade in animation
+        # Add Highlight.png overlay with fade in animation (match Feature/HowItWorks position)
         # Load highlight with movie filter and fade in
         filter_parts.append(f"movie={highlight_path}:loop=0,setpts=N/(FRAME_RATE*TB)[highlight]")
         # Fade in over 0.3 seconds
         filter_parts.append(f"[highlight]fade=t=in:st=0:d=0.3:alpha=1[faded_highlight]")
         
-        # Position centered horizontally, partially visible at top
-        highlight_x = 460  # Center horizontally: (1920 - 1000) / 2 = 460px
-        highlight_y = -100  # Position: partially visible at top
-        highlight_overlay = f"[wave_bg][faded_highlight]overlay={highlight_x}:{highlight_y}[highlight_video]"
+        # Position: center top aligned, mostly off-screen (same as Feature/HowItWorks)
+        highlight_overlay = f"[wave_bg][faded_highlight]overlay=(W-w)/2:-300[highlight_video]"
         filter_parts.append(highlight_overlay)
         
         if has_overlay and overlay_path:
-            # Fade in and slide up from bottom for closing text
-            overlay_x = 560  # Center horizontally: (1920 - 800) / 2 = 560px
-            overlay_y_start = 1080  # Below screen
-            overlay_y_end = 340  # Center vertically: (1080 - 400) / 2 = 340px
-            
-            # Text overlay with slide up animation and fade in
-            overlay_filter = f"[highlight_video][0:v]overlay={overlay_x}:'if(lt(t,0.6),{overlay_y_start}+({overlay_y_end}-{overlay_y_start})*t/0.6,{overlay_y_end})'[final]"
+            # Closing text overlay is full-screen (1920x1080), so position at 0,0
+            # No animation needed - text is already positioned correctly in the PNG
+            overlay_filter = f"[highlight_video][0:v]overlay=0:0[final]"
             filter_parts.append(overlay_filter)
             
             # FFmpeg command with overlay (text overlay is input 0)
