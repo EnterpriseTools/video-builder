@@ -19,6 +19,7 @@ export default function VideoTemplateCreator({ config }) {
     rendering,
     error,
     showPreview,
+    wasReset,
 
     // File handlers
     handleFileUpload,

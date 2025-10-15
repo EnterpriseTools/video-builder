@@ -59,6 +59,7 @@ export function useVideoTemplate(config) {
   const [rendering, setRendering] = useState(false);
   const [error, setError] = useState('');
   const [showPreview, setShowPreview] = useState(false);
+  const [wasReset, setWasReset] = useState(false); // Track if user clicked reset
 
   // Helper function to update file state
   const updateFileState = useCallback((fileId, updates) => {
@@ -79,9 +80,15 @@ export function useVideoTemplate(config) {
       .every(fileConfig => files[fileConfig.id].file);
   }, [config.files, files]);
 
+  const hasRequiredTextFields = useCallback(() => {
+    return config.textFields
+      .filter(field => field.required)
+      .every(field => textData[field.id] && textData[field.id].trim());
+  }, [config.textFields, textData]);
+
   const canRender = useCallback(() => {
-    return hasRequiredFiles();
-  }, [hasRequiredFiles]);
+    return hasRequiredFiles() && hasRequiredTextFields();
+  }, [hasRequiredFiles, hasRequiredTextFields]);
 
   // Handle file uploads
   const handleFileUpload = useCallback(async (fileId, event) => {
@@ -196,9 +203,22 @@ export function useVideoTemplate(config) {
       .filter(fileConfig => fileConfig.required)
       .filter(fileConfig => !files[fileConfig.id].file);
 
+    // Validate required text fields
+    const missingTextFields = config.textFields
+      .filter(field => field.required)
+      .filter(field => !textData[field.id] || !textData[field.id].trim());
+
+    const missingItems = [];
     if (missingFiles.length > 0) {
-      const fileNames = missingFiles.map(f => f.label.toLowerCase()).join(' and ');
-      setError(`Please upload ${fileNames} first`);
+      missingItems.push(...missingFiles.map(f => f.label.toLowerCase()));
+    }
+    if (missingTextFields.length > 0) {
+      missingItems.push(...missingTextFields.map(f => f.label.toLowerCase()));
+    }
+
+    if (missingItems.length > 0) {
+      const itemNames = missingItems.join(', ');
+      setError(`Please fill out required fields: ${itemNames}`);
       return;
     }
 
@@ -209,7 +229,8 @@ export function useVideoTemplate(config) {
         files,
         config: config
       };
-      config.onRenderIntercept(templateData);
+      // Pass wasReset flag so parent knows if template should be cleared
+      config.onRenderIntercept(templateData, wasReset);
       return;
     }
 
@@ -303,6 +324,9 @@ export function useVideoTemplate(config) {
     
     // Clear error
     setError('');
+    
+    // Mark that reset was clicked
+    setWasReset(true);
   }, [config]);
 
   const cleanup = useCallback(() => {
@@ -323,6 +347,7 @@ export function useVideoTemplate(config) {
     rendering,
     error,
     showPreview,
+    wasReset,
 
     // File handlers
     handleFileUpload,

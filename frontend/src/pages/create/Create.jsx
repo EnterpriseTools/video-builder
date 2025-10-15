@@ -81,9 +81,9 @@ function VideoTemplateModalWrapper({ templateId, onDone, onCancel, initialData }
   // We need to modify the config to intercept the render action
   const modalConfig = {
     ...config,
-    onRenderIntercept: (templateData) => {
-      // Instead of rendering, call onDone with the configured data
-      onDone(templateData);
+    onRenderIntercept: (templateData, wasReset) => {
+      // Instead of rendering, call onDone with the configured data and reset flag
+      onDone(templateData, wasReset);
     },
     onCancel: onCancel, // Pass cancel function through config
     initialData: initialData // Pass saved data for editing
@@ -139,8 +139,25 @@ export default function Create() {
     setSelectedTemplate(null);
   };
 
-  const handleTemplateDone = async (templateData) => {
+  const handleTemplateDone = async (templateData, wasReset = false) => {
     if (!selectedTemplate) return;
+    
+    // If reset was clicked, clear the template from timeline
+    if (wasReset) {
+      setTemplates(prev => prev.map(template => 
+        template.id === selectedTemplate.id 
+          ? { 
+              ...template, 
+              status: 'empty', 
+              config: null,
+              previewData: null,
+              savedData: null
+            }
+          : template
+      ));
+      closeModal();
+      return;
+    }
     
     try {
       // Create stable preview data that won't be revoked
