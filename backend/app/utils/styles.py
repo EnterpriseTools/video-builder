@@ -19,8 +19,10 @@ CANVAS_HEIGHT = 1080
 # ==============================================================================
 
 # Font paths
-PRIMARY_FONT_PATH = "/System/Library/Fonts/Helvetica.ttc"
-FALLBACK_FONT_PATH = "arial.ttf"
+# Font paths for Linux (Debian) and macOS fallback
+# Debian has DejaVu fonts pre-installed, which are high-quality open-source fonts
+PRIMARY_FONT_PATH = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
+FALLBACK_FONT_PATH = "/System/Library/Fonts/Helvetica.ttc"  # macOS fallback
 
 # Font sizes (in pixels)
 FONT_SIZE_EXTRA_LARGE = 80    # Main titles
@@ -295,13 +297,33 @@ class HowItWorksStyles:
 def get_font(font_path: str, size: int):
     """Helper function to load fonts with fallback"""
     from PIL import ImageFont
-    try:
-        return ImageFont.truetype(font_path, size)
-    except:
+    import os
+    
+    # Try primary font
+    if os.path.exists(font_path):
         try:
-            return ImageFont.truetype(FALLBACK_FONT_PATH, size)
-        except:
-            return ImageFont.load_default()
+            font = ImageFont.truetype(font_path, size)
+            print(f"DEBUG: Loaded font from {font_path} at {size}px")
+            return font
+        except Exception as e:
+            print(f"WARNING: Failed to load font from {font_path}: {e}")
+    else:
+        print(f"WARNING: Font not found at {font_path}")
+    
+    # Try fallback font
+    if os.path.exists(FALLBACK_FONT_PATH):
+        try:
+            font = ImageFont.truetype(FALLBACK_FONT_PATH, size)
+            print(f"DEBUG: Loaded fallback font from {FALLBACK_FONT_PATH} at {size}px")
+            return font
+        except Exception as e:
+            print(f"WARNING: Failed to load fallback font from {FALLBACK_FONT_PATH}: {e}")
+    else:
+        print(f"WARNING: Fallback font not found at {FALLBACK_FONT_PATH}")
+    
+    # Last resort - but this will cause small text!
+    print(f"ERROR: No TrueType fonts available! Falling back to default bitmap font (will be tiny)")
+    return ImageFont.load_default()
 
 
 def get_logo_path():
