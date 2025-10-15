@@ -341,31 +341,22 @@ export default function VideoTemplateCreator({ config }) {
       <div className="template-actions">
         <div className="action-buttons">
           <Button 
-            variant="tertiary" 
+            variant="destructive" 
             size="medium"
-            onClick={config.onCancel}
+            onClick={config.onDelete}
           >
-            Cancel
+            Delete
           </Button>
-          <div className="action-main">
-            <Button 
-              variant="destructive" 
-              size="medium"
-              onClick={config.onDelete}
-            >
-              Delete
-            </Button>
-            <Button
-              onClick={renderVideo}
-              disabled={!canRender || rendering}
-              loading={rendering}
-              variant="primary"
-              size="medium"
-            >
-              {config.onRenderIntercept ? 'Done' : 'Done'}
-            </Button>
-          
-          </div>
+            
+          <Button
+            onClick={renderVideo}
+            disabled={!canRender || rendering}
+            loading={rendering}
+            variant="primary"
+            size="medium"
+          >
+            Save Changes
+          </Button>
         </div>
       </div>
 

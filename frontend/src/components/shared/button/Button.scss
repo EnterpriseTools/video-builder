@@ -53,16 +53,30 @@
     background: #F51B77;
     color: var(--color-fg-on-primary);
     border: 1px solid transparent;
+
+    
     
     &:hover:not(.btn--disabled):not(.btn--loading) {
       background: #f73e8b;
-      transform: translateY(-1px);
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      border: 1px solid #F51B77;
     }
     
     &:active:not(.btn--disabled):not(.btn--loading) {
       transform: translateY(0);
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+    &:disabled {
+      background: #222222;
+      color: #444444;
+      border: 1px solid #444444;
+      cursor: not-allowed;
+      transform: none !important;
+
+      &:hover {
+        background: #222222;
+      color: #444444;
+      border: 1px solid #444444;
+      }
     }
   }
   
@@ -103,14 +117,12 @@
   
   /* Destructive - Delete/clear actions */
   &--destructive {
-    background: var(--color-error);
-    color: var(--color-fg-on-error);
-    border: 1px solid transparent;
+    background: transparent;
+    color: var(--color-error);
+    border: 1px solid var(--color-error);
     
     &:hover:not(.btn--disabled):not(.btn--loading) {
-      background: var(--color-error-hover);
-      transform: translateY(-1px);
-      box-shadow: 0 4px 8px rgba(239, 68, 68, 0.3);
+      background: rgba(239, 68, 68, 0.2);
     }
     
     &:active:not(.btn--disabled):not(.btn--loading) {
