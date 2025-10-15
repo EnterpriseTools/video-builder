@@ -59,7 +59,6 @@ export function useVideoTemplate(config) {
   const [rendering, setRendering] = useState(false);
   const [error, setError] = useState('');
   const [showPreview, setShowPreview] = useState(false);
-  const [wasReset, setWasReset] = useState(false); // Track if user clicked reset
 
   // Helper function to update file state
   const updateFileState = useCallback((fileId, updates) => {
@@ -229,8 +228,7 @@ export function useVideoTemplate(config) {
         files,
         config: config
       };
-      // Pass wasReset flag so parent knows if template should be cleared
-      config.onRenderIntercept(templateData, wasReset);
+      config.onRenderIntercept(templateData);
       return;
     }
 
@@ -298,37 +296,6 @@ export function useVideoTemplate(config) {
   }, [files]);
 
   // Cleanup function for component unmount
-  // Reset all data (text and files)
-  const handleReset = useCallback(() => {
-    // Clear text data
-    const resetTextData = { ...config.defaults };
-    config.textFields.forEach(field => {
-      if (field.defaultValue && !resetTextData[field.id]) {
-        resetTextData[field.id] = field.defaultValue;
-      }
-    });
-    setTextData(resetTextData);
-    
-    // Clear files
-    const resetFiles = {};
-    config.files.forEach(fileConfig => {
-      resetFiles[fileConfig.id] = {
-        file: null,
-        name: null,
-        preview: null,
-        duration: 0,
-        thumbnail: null
-      };
-    });
-    setFiles(resetFiles);
-    
-    // Clear error
-    setError('');
-    
-    // Mark that reset was clicked
-    setWasReset(true);
-  }, [config]);
-
   const cleanup = useCallback(() => {
     // Revoke all object URLs to prevent memory leaks
     Object.values(files).forEach(fileData => {
@@ -347,7 +314,6 @@ export function useVideoTemplate(config) {
     rendering,
     error,
     showPreview,
-    wasReset,
 
     // File handlers
     handleFileUpload,
@@ -355,9 +321,6 @@ export function useVideoTemplate(config) {
 
     // Text handlers
     handleTextChange,
-
-    // Reset handler
-    handleReset,
 
     // Render handlers
     renderVideo,

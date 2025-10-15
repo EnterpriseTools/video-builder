@@ -19,7 +19,6 @@ export default function VideoTemplateCreator({ config }) {
     rendering,
     error,
     showPreview,
-    wasReset,
 
     // File handlers
     handleFileUpload,
@@ -27,9 +26,6 @@ export default function VideoTemplateCreator({ config }) {
 
     // Text handlers
     handleTextChange,
-
-    // Reset handler
-    handleReset,
 
     // Render handlers
     renderVideo,
@@ -353,15 +349,15 @@ export default function VideoTemplateCreator({ config }) {
           </Button>
           <div className="action-main">
             <Button 
-              variant="secondary" 
+              variant="destructive" 
               size="medium"
-              onClick={handleReset}
+              onClick={config.onDelete}
             >
-              Reset
+              Delete
             </Button>
             <Button
               onClick={renderVideo}
-              disabled={rendering}
+              disabled={!canRender || rendering}
               loading={rendering}
               variant="primary"
               size="medium"

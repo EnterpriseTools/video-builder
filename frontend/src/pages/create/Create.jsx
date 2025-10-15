@@ -75,17 +75,18 @@ function renderPreviewThumbnail(template) {
 }
 
 // Wrapper component that intercepts the render action
-function VideoTemplateModalWrapper({ templateId, onDone, onCancel, initialData }) {
+function VideoTemplateModalWrapper({ templateId, onDone, onCancel, onDelete, initialData }) {
   const config = getTemplateConfig(templateId);
   
   // We need to modify the config to intercept the render action
   const modalConfig = {
     ...config,
-    onRenderIntercept: (templateData, wasReset) => {
-      // Instead of rendering, call onDone with the configured data and reset flag
-      onDone(templateData, wasReset);
+    onRenderIntercept: (templateData) => {
+      // Instead of rendering, call onDone with the configured data
+      onDone(templateData);
     },
     onCancel: onCancel, // Pass cancel function through config
+    onDelete: onDelete, // Pass delete function through config
     initialData: initialData // Pass saved data for editing
   };
 
@@ -139,25 +140,26 @@ export default function Create() {
     setSelectedTemplate(null);
   };
 
-  const handleTemplateDone = async (templateData, wasReset = false) => {
+  const handleTemplateDelete = () => {
     if (!selectedTemplate) return;
     
-    // If reset was clicked, clear the template from timeline
-    if (wasReset) {
-      setTemplates(prev => prev.map(template => 
-        template.id === selectedTemplate.id 
-          ? { 
-              ...template, 
-              status: 'empty', 
-              config: null,
-              previewData: null,
-              savedData: null
-            }
-          : template
-      ));
-      closeModal();
-      return;
-    }
+    // Clear the template from timeline
+    setTemplates(prev => prev.map(template => 
+      template.id === selectedTemplate.id 
+        ? { 
+            ...template, 
+            status: 'empty', 
+            config: null,
+            previewData: null,
+            savedData: null
+          }
+        : template
+    ));
+    closeModal();
+  };
+
+  const handleTemplateDone = async (templateData) => {
+    if (!selectedTemplate) return;
     
     try {
       // Create stable preview data that won't be revoked
@@ -498,6 +500,7 @@ export default function Create() {
                 templateId={selectedTemplate.id}
                 onDone={handleTemplateDone}
                 onCancel={closeModal}
+                onDelete={handleTemplateDelete}
                 initialData={selectedTemplate.savedData}
               />
             </div>
