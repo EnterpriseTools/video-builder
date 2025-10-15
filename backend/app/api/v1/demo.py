@@ -46,7 +46,7 @@ async def render_demo(
         # For demo template, we just need to ensure the video is in the right format
         # Convert to standard format for consistency
         cmd = [
-            "ffmpeg", "-y",
+            "ffmpeg", "-y", "-loglevel", "error",
             "-i", str(video_path),
             "-c:v", "libx264",
             "-preset", "medium", 

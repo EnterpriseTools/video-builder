@@ -84,7 +84,7 @@ async def concatenate_videos(request: ConcatenateRequest):
         # FFmpeg command to concatenate videos
         # Using concat demuxer for frame-perfect concatenation
         cmd = [
-            "ffmpeg", "-y",
+            "ffmpeg", "-y", "-loglevel", "error",
             "-f", "concat",
             "-safe", "0",
             "-i", str(concat_list_path),
@@ -230,7 +230,7 @@ async def concatenate_videos_multipart(
         
         # FFmpeg concatenation command with proper encoding settings
         cmd = [
-            "ffmpeg", "-y",
+            "ffmpeg", "-y", "-loglevel", "error",
             "-f", "concat",
             "-safe", "0", 
             "-i", str(concat_list_path),

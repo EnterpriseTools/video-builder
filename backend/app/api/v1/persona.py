@@ -106,7 +106,7 @@ async def render_persona(
             
             # FFmpeg command with overlay (using filter_complex like intro template)
             cmd = [
-                "ffmpeg", "-y",
+                "ffmpeg", "-y", "-loglevel", "error",
                 "-loop", "1", "-i", str(image_path),   # Input image (0)
                 "-i", str(overlay_path),               # Input overlay PNG (1)
                 "-i", str(audio_path),                 # Input audio (2)
@@ -125,7 +125,7 @@ async def render_persona(
         else:
             # No text overlay - just fullscreen image + audio (like intro template)
             cmd = [
-                "ffmpeg", "-y",
+                "ffmpeg", "-y", "-loglevel", "error",
                 "-loop", "1", "-i", str(image_path),   # Input image (0)
                 "-i", str(audio_path),                 # Input audio (1)
                 "-filter_complex", ";".join(filter_parts),

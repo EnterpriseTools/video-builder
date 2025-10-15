@@ -130,7 +130,7 @@ async def render_how_it_works(
             
             # FFmpeg command with overlay (no image input)
             cmd = [
-                "ffmpeg", "-y",
+                "ffmpeg", "-y", "-loglevel", "error",
                 "-loop", "1", "-i", str(wave_path),   # Input Wave.png (0)
                 "-loop", "1", "-i", str(highlight_path), # Input highlight.png (1)
                 "-i", str(overlay_path),               # Input overlay PNG (2)
@@ -147,7 +147,7 @@ async def render_how_it_works(
         else:
             # No text overlay - just wave + highlight + audio with background
             cmd = [
-                "ffmpeg", "-y",
+                "ffmpeg", "-y", "-loglevel", "error",
                 "-loop", "1", "-i", str(wave_path),   # Input Wave.png (0)
                 "-loop", "1", "-i", str(highlight_path), # Input highlight.png (1)
                 "-i", str(audio_path),                 # Input audio (2)

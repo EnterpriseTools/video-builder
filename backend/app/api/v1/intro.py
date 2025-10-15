@@ -66,7 +66,7 @@ async def render_intro_video(
         overlay_png_path = None
         
         # Build FFmpeg command
-        ffmpeg_cmd = ["ffmpeg", "-y", "-i", str(input_path)]
+        ffmpeg_cmd = ["ffmpeg", "-y", "-loglevel", "error", "-i", str(input_path)]
         
         # Build video filter with PNG overlay
         filter_parts = []

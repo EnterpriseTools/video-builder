@@ -87,7 +87,7 @@ async def trim_video(
         if reencode:
             # Re-encode for precise cuts
             cmd = [
-                "ffmpeg", "-y",  # Overwrite output
+                "ffmpeg", "-y", "-loglevel", "error",  # Overwrite output
                 "-ss", str(start),  # Start time
                 "-i", input_path,  # Input file
                 "-t", str(trim_duration),  # Duration
@@ -101,7 +101,7 @@ async def trim_video(
         else:
             # Stream copy for speed (may not be precise at non-keyframe boundaries)
             cmd = [
-                "ffmpeg", "-y",  # Overwrite output
+                "ffmpeg", "-y", "-loglevel", "error",  # Overwrite output
                 "-ss", str(start),  # Start time
                 "-i", input_path,  # Input file
                 "-t", str(trim_duration),  # Duration

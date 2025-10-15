@@ -87,6 +87,7 @@ async def render_announcement(
         
         cmd = [
             "ffmpeg", "-y",
+            "-loglevel", "error",  # Only show errors, not progress
             "-loop", "1", "-i", str(image_path),  # Input image
             "-i", str(audio_path),                 # Input audio
             "-vf", "scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(1920-iw)/2:(1080-ih)/2:color=0x0C090E",
