@@ -54,10 +54,24 @@ async def trim_video(
         ]
         
         try:
-            duration_result = subprocess.run(duration_cmd, capture_output=True, text=True, check=True)
-            duration = float(duration_result.stdout.strip())
+            # Use Popen to avoid subprocess deadlock
+            process = subprocess.Popen(
+                duration_cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True
+            )
+            stdout, stderr = process.communicate(timeout=30)
+            
+            if process.returncode != 0:
+                raise subprocess.CalledProcessError(process.returncode, duration_cmd, stdout, stderr)
+            
+            duration = float(stdout.strip())
         except subprocess.CalledProcessError:
             raise HTTPException(status_code=400, detail="Could not determine video duration")
+        except subprocess.TimeoutExpired:
+            process.kill()
+            raise HTTPException(status_code=400, detail="FFprobe timed out while reading video duration")
         
         # Validate end time
         if end > duration:
@@ -97,11 +111,31 @@ async def trim_video(
         
         # Run FFmpeg
         try:
-            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+            # Use Popen to avoid subprocess deadlock on large outputs
+            process = subprocess.Popen(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True
+            )
+            
+            # Wait for completion with timeout
+            stdout, stderr = process.communicate(timeout=120)  # Longer timeout for trimming
+            
+            if process.returncode != 0:
+                raise subprocess.CalledProcessError(process.returncode, cmd, stdout, stderr)
+                
         except subprocess.CalledProcessError as e:
             raise HTTPException(
                 status_code=500, 
                 detail=f"FFmpeg failed: {e.stderr}"
+            )
+        except subprocess.TimeoutExpired:
+            process.kill()
+            stdout, stderr = process.communicate()
+            raise HTTPException(
+                status_code=500,
+                detail="FFmpeg timed out while trimming video"
             )
         
         # Check if output file exists

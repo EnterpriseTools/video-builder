@@ -94,7 +94,36 @@ async def concatenate_videos(request: ConcatenateRequest):
         ]
         
         print(f"Running FFmpeg concatenation command: {' '.join(cmd)}")
-        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+        
+        # Use Popen to avoid subprocess deadlock on large outputs
+        try:
+            process = subprocess.Popen(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True
+            )
+            
+            # Wait for completion with timeout
+            stdout, stderr = process.communicate(timeout=120)  # Longer timeout for concatenation
+            
+            # Create result object similar to subprocess.run
+            class Result:
+                def __init__(self, returncode, stdout, stderr):
+                    self.returncode = returncode
+                    self.stdout = stdout
+                    self.stderr = stderr
+            
+            result = Result(process.returncode, stdout, stderr)
+            
+        except subprocess.TimeoutExpired:
+            process.kill()
+            stdout, stderr = process.communicate()
+            print(f"FFmpeg timed out. Last output: {stderr[-500:]}")
+            raise HTTPException(
+                status_code=500,
+                detail="FFmpeg concatenation timed out after 120 seconds"
+            )
         
         if result.returncode != 0:
             print(f"FFmpeg stderr: {result.stderr}")
@@ -217,7 +246,36 @@ async def concatenate_videos_multipart(
         ]
         
         print(f"Running FFmpeg concatenation: {' '.join(cmd)}")
-        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+        
+        # Use Popen to avoid subprocess deadlock on large outputs
+        try:
+            process = subprocess.Popen(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True
+            )
+            
+            # Wait for completion with timeout
+            stdout, stderr = process.communicate(timeout=120)  # Longer timeout for concatenation
+            
+            # Create result object similar to subprocess.run
+            class Result:
+                def __init__(self, returncode, stdout, stderr):
+                    self.returncode = returncode
+                    self.stdout = stdout
+                    self.stderr = stderr
+            
+            result = Result(process.returncode, stdout, stderr)
+            
+        except subprocess.TimeoutExpired:
+            process.kill()
+            stdout, stderr = process.communicate()
+            print(f"FFmpeg timed out. Last output: {stderr[-500:]}")
+            raise HTTPException(
+                status_code=500,
+                detail="FFmpeg concatenation timed out after 120 seconds"
+            )
         
         if result.returncode != 0:
             print(f"FFmpeg stderr: {result.stderr}")
