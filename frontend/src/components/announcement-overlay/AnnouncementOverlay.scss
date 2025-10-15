@@ -5,8 +5,8 @@
   width: 100%;
   height: 100%;
   display: flex;
-  background: #0C090E; // Main background color to match backend
-  overflow: visible; // Allow decorative elements to extend beyond bounds
+  background: #0C090E; 
+  overflow: visible; 
   pointer-events: none;
 
   // Left side content - text area (50% width)
@@ -16,12 +16,11 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: var(--space-200);
+    padding: 24px 24px 24px 48px;
     position: relative;
     
-    // Show text in final state (no animations)
-    transform: translateY(0); // Final position
-    opacity: 1; // Fully visible
+    transform: translateY(0); 
+    opacity: 1; 
   }
 
   // Right side content - image area (50% width)
@@ -30,37 +29,33 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 32px; // Match the 32px padding from backend specs
+    padding: 0;
     position: relative;
     
-    // Show image in final state (no animations)
-    transform: translateX(0); // Final position
+    transform: translateX(0);
   }
 
   .text-display-area {
-    text-align: left; // Left align to match the backend rendering
+    text-align: left; 
     width: 100%;
     position: relative;
-    z-index: 3; // Above decorative elements
+    z-index: 3; 
     
     .preview-title {
       color: #ffffff;
-      font-size: 48px; // Large title size to match backend
+      font-size: 42px; 
       font-weight: 700;
-      margin: 0 0 var(--space-150) 0;
-      line-height: 1.2;
-      letter-spacing: -0.02em;
+      margin: 0 0 var(--space-100) 0;
     }
 
     .preview-description {
-      color: rgba(255, 255, 255, 0.9);
-      font-size: var(--font-size-lg);
+      color: rgba(222, 222, 222, 1);
+      font-size: 18px;
       font-weight: 400;
       margin: 0;
       line-height: 1.4;
       letter-spacing: -0.01em;
     }
-
   }
 
   .image-container-preview {
