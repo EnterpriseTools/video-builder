@@ -155,17 +155,17 @@ class AnnouncementStyles:
     TITLE_COLOR = WHITE_COLOR                       # #ffffff (white)
     DESCRIPTION_COLOR = (222, 222, 222, 255)        # rgba(222, 222, 222, 1) - light gray
     
-    # Canvas dimensions (dynamic sizing)
-    BASE_WIDTH = 800
-    BASE_HEIGHT_MIN = 200
-    BASE_HEIGHT_SINGLE = 250
-    BASE_HEIGHT_BOTH = 400
+    # Canvas dimensions (dynamic sizing) - scaled up for 168px/72px fonts
+    BASE_WIDTH = 1600                       # Increased from 800 to fit larger text
+    BASE_HEIGHT_MIN = 400                   # Increased from 200
+    BASE_HEIGHT_SINGLE = 500                # Increased from 250
+    BASE_HEIGHT_BOTH = 800                  # Increased from 400
     
-    # Layout
-    PADDING = 60
-    TITLE_LINE_SPACING = 8
-    DESCRIPTION_LINE_SPACING = 6
-    TITLE_DESC_SPACING = 20
+    # Layout - scaled proportionally for larger fonts
+    PADDING = 120                           # Increased from 60 (2x)
+    TITLE_LINE_SPACING = 16                 # Increased from 8 (2x)
+    DESCRIPTION_LINE_SPACING = 12           # Increased from 6 (2x)
+    TITLE_DESC_SPACING = 40                 # Increased from 20 (2x)
     
     # Text wrapping
     TITLE_WRAP_WIDTH = 30
