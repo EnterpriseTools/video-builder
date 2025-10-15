@@ -208,7 +208,7 @@ export default function Create() {
     console.log('Rendering final presentation with templates:', readyTemplates);
     
     if (readyTemplates.length === 0) {
-      alert('No templates configured yet!');
+      alert('Fill out at least 1 template to render a video');
       return;
     }
     
