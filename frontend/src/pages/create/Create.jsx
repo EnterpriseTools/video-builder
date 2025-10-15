@@ -389,7 +389,8 @@ export default function Create() {
   return (
     <div className="video-builder">
       <div className="video-builder-container">
-        <h1 className="video-builder-title">Video Builder</h1>
+        <h1 className="video-builder-title">Axon Take One</h1>
+        <p>Record your case. We’ll file the evidence.</p>
         
         <div className="template-grid">
           {templates.map((template) => (
