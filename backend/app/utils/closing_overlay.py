@@ -93,6 +93,11 @@ class ClosingOverlayGenerator:
             # Load and resize the Axon logo image using utility function
             logo_path = get_logo_path()
             
+            # Debug: Print logo path info
+            print(f"DEBUG: Looking for logo at: {logo_path}")
+            print(f"DEBUG: Logo path absolute: {logo_path.absolute()}")
+            print(f"DEBUG: Logo exists: {logo_path.exists()}")
+            
             # Ensure logo exists
             if not logo_path.exists():
                 raise Exception(f"Required logo file not found: {logo_path}")

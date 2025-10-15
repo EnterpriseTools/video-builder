@@ -329,4 +329,6 @@ def get_font(font_path: str, size: int):
 def get_logo_path():
     """Get the path to the Axon logo"""
     from pathlib import Path
-    return Path(__file__).parent.parent.parent.parent / "frontend" / "public" / "logoAxon.png"
+    # In Docker: styles.py is at /app/app/utils/styles.py
+    # Go up 3 levels to /app/, then to frontend/public/logoAxon.png
+    return Path(__file__).parent.parent.parent / "frontend" / "public" / "logoAxon.png"
