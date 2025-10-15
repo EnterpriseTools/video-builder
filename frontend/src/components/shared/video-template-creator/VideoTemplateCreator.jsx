@@ -218,6 +218,25 @@ export default function VideoTemplateCreator({ config }) {
       <div className="template-layout">
         {/* Left Column - Configuration */}
         <div className="template-config-column">
+          {/* Persona Template Helper Link */}
+          {config.id === 'persona' && (
+            <div className="config-section persona-helper">
+              <div className="helper-content">
+                <p className="helper-text">
+                  Need to create your user persona?{' '}
+                  <a 
+                    href="https://chatgpt.com/g/g-68ba01f03f5c8191aa28eb55bd8afce8-user-persona-image-generator"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="helper-link"
+                  >
+                    Click here
+                  </a>
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* File Upload Section */}
           {config.files.length > 0 && (
             <div className="config-section">

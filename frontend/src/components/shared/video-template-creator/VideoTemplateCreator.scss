@@ -218,6 +218,47 @@
     }
   }
 
+  // Persona Template Helper Section
+  .persona-helper {
+    background: linear-gradient(135deg, rgba(254, 198, 46, 0.1) 0%, rgba(254, 198, 46, 0.05) 100%);
+    border: 2px solid rgba(254, 198, 46, 0.3);
+    
+    .helper-content {
+      padding: 0.5rem 0;
+      
+      .helper-text {
+        margin: 0;
+        font-size: 0.95rem;
+        color: rgba(255, 255, 255, 0.9);
+        line-height: 1.5;
+        
+        .helper-link {
+          color: #FEC62E;
+          text-decoration: none;
+          font-weight: 600;
+          position: relative;
+          transition: all 0.2s ease;
+          
+          &:hover {
+            color: #FFD966;
+            text-decoration: underline;
+          }
+          
+          &:after {
+            content: ' →';
+            display: inline-block;
+            margin-left: 4px;
+            transition: transform 0.2s ease;
+          }
+          
+          &:hover:after {
+            transform: translateX(4px);
+          }
+        }
+      }
+    }
+  }
+
   .text-fields {
     display: flex;
     flex-direction: column;
