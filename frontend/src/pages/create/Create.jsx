@@ -450,17 +450,17 @@ export default function Create() {
             <button 
               className={`final-render-button ${isRendering ? 'loading' : ''}`}
               onClick={handleRenderFinal}
-              disabled={!allTemplatesReady || isRendering}
+              disabled={!hasAnyReady || isRendering}
             >
               {isRendering ? (
                 <div className="loading-content">
                   <div className="spinner"></div>
                   <span>{renderingProgress}</span>
                 </div>
-              ) : allTemplatesReady ? (
+              ) : hasAnyReady ? (
                 'Create Final Presentation'
               ) : (
-                `Configure ${templates.filter(t => t.status === 'empty').length} more templates`
+                'Configure at least 1 template'
               )}
             </button>
           </div>
