@@ -120,14 +120,12 @@ async def render_announcement(
         image_overlay = f"[wave_bg][container]overlay='if(lt(t,0.5),{image_x_start}+({image_x_end}-{image_x_start})*t/0.5,{image_x_end})':0[base]"
         filter_parts.append(image_overlay)
         
-        # Layer 4: Highlight overlay with fade in (scale animation removed for performance)
+        # Layer 4: Highlight overlay (static, no animation for performance)
         filter_parts.append(f"movie={highlight_path}:loop=0,setpts=N/(FRAME_RATE*TB)[highlight]")
-        # Fade in over 0.3 seconds (simpler than scale animation, better performance)
-        filter_parts.append(f"[highlight]fade=t=in:st=0:d=0.3:alpha=1[faded_highlight]")
-        # Position top center aligned (more visible than before)
+        # Position top center aligned (static, no fade animation)
         highlight_x = 460  # Center horizontally: (1920 - 1000) / 2 = 460px
         highlight_y = -50  # Position: top aligned, more visible
-        highlight_overlay = f"[base][faded_highlight]overlay={highlight_x}:{highlight_y}[highlight_video]"
+        highlight_overlay = f"[base][highlight]overlay={highlight_x}:{highlight_y}[highlight_video]"
         filter_parts.append(highlight_overlay)
         
         # Layer 5: Text overlay with slide-in animation from left
@@ -187,8 +185,8 @@ async def render_announcement(
                 cwd=temp_dir
             )
             
-            # Wait for completion with timeout (increased to 120s for complex animations)
-            stdout, stderr = process.communicate(timeout=120)
+            # Wait for completion with timeout (increased to 180s for complex animations)
+            stdout, stderr = process.communicate(timeout=180)
             
             # Create result object similar to subprocess.run
             class Result:
@@ -205,7 +203,7 @@ async def render_announcement(
             print(f"FFmpeg timed out. Last output: {stderr[-500:]}")
             raise HTTPException(
                 status_code=500,
-                detail="FFmpeg processing timed out after 120 seconds"
+                detail="FFmpeg processing timed out after 180 seconds"
             )
         
         print(f"DEBUG: FFmpeg return code: {result.returncode}")
