@@ -122,10 +122,8 @@ async def render_announcement(
         
         # Layer 4: Highlight overlay (static, no animation for performance)
         filter_parts.append(f"movie={highlight_path}:loop=0,setpts=N/(FRAME_RATE*TB)[highlight]")
-        # Position top center aligned (static, no fade animation)
-        highlight_x = 460  # Center horizontally: (1920 - 1000) / 2 = 460px
-        highlight_y = -50  # Position: top aligned, more visible
-        highlight_overlay = f"[base][highlight]overlay={highlight_x}:{highlight_y}[highlight_video]"
+        # Position center top aligned (dynamically centered based on image width)
+        highlight_overlay = f"[base][highlight]overlay=(W-w)/2:-50[highlight_video]"
         filter_parts.append(highlight_overlay)
         
         # Layer 5: Text overlay with slide-in animation from left
