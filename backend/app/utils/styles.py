@@ -147,13 +147,13 @@ class ClosingStyles:
 class AnnouncementStyles:
     """Style configuration specifically for announcement template"""
     
-    # Fonts
-    TITLE_SIZE = 48                         # Title size
-    DESCRIPTION_SIZE = FONT_SIZE_SMALL      # 24px for description
+    # Fonts (match frontend SCSS preview)
+    TITLE_SIZE = 42                         # Title size (matches .preview-title 42px)
+    DESCRIPTION_SIZE = 18                   # Description size (matches .preview-description 18px)
     
-    # Colors
-    TITLE_COLOR = WHITE_COLOR
-    DESCRIPTION_COLOR = WHITE_COLOR
+    # Colors (match frontend SCSS preview)
+    TITLE_COLOR = WHITE_COLOR                       # #ffffff (white)
+    DESCRIPTION_COLOR = (222, 222, 222, 255)        # rgba(222, 222, 222, 1) - light gray
     
     # Canvas dimensions (dynamic sizing)
     BASE_WIDTH = 800

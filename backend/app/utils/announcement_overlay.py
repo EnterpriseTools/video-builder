@@ -9,7 +9,9 @@ from .styles import (
     PRIMARY_FONT_PATH,
     SHADOW_COLOR,
     AnnouncementStyles,
-    get_font
+    get_font,
+    BOLD_OFFSET_X_RANGE,
+    BOLD_OFFSET_Y_RANGE
 )
 
 class AnnouncementOverlayGenerator:
@@ -75,7 +77,7 @@ class AnnouncementOverlayGenerator:
             # Calculate text positioning using style configuration
             y_offset = AnnouncementStyles.PADDING
             
-            # Draw title using style configuration
+            # Draw title using style configuration (with bold effect)
             if title:
                 # Wrap title text
                 wrapped_title = textwrap.fill(title, width=AnnouncementStyles.TITLE_WRAP_WIDTH)
@@ -88,7 +90,11 @@ class AnnouncementOverlayGenerator:
                     # Draw text with configured shadow
                     shadow_x, shadow_y = AnnouncementStyles.TITLE_SHADOW
                     draw.text((x + shadow_x, y_offset + shadow_y), line, font=title_font, fill=SHADOW_COLOR)
-                    draw.text((x, y_offset), line, font=title_font, fill=AnnouncementStyles.TITLE_COLOR)
+                    
+                    # Draw text multiple times with slight offset to simulate bold (font-weight: 700)
+                    for bold_x in range(BOLD_OFFSET_X_RANGE):
+                        for bold_y in range(BOLD_OFFSET_Y_RANGE):
+                            draw.text((x + bold_x, y_offset + bold_y), line, font=title_font, fill=AnnouncementStyles.TITLE_COLOR)
                     
                     y_offset += bbox[3] - bbox[1] + AnnouncementStyles.TITLE_LINE_SPACING
                 
