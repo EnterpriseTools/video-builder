@@ -147,9 +147,9 @@ class ClosingStyles:
 class AnnouncementStyles:
     """Style configuration specifically for announcement template"""
     
-    # Fonts (match frontend SCSS preview)
-    TITLE_SIZE = 42                         # Title size (matches .preview-title 42px)
-    DESCRIPTION_SIZE = 18                   # Description size (matches .preview-description 18px)
+    # Fonts (200% larger for video render - 1080p needs bigger text)
+    TITLE_SIZE = 84                         # Title size (42px * 200% for video)
+    DESCRIPTION_SIZE = 36                   # Description size (18px * 200% for video)
     
     # Colors (match frontend SCSS preview)
     TITLE_COLOR = WHITE_COLOR                       # #ffffff (white)
