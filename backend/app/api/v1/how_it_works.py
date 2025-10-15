@@ -85,7 +85,8 @@ async def render_how_it_works(
         
         # Add Wave.png overlay FIRST (lowest z-index - behind everything)
         # Same positioning as announcement template but without intro animation
-        wave_path = Path(__file__).parent.parent.parent.parent.parent / "frontend" / "public" / "Wave.png"
+        # Using Vercel CDN URL instead of local file path
+        wave_path = "https://video-builder-nu.vercel.app/Wave.png"
         
         # Scale the wave to match announcement template sizing: width 120% of viewport (2304px wide)
         wave_width = 2304  # 120% of 1920px
@@ -101,7 +102,8 @@ async def render_how_it_works(
         filter_parts.append(wave_overlay)
         
         # Add Highlight.png overlay (simplified - no animation)
-        highlight_path = Path(__file__).parent.parent.parent.parent.parent / "frontend" / "public" / "highlight.png"
+        # Using Vercel CDN URL instead of local file path
+        highlight_path = "https://video-builder-nu.vercel.app/highlight.png"
         
         # Scale highlight to original size (no scaling - same as announcement)
         filter_parts.append(f"[1:v]scale=iw:ih[scaled_highlight]")

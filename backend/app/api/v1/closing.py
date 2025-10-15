@@ -88,7 +88,8 @@ async def render_closing(
         filter_parts.append(f"color=c={bg_color}:size=1920x1080:duration={audio_duration}:rate=30[bg]")
         
         # Add Wave.png overlay with color correction to neutralize blue tinting
-        wave_path = Path(__file__).parent.parent.parent.parent.parent / "frontend" / "public" / "Wave.png"
+        # Using Vercel CDN URL instead of local file path
+        wave_path = "https://video-builder-nu.vercel.app/Wave.png"
         
         # Scale the wave to match announcement template sizing: width 120% of viewport (2304px wide)
         wave_width = 2304  # 120% of 1920px
@@ -104,7 +105,8 @@ async def render_closing(
         filter_parts.append(wave_overlay)
         
         # Add Highlight.png overlay (same positioning as announcement template)
-        highlight_path = Path(__file__).parent.parent.parent.parent.parent / "frontend" / "public" / "highlight.png"
+        # Using Vercel CDN URL instead of local file path
+        highlight_path = "https://video-builder-nu.vercel.app/highlight.png"
         
         # Scale highlight to original size (no scaling - same as announcement)
         filter_parts.append(f"[1:v]scale=iw:ih[scaled_highlight]")
