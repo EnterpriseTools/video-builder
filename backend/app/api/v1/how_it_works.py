@@ -139,6 +139,11 @@ async def render_how_it_works(
                 "-map", "[final]",                     # Use final video output
                 "-map", "3:a",                         # Use audio from fourth input
                 "-c:v", "libx264",
+                "-preset", "ultrafast",  # Reduce memory/CPU
+                "-crf", "28",
+                "-maxrate", "2M",
+                "-bufsize", "4M",
+                "-threads", "2",
                 "-c:a", "aac",
                 "-t", str(audio_duration),
                 "-pix_fmt", "yuv420p",
@@ -154,7 +159,12 @@ async def render_how_it_works(
                 "-filter_complex", ";".join(filter_parts),  # Use highlight_video as final
                 "-map", "[highlight_video]",           # Use highlight_video as final
                 "-map", "2:a",                         # Use audio from third input
-                "-c:v", "libx264", 
+                "-c:v", "libx264",
+                "-preset", "ultrafast",  # Reduce memory/CPU
+                "-crf", "28",
+                "-maxrate", "2M",
+                "-bufsize", "4M",
+                "-threads", "2",
                 "-c:a", "aac",
                 "-t", str(audio_duration),
                 "-pix_fmt", "yuv420p",
