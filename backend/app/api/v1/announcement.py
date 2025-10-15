@@ -87,7 +87,7 @@ async def render_announcement(
         
         cmd = [
             "ffmpeg", "-y",
-            "-loglevel", "info",  # Show all output for debugging
+            "-loglevel", "error",  # Reduce output to prevent buffer issues
             "-loop", "1", "-i", str(image_path),  # Input image
             "-i", str(audio_path),                 # Input audio
             "-vf", "scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(1920-iw)/2:(1080-ih)/2:color=0x0C090E",
@@ -95,8 +95,11 @@ async def render_announcement(
             "-c:a", "aac",
             "-t", str(audio_duration),
             "-pix_fmt", "yuv420p",
-            "-preset", "faster",  # Faster encoding
-            "-crf", "23",
+            "-preset", "ultrafast",  # Fastest preset to reduce memory/CPU usage
+            "-crf", "28",  # Lower quality but much faster
+            "-maxrate", "2M",  # Limit bitrate to reduce memory
+            "-bufsize", "4M",  # Set buffer size
+            "-threads", "2",  # Limit CPU threads to reduce resource usage
             str(output_path)
         ]
         
