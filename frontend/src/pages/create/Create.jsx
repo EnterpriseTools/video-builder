@@ -158,6 +158,21 @@ export default function Create() {
     closeModal();
   };
 
+  const handleTemplateClear = (templateId) => {
+    // Clear the template from timeline directly (without modal)
+    setTemplates(prev => prev.map(template => 
+      template.id === templateId 
+        ? { 
+            ...template, 
+            status: 'empty', 
+            config: null,
+            previewData: null,
+            savedData: null
+          }
+        : template
+    ));
+  };
+
   const handleTemplateDone = async (templateData) => {
     if (!selectedTemplate) return;
     
@@ -443,9 +458,21 @@ export default function Create() {
                         </div>
                       );
                     })()}
-                    <div className="thumbnail-hover-overlay" onClick={() => handleAddClick(template.name)}>
-                      <button className="edit-button-overlay">
+                    <div className="thumbnail-hover-overlay">
+                      <button 
+                        className="edit-button-overlay"
+                        onClick={() => handleAddClick(template.name)}
+                      >
                         Edit
+                      </button>
+                      <button 
+                        className="delete-button-overlay"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleTemplateClear(template.id);
+                        }}
+                      >
+                        Delete
                       </button>
                     </div>
                     <div className="ready-indicator">
