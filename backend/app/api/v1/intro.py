@@ -9,6 +9,7 @@ from fastapi.responses import FileResponse
 import aiofiles
 from app.utils.overlay_generator import IntroOverlayGenerator
 from app.utils import get_video_duration
+from app.utils.easing import slide_up_from_bottom
 
 router = APIRouter()
 
@@ -93,16 +94,19 @@ async def render_intro_video(
             # Position the overlay at bottom-left with padding
             overlay_x = 40
             overlay_y_final = 940  # Final position: 1080 - 100 (approx overlay height) - 40 (padding)
-            overlay_y_start = 1080  # Start position: below screen
             animation_duration = 0.5  # Animation duration in seconds
             
-            # Create slide-up animation
-            # Expression: if time < duration, interpolate from start to final, else stay at final
-            overlay_y_expr = f"'if(lt(t,{animation_duration}),{overlay_y_start}+({overlay_y_final}-{overlay_y_start})*t/{animation_duration},{overlay_y_final})'"
+            # Create slide-up animation with ease-out cubic easing
+            # This provides smooth deceleration, making the overlay feel like it has weight
+            overlay_y_expr = slide_up_from_bottom(
+                final_y=overlay_y_final,
+                duration=animation_duration,
+                easing="ease_out_cubic"  # Smooth deceleration for polished feel
+            )
             
             # Use filter_complex with movie filter to load PNG with proper alpha handling
             # The format=rgba ensures the PNG's alpha channel is preserved
-            # y= expression creates the slide-up animation
+            # y= expression uses ease-out cubic for smooth, polished animation
             overlay_filter = f"[0:v]scale=1920:1080,fps=30,format=yuva420p[base];movie={overlay_png_path},format=rgba,colorchannelmixer=aa=1[ovr];[base][ovr]overlay={overlay_x}:y={overlay_y_expr}:format=yuv420"
             
             ffmpeg_cmd.extend([

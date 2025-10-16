@@ -5,7 +5,8 @@ from typing import Optional
 from fastapi import APIRouter, File, Form, UploadFile, HTTPException
 from fastapi.responses import FileResponse
 from app.utils.persona_overlay import PersonaOverlayGenerator
-from app.utils import get_audio_duration, extract_audio_from_media
+from app.utils import get_audio_duration
+from app.utils.easing import slide_up_from_bottom
 
 router = APIRouter()
 
@@ -91,13 +92,13 @@ async def render_persona(
         filter_parts.append(bg_filter)
         
         if has_overlay and overlay_path:
-            # Slide up from bottom-right corner over 0.5 seconds
+            # Slide up from bottom-right corner over 0.5 seconds with ease-out cubic
             overlay_x = 1672  # 1920 - 200 - 48 = 1672px from left (48px from right)
-            overlay_y_start = 1080  # Below screen
-            overlay_y_end = 932  # 1080 - 100 - 48 = 932px from top (48px from bottom)
+            overlay_y_final = 932  # 1080 - 100 - 48 = 932px from top (48px from bottom)
             
-            # Text overlay with slide up animation from bottom
-            overlay_filter = f"[bg][1:v]overlay={overlay_x}:'if(lt(t,0.5),{overlay_y_start}+({overlay_y_end}-{overlay_y_start})*t/0.5,{overlay_y_end})'[final]"
+            # Text overlay with smooth slide up animation from bottom
+            overlay_y_expr = slide_up_from_bottom(final_y=overlay_y_final, duration=0.5, easing="ease_out_cubic")
+            overlay_filter = f"[bg][1:v]overlay={overlay_x}:y={overlay_y_expr}[final]"
             
             filter_parts.append(overlay_filter)
             

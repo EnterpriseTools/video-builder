@@ -6,7 +6,8 @@ from typing import Optional
 from fastapi import APIRouter, File, Form, UploadFile, HTTPException
 from fastapi.responses import FileResponse
 from app.utils.closing_overlay import ClosingOverlayGenerator
-from app.utils import get_audio_duration, extract_audio_from_media
+from app.utils import get_audio_duration
+from app.utils.easing import slide_up_from_bottom
 
 router = APIRouter()
 
@@ -103,10 +104,9 @@ async def render_closing(
         # Load wave using movie filter for animations
         filter_parts.append(f"movie={wave_path}:loop=0,setpts=N/(FRAME_RATE*TB),scale=2304:-1[wave]")
         
-        # Slide in from bottom over 0.5 seconds
-        wave_y_start = 1080  # Below screen
-        wave_y_end = 730  # Final position
-        wave_overlay = f"[bg][wave]overlay=-192:'if(lt(t,0.5),{wave_y_start}+({wave_y_end}-{wave_y_start})*t/0.5,{wave_y_end})'[wave_bg]"
+        # Slide in from bottom over 0.5 seconds with ease-out cubic
+        wave_y_expr = slide_up_from_bottom(final_y=730, duration=0.5, easing="ease_out_cubic")
+        wave_overlay = f"[bg][wave]overlay=-192:y={wave_y_expr}[wave_bg]"
         filter_parts.append(wave_overlay)
         
         # Add Highlight.png overlay with fade in animation (match Feature/HowItWorks position)

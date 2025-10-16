@@ -7,6 +7,7 @@ from fastapi import APIRouter, File, Form, UploadFile, HTTPException
 from fastapi.responses import FileResponse
 from app.utils.announcement_overlay import AnnouncementOverlayGenerator
 from app.utils import get_audio_duration, extract_audio_from_media
+from app.utils.easing import slide_in_from_left, slide_in_from_right, slide_up_from_bottom
 
 router = APIRouter()
 
@@ -110,10 +111,9 @@ async def render_announcement(
         # Layer 3: Wave overlay with slide-in animation (z-index: 1, same as highlight)
         # Scale wave to 2304px wide (120% of 1920)
         filter_parts.append(f"movie={wave_path}:loop=0,setpts=N/(FRAME_RATE*TB),scale=2304:-1[wave]")
-        # Slide in from bottom over 0.5 seconds
-        wave_y_start = 1080  # Below screen
-        wave_y_end = 730  # Final position
-        wave_overlay = f"[highlight_layer][wave]overlay=-192:'if(lt(t,0.5),{wave_y_start}+({wave_y_end}-{wave_y_start})*t/0.5,{wave_y_end})'[wave_layer]"
+        # Slide in from bottom over 0.5 seconds with ease-out cubic
+        wave_y_expr = slide_up_from_bottom(final_y=730, duration=0.5, easing="ease_out_cubic")
+        wave_overlay = f"[highlight_layer][wave]overlay=-192:y={wave_y_expr}[wave_layer]"
         filter_parts.append(wave_overlay)
         
         # Layer 4: Image container with slide-in animation (z-index: 2, above wave/highlight)
@@ -121,19 +121,17 @@ async def render_announcement(
         filter_parts.append(f"[0:v]scale=896:1016:force_original_aspect_ratio=decrease[scaled_image]")
         # Pad to 960x1080 with transparent background
         filter_parts.append(f"[scaled_image]pad=960:1080:(960-iw)/2:(1080-ih)/2:color=0x00000000[container]")
-        # Slide in from right over 0.5 seconds (no fade, just slide)
-        image_x_start = 1920  # Off-screen right (100% out of viewport)
-        image_x_end = 960  # Final position (right half of screen)
-        image_overlay = f"[wave_layer][container]overlay='if(lt(t,0.5),{image_x_start}+({image_x_end}-{image_x_start})*t/0.5,{image_x_end})':0[image_layer]"
+        # Slide in from right over 0.5 seconds with ease-out cubic
+        image_x_expr = slide_in_from_right(final_x=960, duration=0.5, easing="ease_out_cubic")
+        image_overlay = f"[wave_layer][container]overlay=x={image_x_expr}:0[image_layer]"
         filter_parts.append(image_overlay)
         
         # Layer 5: Text overlay with slide-in animation (z-index: 3, on top of everything)
         if has_overlay and overlay_path:
-            # Slide in from left over 0.5 seconds
-            overlay_x_start = -400  # Off-screen left
-            overlay_x_end = 100  # Final position with margin
+            # Slide in from left over 0.5 seconds with ease-out cubic
+            overlay_x_expr = slide_in_from_left(final_x=100, duration=0.5, easing="ease_out_cubic")
             overlay_y = 440  # Center vertically
-            overlay_filter = f"[image_layer][1:v]overlay='if(lt(t,0.5),{overlay_x_start}+({overlay_x_end}-{overlay_x_start})*t/0.5,{overlay_x_end})':{overlay_y}[final]"
+            overlay_filter = f"[image_layer][1:v]overlay=x={overlay_x_expr}:{overlay_y}[final]"
             filter_parts.append(overlay_filter)
             
             # FFmpeg command with text overlay
