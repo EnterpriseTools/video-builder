@@ -102,17 +102,16 @@ def create_slide_animation(
     # Normalize time to 0-1 range
     t_normalized = f"t/{duration}"
     
-    # For negative start positions, we'll use reverse formula which needs inverted easing
-    # ease-out-cubic becomes ease-in-cubic (to maintain the same visual effect)
-    use_reverse_formula = start_pos < 0
+    # For negative start positions, FFmpeg's parser is too limited for complex easing
+    # Use simple linear interpolation instead - still smooth, just no fancy curves
+    use_linear = start_pos < 0
     
-    if use_reverse_formula and easing == "ease_out_cubic":
-        # Invert ease-out-cubic to ease-in-cubic
-        # ease-out-cubic: 1-pow(1-t,3)
-        # ease-in-cubic: pow(t,3)
-        easing_expr = f"pow({t_normalized},3)"
+    if use_linear:
+        # For negative starts, use simple linear interpolation: t/duration
+        # This avoids all the complex math that breaks FFmpeg's parser
+        easing_expr = t_normalized
     else:
-        # Get easing expression with normalized time
+        # For positive starts, use full easing expression
         easing_expr = get_easing_expression(easing, normalized=False).replace("t", t_normalized)
     
     # Calculate distance in Python to avoid double-negative issues in FFmpeg expression
@@ -125,29 +124,17 @@ def create_slide_animation(
     # Solution: Use reverse formula for negative starts to avoid negatives entirely
     
     if start_pos < 0:
-        # For ANY negative start position, use formula with inverted easing:
-        # Formula: (end - distance) + distance*ease_in
-        # This avoids negative numbers entirely!
+        # For negative start positions, use reverse formula with linear interpolation
+        # Formula: end - distance*(1-linear)
+        # Linear easing for negative starts keeps FFmpeg happy
         #
-        # Example: -400 → 100 (distance=500, ease_in=pow(t,3))
-        # Expression: (100-500) + 500*pow(t,3)
-        # Simplified: -400 + 500*pow(t,3)
-        # But we can rewrite without exposing -400:
-        #   (end-distance) is computed in Python, then added
+        # Example: -400 → 100 (distance=500, linear=t/0.5)
+        # Expression: 100-500*(1-t/0.5)
+        # At t=0: 100-500*(1-0) = 100-500 = -400 ✓
+        # At t=0.5: 100-500*(1-1) = 100-0 = 100 ✓
         #
-        # At t=0: ease_in=0, so (100-500)+500*0 = -400 ✓
-        # At t=1: ease_in=1, so (100-500)+500*1 = 100 ✓
-        #
-        # In FFmpeg: (100-500)+500*pow(t,3) = -400+500*pow(t,3)
-        # Still has -400! Let me try: 100-(500-500*pow(t,3))
-        # = 100-500+500*pow(t,3) = -400+500*pow(t,3)
-        # 
-        # Better approach: 100+500*(pow(t,3)-1)
-        # At t=0: 100+500*(0-1) = 100-500 = -400 ✓
-        # At t=1: 100+500*(1-1) = 100+0 = 100 ✓
-        # This works and starts with positive number!
-        # Note: easing_expr already has any needed parens, don't add extra
-        position_expr = f"{end_pos}+{distance}*({easing_expr}-1)"
+        # This is simple, clean, and FFmpeg can parse it!
+        position_expr = f"{end_pos}-{distance}*(1-{easing_expr})"
     elif distance >= 0:
         # Positive start, positive distance (e.g., 100 → 500)
         position_expr = f"{start_pos}+{distance}*({easing_expr})"
