@@ -57,8 +57,20 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      background: rgba(12, 10, 14, 0.8);
+      background: rgba(12, 10, 14, 0.95);
       z-index: 10;
+      
+      // Smooth fade-in for spinner
+      animation: fadeIn 0.2s ease-out;
+    }
+    
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
     }
     
     // Overlay content styling
@@ -71,6 +83,18 @@
       align-items: center;
       justify-content: center;
       overflow: hidden;
+      
+      // Smooth fade-in animation when all assets loaded
+      animation: fadeInPreview 0.3s ease-out;
+    }
+    
+    @keyframes fadeInPreview {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
     }
     
     // Specific background colors for templates that don't use background images

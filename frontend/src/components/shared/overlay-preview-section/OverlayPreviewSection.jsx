@@ -29,9 +29,8 @@ export default function OverlayPreviewSection({
   containerClassName = "",
   className = ""
 }) {
-  // Track loading state for background image
-  const [imageLoaded, setImageLoaded] = useState(false);
-  const [imageLoading, setImageLoading] = useState(false);
+  // Track loading state for all preview assets
+  const [allAssetsLoaded, setAllAssetsLoaded] = useState(false);
   
   // Restart functionality removed - previews now show static final state
   
@@ -43,29 +42,58 @@ export default function OverlayPreviewSection({
   // Use background image for all templates as intended
   const finalBackgroundImage = shouldSetBackground ? backgroundImage : null;
   
-  // Reset loading state when background image changes
+  // Preload all assets before showing preview
   useEffect(() => {
+    setAllAssetsLoaded(false);
+    
+    const imagesToPreload = [];
+    
+    // Add background image if present
     if (finalBackgroundImage) {
-      setImageLoaded(false);
-      setImageLoading(true);
-      
-      // Preload the image
+      imagesToPreload.push(finalBackgroundImage);
+    }
+    
+    // Add decorative elements for templates that use them
+    if (hasDecorativeElements) {
+      imagesToPreload.push('/Wave.png');
+      imagesToPreload.push('/highlight.png');
+    }
+    
+    // For announcement template, add decorative elements
+    if (config.id === 'announcement') {
+      imagesToPreload.push('/Wave.png');
+      imagesToPreload.push('/highlight.png');
+    }
+    
+    // If no images to preload, show immediately
+    if (imagesToPreload.length === 0) {
+      setAllAssetsLoaded(true);
+      return;
+    }
+    
+    // Preload all images
+    let loadedCount = 0;
+    const totalImages = imagesToPreload.length;
+    
+    imagesToPreload.forEach(src => {
       const img = new Image();
       img.onload = () => {
-        setImageLoaded(true);
-        setImageLoading(false);
+        loadedCount++;
+        if (loadedCount === totalImages) {
+          // Small delay to ensure smooth transition
+          setTimeout(() => setAllAssetsLoaded(true), 100);
+        }
       };
       img.onerror = () => {
-        setImageLoaded(true); // Show preview anyway on error
-        setImageLoading(false);
+        loadedCount++;
+        if (loadedCount === totalImages) {
+          // Show preview anyway on error after delay
+          setTimeout(() => setAllAssetsLoaded(true), 100);
+        }
       };
-      img.src = finalBackgroundImage;
-    } else {
-      // No background image, show immediately
-      setImageLoaded(true);
-      setImageLoading(false);
-    }
-  }, [finalBackgroundImage]);
+      img.src = src;
+    });
+  }, [finalBackgroundImage, hasDecorativeElements, config.id]);
   
   // Build container class names
   const containerClasses = [
@@ -90,15 +118,15 @@ export default function OverlayPreviewSection({
           ...(finalBackgroundImage && { backgroundImage: `url(${finalBackgroundImage})` })
         }}
       >
-        {/* Show loading spinner while image is loading */}
-        {imageLoading && finalBackgroundImage && (
+        {/* Show loading spinner while assets are loading */}
+        {!allAssetsLoaded && (
           <div className="preview-loader">
             <Spinner />
           </div>
         )}
         
-        {/* Show preview content once loaded */}
-        {imageLoaded && (
+        {/* Show preview content once all assets loaded */}
+        {allAssetsLoaded && (
           <div className="overlay-content">
             <Suspense fallback={<div>Loading preview...</div>}>
               {overlayComponent}
