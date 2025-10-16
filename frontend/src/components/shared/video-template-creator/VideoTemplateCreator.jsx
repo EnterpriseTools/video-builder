@@ -232,7 +232,7 @@ export default function VideoTemplateCreator({ config }) {
                     rel="noopener noreferrer"
                     className="helper-link"
                   >
-                    Click here
+                    Open GPT Modal
                   </a>
                 </p>
               </div>
