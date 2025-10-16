@@ -44,228 +44,225 @@
   gap: 1.5rem;
   max-width: 1200px;
   margin: 0 auto;
+  justify-items: center;
 }
 
 .template-card {
+  display: flex;
+  position: relative;
+  flex-direction: column;
+  justify-content: space-between;
+
   background: #0f0f0f;
   border: 2px dashed #2A2A2A;
   border-radius: 12px;
-  padding: 1.5rem;
-  display: flex;
+  padding: 4rem 1rem;
 
-  min-height: 200px;
-  flex-direction: column;
-  justify-content: space-between;
   transition: all 0.3s ease;
-  position: relative;
-  cursor: pointer;
 
   &:hover {
     background: #090909;
-    border: 2px solid #e91e63;
+    border: 2px solid #414141;
     transform: translateY(-2px);
   }
-}
 
-.template-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.template-name {
-  font-size: 1.25rem;
-  font-weight: 500;
-  margin: 0;
-  color: #39373A;
-  text-align: center;
-}
-
-.add-button {
-  background: transparent;
-  border: none;
-  color: #e91e63;
-  padding: 0;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 60px;
-  height: 60px;
+  .template-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column-reverse;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
   
-  svg {
-    width: 100%;
-    height: 100%;
-    transition: all 0.3s ease;
-  }
-
-  &:hover {
-    color: #ff1f7a;
-    transform: scale(1.1) rotate(90deg);
-  }
-
-  &:active {
-    transform: scale(1.05) rotate(90deg);
-  }
-}
-
-// Template Ready States
-.template-card.ready {
-  background: #080808;
-  border: 2px solid #19ed27;
-  border-radius: 12px;
-  height: 100px;
-  padding: .25rem;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  transition: all 0.3s ease;
-  position: relative;
-
-  .template-preview {
-    position: relative;
-    width: 100%;
-    border-radius: 8px;
-    overflow: hidden;
-    cursor: pointer;
-    
-    .preview-thumbnail {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      border-radius: 8px;
+    .template-name {
+      font-size: 1.25rem;
+      font-weight: 500;
+      margin: 0;
+      color: #39373A;
+      text-align: center;
     }
-
-    .placeholder-thumbnail {
-      width: 100%;
-      height: 100%;
-      background: rgba(255, 255, 255, 0.1);
+  
+    .add-button {
+      background: transparent;
+      border: none;
       border-radius: 8px;
+      color: #39373A;
+      padding: .5rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
       display: flex;
       align-items: center;
       justify-content: center;
+      width: 48px;
+      height: 48px;
       
-      span {
-        color: rgba(255, 255, 255, 0.7);
-        font-size: 0.9rem;
-        font-weight: 500;
+      svg {
+        width: 100%;
+        height: 100%;
+        transition: all 0.3s ease;
+      }
+    
+      &:hover {
+        color: #ff1f7a;
+        background: rgba(232, 41, 127, 0.05);
+        transform: scale(1.1) rotate(90deg);
+      }
+    
+      &:active {
+        transform: scale(1.05) rotate(90deg);
       }
     }
+  }
 
-    .preview-thumbnail-container {
+  &.ready {
+    justify-content: center;
+    background: #080808;
+    border: 2px solid #19ed27;
+    max-height: 120px;
+    aspect-ratio: 16 / 9;
+    padding: .25rem;
+    
+    transition: all 0.3s ease;
+  
+    .template-preview {
+      position: relative;
       width: 100%;
-      height: 100%;
       border-radius: 8px;
       overflow: hidden;
+      cursor: pointer;
       
-      // Scale down the preview to fit in thumbnail
-      .overlay-preview-section {
-        margin: 0;
-        padding: 0;
-        background: none;
-        border: none;
-        
-        h4, p {
-          display: none; // Hide title and description for thumbnails
-        }
-        
-        .overlay-preview-container {
-          width: 100%;
-          height: 100%;
-          border-radius: 8px;
-          
-          // Scale down everything proportionally for thumbnail view
-          &.thumbnail-preview {
-            transform: scale(0.6); // Scale entire preview to 60% size
-            transform-origin: center center; // Scale from center
-            
-            // Adjust container to account for scaling
-            width: calc(100% / 0.6); // Compensate for scale
-            height: calc(100% / 0.6); // Compensate for scale
-            margin-left: calc((100% - 100% / 0.6) / 2); // Center horizontally
-            margin-top: -18.333333%; // Adjusted value that works for thumbnail positioning
-          }
-        }
+      .preview-thumbnail {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 8px;
       }
-    }
-
-    .ready-indicator {
-      position: absolute;
-      top: 8px;
-      right: 8px;
-      z-index: 2;
-      pointer-events: none;
-      
-      .checkmark {
-        width: 24px;
-        height: 24px;
-        background: #10b981;
-        color: white;
-        border-radius: 50%;
+  
+      .placeholder-thumbnail {
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-weight: bold;
-        font-size: 14px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        
+        span {
+          color: rgba(255, 255, 255, 0.7);
+          font-size: 0.9rem;
+          font-weight: 500;
+        }
       }
-    }
-
-    // Hover overlay for Edit button
-    .thumbnail-hover-overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.75);
-      backdrop-filter: blur(4px);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      opacity: 0;
-      transition: opacity 0.25s ease;
-      z-index: 1;
-      
-      .edit-button-overlay {
-        padding: 0.75rem 2rem;
-        background: white;
-        color: #080808;
-        border: none;
+  
+      .preview-thumbnail-container {
+        width: 100%;
+        height: 100%;
         border-radius: 8px;
-        font-size: 1rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        overflow: hidden;
         
-        &:hover {
-          background: #E8297F;
-          transform: translateY(-2px);
-        }
-        
-        &:active {
-          transform: translateY(0);
+        .overlay-preview-section {
+          margin: 0;
+          padding: 0;
+          background: none;
+          border: none;
+          
+          h4, p {
+            display: none; 
+          }
+          
+          .overlay-preview-container {
+            width: 100%;
+            height: 100%;
+            border-radius: 8px;
+            
+            &.thumbnail-preview {
+              transform: scale(0.6);
+              transform-origin: center center; 
+              width: calc(100% / 0.6); 
+              height: calc(100% / 0.6); 
+              margin-left: calc((100% - 100% / 0.6) / 2); 
+              margin-top: -18.333333%; 
+            }
+          }
         }
       }
+  
+      .ready-indicator {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        z-index: 2;
+        pointer-events: none;
+        
+        .checkmark {
+          width: 24px;
+          height: 24px;
+          background: #19ed27;
+          color: white;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: bold;
+          font-size: 14px;
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+      }
+  
+      .thumbnail-hover-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.75);
+        backdrop-filter: blur(4px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.25s ease;
+        z-index: 1;
+        
+        .edit-button-overlay {
+          padding: 0.75rem 2rem;
+          background: white;
+          color: #080808;
+          border: none;
+          border-radius: 8px;
+          font-size: 1rem;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+          
+          &:hover {
+            background: #E8297F;
+            transform: translateY(-2px);
+          }
+          
+          &:active {
+            transform: translateY(0);
+          }
+        }
+      }
+      
+      &:hover .thumbnail-hover-overlay {
+        opacity: 1;
+      }
     }
-    
-    &:hover .thumbnail-hover-overlay {
-      opacity: 1;
+  
+    .template-name {
+      margin-bottom: 0;
+      padding: 1rem;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      text-align: center;
     }
-  }
-
-  .template-name {
-    margin-bottom: 0;
-    padding: 1rem;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 8px;
-    text-align: center;
   }
 }
+
+
 
 // Final Render Section
 .final-render-section {
