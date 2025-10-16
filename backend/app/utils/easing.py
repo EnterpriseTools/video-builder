@@ -111,14 +111,17 @@ def create_slide_animation(
     distance = end_pos - start_pos
     
     # Format the operation based on distance sign to avoid +- or -- in expression
+    # Also wrap negative start positions in parentheses for FFmpeg compatibility
+    start_str = f"({start_pos})" if start_pos < 0 else str(start_pos)
+    
     if distance >= 0:
         # Positive distance: use addition
-        # Example: -400+500*easing (sliding right or down)
-        position_expr = f"{start_pos}+{distance}*({easing_expr})"
+        # Example: (-400)+500*easing (sliding right or down)
+        position_expr = f"{start_str}+{distance}*({easing_expr})"
     else:
         # Negative distance: use subtraction with absolute value
         # Example: 1080-350*easing (sliding left or up)
-        position_expr = f"{start_pos}{distance}*({easing_expr})"  # distance already has minus sign
+        position_expr = f"{start_str}{distance}*({easing_expr})"  # distance already has minus sign
     
     # Complete animation expression:
     # if (time < duration) {
