@@ -73,7 +73,7 @@
     background-color: #1B1A1F;
     border: 2px solid #2A2830;
     border-radius: 2rem;
-    padding: 24px;
+    padding: 24px 24px 16px 24px;
 
     &:last-child {
       margin-bottom: 2rem;
@@ -425,7 +425,7 @@
     h2 {
       font-size: 1rem;
       font-weight: 600;
-      color: white;
+      color: #c1c1c1;
       margin: 0;
     }
   }
@@ -434,12 +434,13 @@
     width: 100%;
     aspect-ratio: 16 / 9;
     background: #000;
+    border: 1px solid #2a2a2a;
     border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
     overflow: hidden;
-    flex-shrink: 0; // Prevent shrinking to maintain aspect ratio
+    flex-shrink: 0; 
   }
 
   .preview-placeholder {

@@ -358,7 +358,7 @@ export default function VideoTemplateCreator({ config }) {
             Save Changes
           </Button>
         </div>
-      </div>
+      </div> 
 
       {/* Error Display */}
       {error && (
