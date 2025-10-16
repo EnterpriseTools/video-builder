@@ -116,14 +116,14 @@ def create_slide_animation(
     
     if start_pos < 0 and distance >= 0:
         # Negative start, positive distance (e.g., -400 → 100)
-        # Instead of: -400+500*easing
-        # Use: 0-400+500*easing (mathematically equivalent, FFmpeg-friendly)
-        position_expr = f"0{start_pos}+{distance}*({easing_expr})"
+        # Use explicit subtraction with absolute value: (0-(400))+500*easing
+        abs_start = abs(start_pos)
+        position_expr = f"(0-({abs_start}))+{distance}*({easing_expr})"
     elif start_pos < 0 and distance < 0:
         # Negative start, negative distance (e.g., -400 → -500)
-        # Instead of: -400-100*easing
-        # Use: 0-400-100*easing
-        position_expr = f"0{start_pos}{distance}*({easing_expr})"
+        # Use explicit subtraction with absolute value
+        abs_start = abs(start_pos)
+        position_expr = f"(0-({abs_start})){distance}*({easing_expr})"
     elif start_pos >= 0 and distance >= 0:
         # Positive start, positive distance (e.g., 100 → 500)
         position_expr = f"{start_pos}+{distance}*({easing_expr})"
@@ -137,7 +137,8 @@ def create_slide_animation(
     # } else {
     #   position = end
     # }
-    animation_expr = f"'if(lt(t,{duration}),{position_expr},{end_pos})'"
+    # Return expression without quotes - the caller will add them if needed
+    animation_expr = f"if(lt(t,{duration}),{position_expr},{end_pos})"
     
     return animation_expr
 

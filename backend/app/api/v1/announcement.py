@@ -113,6 +113,7 @@ async def render_announcement(
         filter_parts.append(f"movie={wave_path}:loop=0,setpts=N/(FRAME_RATE*TB),scale=2304:-1[wave]")
         # Slide in from bottom over 0.5 seconds with ease-out cubic
         wave_y_expr = slide_up_from_bottom(final_y=730, duration=0.5, easing="ease_out_cubic")
+        # FFmpeg overlay expressions: use direct expression without extra quoting
         wave_overlay = f"[highlight_layer][wave]overlay=-192:y={wave_y_expr}[wave_layer]"
         filter_parts.append(wave_overlay)
         
