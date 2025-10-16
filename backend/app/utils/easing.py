@@ -137,8 +137,9 @@ def create_slide_animation(
     # } else {
     #   position = end
     # }
-    # Return expression without quotes - the caller will add them if needed
-    animation_expr = f"if(lt(t,{duration}),{position_expr},{end_pos})"
+    # Wrap in single quotes - FFmpeg needs them to prevent comma from being
+    # interpreted as a parameter separator
+    animation_expr = f"'if(lt(t,{duration}),{position_expr},{end_pos})'"
     
     return animation_expr
 
