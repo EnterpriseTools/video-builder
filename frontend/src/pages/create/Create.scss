@@ -69,6 +69,15 @@
       .template-name {
         color: #acacac;
       }
+
+      .add-button {
+        color: #ff1f7a;
+        background: rgba(232, 41, 127, 0.05);
+        
+        svg {
+          transform: scale(1.1) rotate(90deg);
+        }
+      }
     }
   }
 
