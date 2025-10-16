@@ -92,11 +92,18 @@ async def render_intro_video(
         if has_overlay and overlay_png_path:
             # Position the overlay at bottom-left with padding
             overlay_x = 40
-            overlay_y = 940  # 1080 - 100 (approx overlay height) - 40 (padding)
+            overlay_y_final = 940  # Final position: 1080 - 100 (approx overlay height) - 40 (padding)
+            overlay_y_start = 1080  # Start position: below screen
+            animation_duration = 0.5  # Animation duration in seconds
+            
+            # Create slide-up animation
+            # Expression: if time < duration, interpolate from start to final, else stay at final
+            overlay_y_expr = f"'if(lt(t,{animation_duration}),{overlay_y_start}+({overlay_y_final}-{overlay_y_start})*t/{animation_duration},{overlay_y_final})'"
             
             # Use filter_complex with movie filter to load PNG with proper alpha handling
             # The format=rgba ensures the PNG's alpha channel is preserved
-            overlay_filter = f"[0:v]scale=1920:1080,fps=30,format=yuva420p[base];movie={overlay_png_path},format=rgba,colorchannelmixer=aa=1[ovr];[base][ovr]overlay={overlay_x}:{overlay_y}:format=yuv420"
+            # y= expression creates the slide-up animation
+            overlay_filter = f"[0:v]scale=1920:1080,fps=30,format=yuva420p[base];movie={overlay_png_path},format=rgba,colorchannelmixer=aa=1[ovr];[base][ovr]overlay={overlay_x}:y={overlay_y_expr}:format=yuv420"
             
             ffmpeg_cmd.extend([
                 "-filter_complex", overlay_filter,
