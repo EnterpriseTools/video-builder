@@ -44,7 +44,6 @@
   gap: 1.5rem;
   max-width: 1200px;
   margin: 0 auto;
-  justify-items: center;
 }
 
 .template-card {
@@ -61,7 +60,7 @@
   transition: all 0.3s ease;
 
   &:hover {
-    background: #090909;
+    background: #1c1c1c;
     border: 2px solid #414141;
     transform: translateY(-2px);
   }
