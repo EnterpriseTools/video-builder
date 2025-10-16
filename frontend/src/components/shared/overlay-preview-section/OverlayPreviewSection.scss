@@ -47,6 +47,20 @@
     background-position: center;
     background-repeat: no-repeat;
     
+    // Loading spinner styling
+    .preview-loader {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(12, 10, 14, 0.8);
+      z-index: 10;
+    }
+    
     // Overlay content styling
     .overlay-content {
       position: relative;

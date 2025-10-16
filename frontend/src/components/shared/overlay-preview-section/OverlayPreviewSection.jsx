@@ -1,4 +1,5 @@
-import { Suspense } from 'react';
+import { Suspense, useState, useEffect } from 'react';
+import Spinner from '@/components/shared/spinner/Spinner';
 import './OverlayPreviewSection.scss';
 
 /**
@@ -28,6 +29,10 @@ export default function OverlayPreviewSection({
   containerClassName = "",
   className = ""
 }) {
+  // Track loading state for background image
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageLoading, setImageLoading] = useState(false);
+  
   // Restart functionality removed - previews now show static final state
   
   // Determine if decorative elements should be shown externally
@@ -37,6 +42,30 @@ export default function OverlayPreviewSection({
   
   // Use background image for all templates as intended
   const finalBackgroundImage = shouldSetBackground ? backgroundImage : null;
+  
+  // Reset loading state when background image changes
+  useEffect(() => {
+    if (finalBackgroundImage) {
+      setImageLoaded(false);
+      setImageLoading(true);
+      
+      // Preload the image
+      const img = new Image();
+      img.onload = () => {
+        setImageLoaded(true);
+        setImageLoading(false);
+      };
+      img.onerror = () => {
+        setImageLoaded(true); // Show preview anyway on error
+        setImageLoading(false);
+      };
+      img.src = finalBackgroundImage;
+    } else {
+      // No background image, show immediately
+      setImageLoaded(true);
+      setImageLoading(false);
+    }
+  }, [finalBackgroundImage]);
   
   // Build container class names
   const containerClasses = [
@@ -61,13 +90,22 @@ export default function OverlayPreviewSection({
           ...(finalBackgroundImage && { backgroundImage: `url(${finalBackgroundImage})` })
         }}
       >
-        <div className="overlay-content">
-          <Suspense fallback={<div>Loading preview...</div>}>
-            {overlayComponent}
-          </Suspense>
-          
-          {/* Add decorative elements for templates that support them */}
-          {hasDecorativeElements && (
+        {/* Show loading spinner while image is loading */}
+        {imageLoading && finalBackgroundImage && (
+          <div className="preview-loader">
+            <Spinner />
+          </div>
+        )}
+        
+        {/* Show preview content once loaded */}
+        {imageLoaded && (
+          <div className="overlay-content">
+            <Suspense fallback={<div>Loading preview...</div>}>
+              {overlayComponent}
+            </Suspense>
+            
+            {/* Add decorative elements for templates that support them */}
+            {hasDecorativeElements && (
             <>
               <div 
                 className="wave-element"
@@ -111,7 +149,8 @@ export default function OverlayPreviewSection({
               </div>
             </>
           )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );
