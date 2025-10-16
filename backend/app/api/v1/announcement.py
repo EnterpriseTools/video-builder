@@ -7,7 +7,6 @@ from fastapi import APIRouter, File, Form, UploadFile, HTTPException
 from fastapi.responses import FileResponse
 from app.utils.announcement_overlay import AnnouncementOverlayGenerator
 from app.utils import get_audio_duration, extract_audio_from_media
-from app.utils.easing import slide_in_from_left, slide_in_from_right, slide_up_from_bottom
 
 router = APIRouter()
 
@@ -95,7 +94,8 @@ async def render_announcement(
         urllib.request.urlretrieve(wave_url, wave_path)
         urllib.request.urlretrieve(highlight_url, highlight_path)
         
-        # Multi-layer composition with animations
+        # Multi-layer composition with STATIC positioning (no animations)
+        # FFmpeg's expression parser is too unreliable for complex animations
         # Z-index order: highlight(1) → wave(1) → image(2) → text(3)
         filter_parts = []
         
@@ -108,31 +108,28 @@ async def render_announcement(
         highlight_overlay = f"[bg][highlight]overlay=(W-w)/2:-300[highlight_layer]"
         filter_parts.append(highlight_overlay)
         
-        # Layer 3: Wave overlay with slide-in animation (z-index: 1, same as highlight)
+        # Layer 3: Wave overlay - STATIC position (no animation)
         # Scale wave to 2304px wide (120% of 1920)
         filter_parts.append(f"movie={wave_path}:loop=0,setpts=N/(FRAME_RATE*TB),scale=2304:-1[wave]")
-        # Slide in from bottom over 0.5 seconds with ease-out cubic
-        wave_y_expr = slide_up_from_bottom(final_y=730, duration=0.5, easing="ease_out_cubic")
-        # FFmpeg overlay expressions: use direct expression without extra quoting
-        wave_overlay = f"[highlight_layer][wave]overlay=-192:y={wave_y_expr}[wave_layer]"
+        # Static position at final location
+        wave_overlay = f"[highlight_layer][wave]overlay=-192:730[wave_layer]"
         filter_parts.append(wave_overlay)
         
-        # Layer 4: Image container with slide-in animation (z-index: 2, above wave/highlight)
+        # Layer 4: Image container - STATIC position (no animation)
         # Scale image to fit in 896x1016 container
         filter_parts.append(f"[0:v]scale=896:1016:force_original_aspect_ratio=decrease[scaled_image]")
         # Pad to 960x1080 with transparent background
         filter_parts.append(f"[scaled_image]pad=960:1080:(960-iw)/2:(1080-ih)/2:color=0x00000000[container]")
-        # Slide in from right over 0.5 seconds with ease-out cubic
-        image_x_expr = slide_in_from_right(final_x=960, duration=0.5, easing="ease_out_cubic")
-        image_overlay = f"[wave_layer][container]overlay=x={image_x_expr}:0[image_layer]"
+        # Static position at final location
+        image_overlay = f"[wave_layer][container]overlay=960:0[image_layer]"
         filter_parts.append(image_overlay)
         
-        # Layer 5: Text overlay with slide-in animation (z-index: 3, on top of everything)
+        # Layer 5: Text overlay - STATIC position (no animation)
         if has_overlay and overlay_path:
-            # Slide in from left over 0.5 seconds with ease-out cubic
-            overlay_x_expr = slide_in_from_left(final_x=100, duration=0.5, easing="ease_out_cubic")
+            # Static position at final location
+            overlay_x = 100
             overlay_y = 440  # Center vertically
-            overlay_filter = f"[image_layer][1:v]overlay=x={overlay_x_expr}:{overlay_y}[final]"
+            overlay_filter = f"[image_layer][1:v]overlay={overlay_x}:{overlay_y}[final]"
             filter_parts.append(overlay_filter)
             
             # FFmpeg command with text overlay
@@ -183,8 +180,8 @@ async def render_announcement(
                 cwd=temp_dir
             )
             
-            # Wait for completion with timeout (increased to 180s for complex animations)
-            stdout, stderr = process.communicate(timeout=180)
+            # Wait for completion with timeout
+            stdout, stderr = process.communicate(timeout=60)
             
             # Create result object similar to subprocess.run
             class Result:
