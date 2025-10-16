@@ -100,19 +100,23 @@ def create_slide_animation(
     """
     
     # Normalize time to 0-1 range
-    t_normalized = f"t/{duration}"
+    # FFmpeg has trouble with division in simple expressions, so convert to multiplication
+    # t/duration becomes t*(1/duration)
+    t_multiplier = 1 / duration
+    t_normalized_div = f"t/{duration}"  # Keep for complex expressions
+    t_normalized_mul = f"t*{t_multiplier}"  # Use for simple expressions
     
     # For negative start positions, FFmpeg's parser is too limited for complex easing
     # Use simple linear interpolation instead - still smooth, just no fancy curves
     use_linear = start_pos < 0
     
     if use_linear:
-        # For negative starts, use simple linear interpolation: t/duration
-        # This avoids all the complex math that breaks FFmpeg's parser
-        easing_expr = t_normalized
+        # For negative starts, use multiplication instead of division
+        # Avoids FFmpeg parser issues with division in simple contexts
+        easing_expr = t_normalized_mul
     else:
-        # For positive starts, use full easing expression
-        easing_expr = get_easing_expression(easing, normalized=False).replace("t", t_normalized)
+        # For positive starts, use full easing expression with division
+        easing_expr = get_easing_expression(easing, normalized=False).replace("t", t_normalized_div)
     
     # Calculate distance in Python to avoid double-negative issues in FFmpeg expression
     # e.g., if start_pos=-400 and end_pos=100, we get distance=500
