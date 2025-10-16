@@ -44,6 +44,7 @@
   gap: 1.5rem;
   max-width: 1200px;
   margin: 0 auto;
+  align-items: center;
 }
 
 .template-card {
@@ -60,9 +61,15 @@
   transition: all 0.3s ease;
 
   &:hover {
-    background: #1c1c1c;
+    background: #161616;
     border: 2px solid #414141;
     transform: translateY(-2px);
+
+    .template-content {
+      .template-name {
+        color: #acacac;
+      }
+    }
   }
 
   .template-content {
@@ -79,6 +86,8 @@
       margin: 0;
       color: #39373A;
       text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
     }
   
     .add-button {

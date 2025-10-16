@@ -454,7 +454,12 @@ export default function Create() {
                   </div>
                 ) : (
                   <>
-                    <h3 className="template-name">{template.name}</h3>
+                    <h3 
+                      className="template-name" 
+                      onClick={() => handleAddClick(template.name)}
+                    >
+                      {template.name}
+                    </h3>
                     <button 
                       className="add-button" 
                       onClick={() => handleAddClick(template.name)}
