@@ -64,7 +64,7 @@ class IntroOverlayGenerator:
             draw = ImageDraw.Draw(img)
             
             # Create rounded rectangle background using style configuration
-            self._draw_rounded_rectangle(
+            self._draw_rounded_rectangle_clean(
                 draw, 
                 [0, 0, card_width, card_height],
                 radius=IntroStyles.CARD_RADIUS,
@@ -77,7 +77,7 @@ class IntroOverlayGenerator:
             logo_y = IntroStyles.LOGO_Y_OFFSET
             logo_size = IntroStyles.LOGO_SIZE
             
-            self._draw_rounded_rectangle(
+            self._draw_rounded_rectangle_clean(
                 draw,
                 [logo_x, logo_y, logo_x + logo_size, logo_y + logo_size],
                 radius=IntroStyles.LOGO_RADIUS,
@@ -85,23 +85,28 @@ class IntroOverlayGenerator:
                 outline=IntroStyles.CARD_BORDER_COLOR
             )
             
-            # Draw Axon logo approximation using style configuration
-            logo_shape_points = [
-                (logo_x + 16, logo_y + 10),  # Top left
-                (logo_x + 48, logo_y + 10),  # Top right  
-                (logo_x + 40, logo_y + 30),  # Middle right
-                (logo_x + 24, logo_y + 50),  # Bottom
-                (logo_x + 16, logo_y + 40),  # Bottom left
-            ]
-            draw.polygon(logo_shape_points, fill=IntroStyles.LOGO_COLOR)
-            
-            # Additional accent shape for the Axon style
-            accent_points = [
-                (logo_x + 20, logo_y + 20),
-                (logo_x + 35, logo_y + 15),
-                (logo_x + 30, logo_y + 35),
-            ]
-            draw.polygon(accent_points, fill=IntroStyles.LOGO_ACCENT_COLOR)
+            # Load and paste the actual Axon logo image
+            logo_img_path = Path(__file__).resolve().parents[2] / "frontend" / "public" / "logoAxon.png"
+            if logo_img_path.exists():
+                try:
+                    logo_img = Image.open(logo_img_path).convert('RGBA')
+                    # Resize logo to fit in the logo container with some padding
+                    logo_target_size = logo_size - 16  # 8px padding on each side
+                    logo_img.thumbnail((logo_target_size, logo_target_size), Image.Resampling.LANCZOS)
+                    
+                    # Center the logo in the container
+                    logo_paste_x = logo_x + (logo_size - logo_img.width) // 2
+                    logo_paste_y = logo_y + (logo_size - logo_img.height) // 2
+                    
+                    # Paste with alpha channel
+                    img.paste(logo_img, (logo_paste_x, logo_paste_y), logo_img)
+                except Exception as e:
+                    print(f"Warning: Could not load logo image: {e}. Using placeholder.")
+                    # Fallback to placeholder if logo fails to load
+                    self._draw_logo_placeholder(draw, logo_x, logo_y, logo_size)
+            else:
+                print(f"Warning: Logo not found at {logo_img_path}. Using placeholder.")
+                self._draw_logo_placeholder(draw, logo_x, logo_y, logo_size)
             
             # Text area using style configuration
             text_x = IntroStyles.TEXT_X_OFFSET
@@ -125,8 +130,8 @@ class IntroOverlayGenerator:
             if role:
                 draw.text((text_x, current_y), role, fill=IntroStyles.ROLE_COLOR, font=font_role)
             
-            # Save the image
-            img.save(output_path, 'PNG')
+            # Save the image with optimization
+            img.save(output_path, 'PNG', optimize=False, compress_level=0)
             print(f"Intro overlay generated using Pillow: {output_path}")
             return output_path
             
@@ -135,8 +140,74 @@ class IntroOverlayGenerator:
         except Exception as e:
             raise Exception(f"Failed to create intro overlay: {str(e)}")
     
+    def _draw_rounded_rectangle_clean(self, draw, coords, radius, fill=None, outline=None):
+        """Draw a rounded rectangle using Pillow without overlapping artifacts."""
+        from PIL import Image, ImageDraw
+        
+        x1, y1, x2, y2 = coords
+        width = x2 - x1
+        height = y2 - y1
+        
+        # Create a temporary image for the rounded rectangle to avoid overlaps
+        temp = Image.new('RGBA', (width, height), (0, 0, 0, 0))
+        temp_draw = ImageDraw.Draw(temp)
+        
+        # Draw using the modern rounded_rectangle method if available (Pillow 8.2.0+)
+        try:
+            temp_draw.rounded_rectangle(
+                [(0, 0), (width, height)],
+                radius=radius,
+                fill=fill,
+                outline=outline
+            )
+        except AttributeError:
+            # Fallback for older Pillow versions - draw without overlaps
+            # Draw center rectangle
+            temp_draw.rectangle([radius, 0, width - radius, height], fill=fill)
+            temp_draw.rectangle([0, radius, width, height - radius], fill=fill)
+            
+            # Draw corners
+            temp_draw.pieslice([0, 0, 2*radius, 2*radius], 180, 270, fill=fill)
+            temp_draw.pieslice([width - 2*radius, 0, width, 2*radius], 270, 360, fill=fill)
+            temp_draw.pieslice([0, height - 2*radius, 2*radius, height], 90, 180, fill=fill)
+            temp_draw.pieslice([width - 2*radius, height - 2*radius, width, height], 0, 90, fill=fill)
+            
+            # Draw outline if specified
+            if outline:
+                temp_draw.arc([0, 0, 2*radius, 2*radius], 180, 270, fill=outline)
+                temp_draw.arc([width - 2*radius, 0, width, 2*radius], 270, 360, fill=outline)
+                temp_draw.arc([0, height - 2*radius, 2*radius, height], 90, 180, fill=outline)
+                temp_draw.arc([width - 2*radius, height - 2*radius, width, height], 0, 90, fill=outline)
+                temp_draw.line([(radius, 0), (width - radius, 0)], fill=outline)
+                temp_draw.line([(radius, height), (width - radius, height)], fill=outline)
+                temp_draw.line([(0, radius), (0, height - radius)], fill=outline)
+                temp_draw.line([(width, radius), (width, height - radius)], fill=outline)
+        
+        # Paste the temporary image onto the main image
+        draw._image.paste(temp, (int(x1), int(y1)), temp)
+    
+    def _draw_logo_placeholder(self, draw, logo_x, logo_y, logo_size):
+        """Draw a placeholder logo when the actual logo image is not available."""
+        # Simple placeholder - draw initials "A" for Axon
+        from PIL import ImageFont
+        
+        try:
+            placeholder_font = get_font(PRIMARY_FONT_PATH, 32)
+            text = "A"
+            bbox = draw.textbbox((0, 0), text, font=placeholder_font)
+            text_width = bbox[2] - bbox[0]
+            text_height = bbox[3] - bbox[1]
+            
+            # Center the text in the logo container
+            text_x = logo_x + (logo_size - text_width) // 2
+            text_y = logo_y + (logo_size - text_height) // 2
+            
+            draw.text((text_x, text_y), text, fill=(255, 255, 255, 255), font=placeholder_font)
+        except Exception as e:
+            print(f"Warning: Could not draw placeholder logo: {e}")
+    
     def _draw_rounded_rectangle(self, draw, coords, radius, fill=None, outline=None):
-        """Draw a rounded rectangle using Pillow."""
+        """Draw a rounded rectangle using Pillow (legacy method)."""
         x1, y1, x2, y2 = coords
         
         # Draw the main rectangle
@@ -148,5 +219,13 @@ class IntroOverlayGenerator:
         draw.pieslice([x2 - 2*radius, y1, x2, y1 + 2*radius], 270, 360, fill=fill, outline=outline)
         draw.pieslice([x1, y2 - 2*radius, x1 + 2*radius, y2], 90, 180, fill=fill, outline=outline)
         draw.pieslice([x2 - 2*radius, y2 - 2*radius, x2, y2], 0, 90, fill=fill, outline=outline)
+    
+    def cleanup_temp_file(self, file_path: str):
+        """Clean up a temporary file if it exists."""
+        try:
+            if file_path and Path(file_path).exists():
+                Path(file_path).unlink()
+        except Exception as e:
+            print(f"Warning: Could not clean up temp file {file_path}: {e}")
 
 

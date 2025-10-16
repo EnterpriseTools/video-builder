@@ -94,8 +94,9 @@ async def render_intro_video(
             overlay_x = 40
             overlay_y = 940  # 1080 - 100 (approx overlay height) - 40 (padding)
             
-            # Use filter_complex with movie filter to load PNG
-            overlay_filter = f"[0:v]scale=1920:1080,fps=30[base];movie={overlay_png_path}[ovr];[base][ovr]overlay={overlay_x}:{overlay_y}"
+            # Use filter_complex with movie filter to load PNG with proper alpha handling
+            # The format=rgba ensures the PNG's alpha channel is preserved
+            overlay_filter = f"[0:v]scale=1920:1080,fps=30,format=yuva420p[base];movie={overlay_png_path},format=rgba,colorchannelmixer=aa=1[ovr];[base][ovr]overlay={overlay_x}:{overlay_y}:format=yuv420"
             
             ffmpeg_cmd.extend([
                 "-filter_complex", overlay_filter,
