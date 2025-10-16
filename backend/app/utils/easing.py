@@ -110,18 +110,26 @@ def create_slide_animation(
     # This prevents expressions like "100--400" or "1080+-350" which FFmpeg can't parse
     distance = end_pos - start_pos
     
-    # Format the operation based on distance sign to avoid +- or -- in expression
-    # Also wrap negative start positions in parentheses for FFmpeg compatibility
-    start_str = f"({start_pos})" if start_pos < 0 else str(start_pos)
+    # Format the operation to avoid FFmpeg parsing issues with negative numbers
+    # FFmpeg's filter parser has trouble with negative numbers in certain contexts
+    # Solution: rewrite expressions to avoid leading negative numbers
     
-    if distance >= 0:
-        # Positive distance: use addition
-        # Example: (-400)+500*easing (sliding right or down)
-        position_expr = f"{start_str}+{distance}*({easing_expr})"
+    if start_pos < 0 and distance >= 0:
+        # Negative start, positive distance (e.g., -400 → 100)
+        # Instead of: -400+500*easing
+        # Use: 0-400+500*easing (mathematically equivalent, FFmpeg-friendly)
+        position_expr = f"0{start_pos}+{distance}*({easing_expr})"
+    elif start_pos < 0 and distance < 0:
+        # Negative start, negative distance (e.g., -400 → -500)
+        # Instead of: -400-100*easing
+        # Use: 0-400-100*easing
+        position_expr = f"0{start_pos}{distance}*({easing_expr})"
+    elif start_pos >= 0 and distance >= 0:
+        # Positive start, positive distance (e.g., 100 → 500)
+        position_expr = f"{start_pos}+{distance}*({easing_expr})"
     else:
-        # Negative distance: use subtraction with absolute value
-        # Example: 1080-350*easing (sliding left or up)
-        position_expr = f"{start_str}{distance}*({easing_expr})"  # distance already has minus sign
+        # Positive start, negative distance (e.g., 1080 → 730)
+        position_expr = f"{start_pos}{distance}*({easing_expr})"  # distance has minus sign
     
     # Complete animation expression:
     # if (time < duration) {
