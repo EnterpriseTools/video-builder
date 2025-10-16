@@ -61,17 +61,20 @@ export default function VideoTemplateCreator({ config }) {
             {/* Image preview */}
             {fileConfig.type === 'image' && fileData.preview && (
               <div className="image-preview">
-                <div className="thumbnail-container">
-                  <img src={fileData.preview} alt="Uploaded preview" className="file-thumbnail" />
-                  <div className="thumbnail-overlay">
-                    <Button 
-                      variant="destructive" 
-                      size="small" 
-                      onClick={() => handleClearFile(fileConfig.id)}
-                    >
-                      ✕ Clear
-                    </Button>
+                <div className="image-info">
+                  <div className="image-thumbnail-small">
+                    <img src={fileData.preview} alt="Preview" />
                   </div>
+                  <div className="image-details">
+                    <span className="image-name">{fileData.name}</span>
+                  </div>
+                  <Button 
+                    variant="destructive" 
+                    size="small" 
+                    onClick={() => handleClearFile(fileConfig.id)}
+                  >
+                    ✕ Clear
+                  </Button>
                 </div>
               </div>
             )}
