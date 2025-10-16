@@ -146,7 +146,8 @@ def create_slide_animation(
         # At t=0: 100+500*(0-1) = 100-500 = -400 ✓
         # At t=1: 100+500*(1-1) = 100+0 = 100 ✓
         # This works and starts with positive number!
-        position_expr = f"{end_pos}+{distance}*(({easing_expr})-1)"
+        # Note: easing_expr already has any needed parens, don't add extra
+        position_expr = f"{end_pos}+{distance}*({easing_expr}-1)"
     elif distance >= 0:
         # Positive start, positive distance (e.g., 100 → 500)
         position_expr = f"{start_pos}+{distance}*({easing_expr})"
