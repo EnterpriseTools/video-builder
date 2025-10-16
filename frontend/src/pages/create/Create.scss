@@ -43,28 +43,28 @@
 
 .template-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 2rem;
-  max-width: 1000px;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 1.5rem;
+  max-width: 1200px;
   margin: 0 auto;
 }
 
 .template-card {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #0f0f0f;
+  border: 2px dashed #2A2A2A;
   border-radius: 12px;
-  padding: 2rem 1.5rem;
+  padding: 1.5rem;
   min-height: 200px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   transition: all 0.3s ease;
   position: relative;
-  backdrop-filter: blur(10px);
+  cursor: pointer;
 
   &:hover {
-    background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(255, 255, 255, 0.2);
+    background: #090909;
+    border: 2px solid #e91e63;
     transform: translateY(-2px);
   }
 }
@@ -78,10 +78,10 @@
 }
 
 .template-name {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   font-weight: 500;
   margin: 0;
-  color: rgba(255, 255, 255, 0.9);
+  color: #39373A;
   text-align: center;
 }
 
@@ -121,6 +121,17 @@
 
 // Template Ready States
 .template-card.ready {
+  background: #080808;
+  border: 2px solid #19ed27;
+  border-radius: 12px;
+  padding: .25rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: all 0.3s ease;
+  position: relative;
+  cursor: pointer;
+  
   .template-content {
     position: relative;
     min-height: 150px;
