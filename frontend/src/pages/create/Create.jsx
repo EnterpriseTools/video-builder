@@ -443,21 +443,28 @@ export default function Create() {
                         </div>
                       );
                     })()}
+                    <div className="thumbnail-hover-overlay" onClick={() => handleAddClick(template.name)}>
+                      <button className="edit-button-overlay">
+                        Edit
+                      </button>
+                    </div>
                     <div className="ready-indicator">
                       <div className="checkmark">✓</div>
                     </div>
                   </div>
                 ) : (
-                  <h3 className="template-name">{template.name}</h3>
+                  <>
+                    <h3 className="template-name">{template.name}</h3>
+                    <button 
+                      className="add-button" 
+                      onClick={() => handleAddClick(template.name)}
+                    >
+                      <span className="add-icon"></span>
+                      + Add
+                    </button>
+                  </>
                 )}
               </div>
-              <button 
-                className="add-button" 
-                onClick={() => handleAddClick(template.name)}
-              >
-                <span className="add-icon"></span>
-                {template.status === 'ready' ? 'Edit' : '+ Add'}
-              </button>
             </div>
           ))}
         </div>

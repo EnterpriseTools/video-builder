@@ -130,25 +130,10 @@
   justify-content: space-between;
   transition: all 0.3s ease;
   position: relative;
-  cursor: pointer;
   
   .template-content {
     position: relative;
     min-height: 150px;
-  }
-  
-  // Change button to tertiary style when template is ready
-  .add-button {
-    background: transparent;
-    border: 1px solid transparent;
-    color: rgba(255, 255, 255, 0.7);
-    
-    &:hover {
-      color: white;
-      background: rgba(255, 255, 255, 0.1);
-      transform: translateY(-1px);
-      box-shadow: none;
-    }
   }
 
   .template-preview {
@@ -157,6 +142,7 @@
     height: 150px;
     border-radius: 8px;
     overflow: hidden;
+    cursor: pointer;
     
     .preview-thumbnail {
       width: 100%;
@@ -222,6 +208,8 @@
       position: absolute;
       top: 8px;
       right: 8px;
+      z-index: 2;
+      pointer-events: none;
       
       .checkmark {
         width: 24px;
@@ -236,6 +224,50 @@
         font-size: 14px;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
       }
+    }
+
+    // Hover overlay for Edit button
+    .thumbnail-hover-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.25s ease;
+      z-index: 1;
+      
+      .edit-button-overlay {
+        padding: 0.75rem 2rem;
+        background: white;
+        color: #080808;
+        border: none;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        
+        &:hover {
+          background: #FFD966;
+          transform: translateY(-2px);
+          box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+        }
+        
+        &:active {
+          transform: translateY(0);
+        }
+      }
+    }
+    
+    &:hover .thumbnail-hover-overlay {
+      opacity: 1;
     }
   }
 
