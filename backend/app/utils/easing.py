@@ -107,16 +107,26 @@ def create_slide_animation(
     
     # Calculate distance in Python to avoid double-negative issues in FFmpeg expression
     # e.g., if start_pos=-400 and end_pos=100, we get distance=500
-    # This prevents expressions like "100--400" which FFmpeg can't parse
+    # This prevents expressions like "100--400" or "1080+-350" which FFmpeg can't parse
     distance = end_pos - start_pos
+    
+    # Format the operation based on distance sign to avoid +- or -- in expression
+    if distance >= 0:
+        # Positive distance: use addition
+        # Example: -400+500*easing (sliding right or down)
+        position_expr = f"{start_pos}+{distance}*({easing_expr})"
+    else:
+        # Negative distance: use subtraction with absolute value
+        # Example: 1080-350*easing (sliding left or up)
+        position_expr = f"{start_pos}{distance}*({easing_expr})"  # distance already has minus sign
     
     # Complete animation expression:
     # if (time < duration) {
-    #   position = start + distance * easing(t/duration)
+    #   position = calculated_expression
     # } else {
     #   position = end
     # }
-    animation_expr = f"'if(lt(t,{duration}),{start_pos}+{distance}*({easing_expr}),{end_pos})'"
+    animation_expr = f"'if(lt(t,{duration}),{position_expr},{end_pos})'"
     
     return animation_expr
 
