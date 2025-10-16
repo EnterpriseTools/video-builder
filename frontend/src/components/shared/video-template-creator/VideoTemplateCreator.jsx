@@ -316,7 +316,8 @@ export default function VideoTemplateCreator({ config }) {
               <h2>Preview:</h2>
             </div>
             <div className="preview-content">
-              {hasRequiredFiles ? (
+              {/* Show preview for announcement template if image is uploaded, or for other templates when all required files are present */}
+              {(config.id === 'announcement' && files.image?.file) || hasRequiredFiles ? (
                 <TemplatePreview
                   config={config}
                   textData={textData}
@@ -328,7 +329,7 @@ export default function VideoTemplateCreator({ config }) {
               ) : (
                 <div className="preview-placeholder">
                   <div className="placeholder-content">
-                    {!hasRequiredFiles ? 'Upload files to see preview' : 'Enter details to see preview'}
+                    {config.id === 'announcement' ? 'Upload image to see preview' : (!hasRequiredFiles ? 'Upload files to see preview' : 'Enter details to see preview')}
                   </div>
                 </div>
               )}
