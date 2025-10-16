@@ -111,25 +111,29 @@ def create_slide_animation(
     distance = end_pos - start_pos
     
     # Format the operation to avoid FFmpeg parsing issues with negative numbers
-    # FFmpeg's filter parser has trouble with negative numbers in certain contexts
-    # Solution: rewrite expressions to avoid leading negative numbers
+    # FFmpeg's filter parser has extreme difficulty with negative numbers
+    # Solution: Use reverse formula for negative starts to avoid negatives entirely
     
-    if start_pos < 0 and distance >= 0:
-        # Negative start, positive distance (e.g., -400 → 100)
-        # Use explicit subtraction with absolute value: (0-(400))+500*easing
-        abs_start = abs(start_pos)
-        position_expr = f"(0-({abs_start}))+{distance}*({easing_expr})"
-    elif start_pos < 0 and distance < 0:
-        # Negative start, negative distance (e.g., -400 → -500)
-        # Use explicit subtraction with absolute value
-        abs_start = abs(start_pos)
-        position_expr = f"(0-({abs_start})){distance}*({easing_expr})"
-    elif start_pos >= 0 and distance >= 0:
+    if start_pos < 0:
+        # For ANY negative start position, use reverse formula:
+        # Instead of: start + distance*easing
+        # Use: end - distance*(1-easing)
+        # This avoids negative numbers entirely!
+        #
+        # Example: -400 → 100 (distance=500)
+        # Old: -400 + 500*easing (has -400)
+        # New: 100 - 500*(1-easing) (no negatives!)
+        # When easing=0: 100-500*1 = -400 ✓
+        # When easing=1: 100-500*0 = 100 ✓
+        position_expr = f"{end_pos}-{distance}*(1-({easing_expr}))"
+    elif distance >= 0:
         # Positive start, positive distance (e.g., 100 → 500)
         position_expr = f"{start_pos}+{distance}*({easing_expr})"
     else:
         # Positive start, negative distance (e.g., 1080 → 730)
-        position_expr = f"{start_pos}{distance}*({easing_expr})"  # distance has minus sign
+        # Can use abs(distance) since we're subtracting anyway
+        abs_distance = abs(distance)
+        position_expr = f"{start_pos}-{abs_distance}*({easing_expr})"
     
     # Complete animation expression:
     # if (time < duration) {
