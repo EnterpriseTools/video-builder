@@ -133,8 +133,8 @@ async def render_announcement(
                 "-map", "[final]",
                 "-map", "2:a",
                 "-c:v", "libx264",
-                "-preset", "ultrafast",  # Use fastest preset to avoid timeout
-                "-crf", "28",           # Lower quality for speed
+                "-preset", "fast",      # Good quality, reasonable speed
+                "-crf", "23",           # High quality
                 "-c:a", "aac",
                 "-shortest",            # End when shortest input ends
                 "-t", str(audio_duration),
@@ -164,8 +164,8 @@ async def render_announcement(
                 "-map", "[final]",
                 "-map", "1:a",
                 "-c:v", "libx264",
-                "-preset", "ultrafast",
-                "-crf", "28",
+                "-preset", "fast",
+                "-crf", "23",
                 "-c:a", "aac",
                 "-shortest",
                 "-t", str(audio_duration),
@@ -186,8 +186,9 @@ async def render_announcement(
                 cwd=temp_dir
             )
             
-            # Wait for completion with timeout
-            stdout, stderr = process.communicate(timeout=60)
+            # Wait for completion with increased timeout for quality encoding
+            # With fast preset and crf 23, complex compositions need more time
+            stdout, stderr = process.communicate(timeout=180)
             
             # Create result object similar to subprocess.run
             class Result:
