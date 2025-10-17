@@ -104,7 +104,7 @@ async def render_announcement(
             # Input 0: image, Input 1: text overlay, Input 2: audio, Input 3: wave, Input 4: highlight
             
             # Generate animation expressions
-            wave_y_expr = slide_up_from_bottom(final_y=730, duration=0.5, easing="ease_out_cubic")
+            wave_y_expr = slide_up_from_bottom(final_y=730, duration=0.75, easing="ease_out_cubic")
             image_x_expr = slide_in_from_right(final_x=960, duration=0.5, easing="ease_out_cubic")
             
             filter_complex = (

@@ -150,8 +150,8 @@ class AnnouncementStyles:
     """Style configuration specifically for announcement template"""
     
     # Fonts (optimized for 1080p video render)
-    TITLE_SIZE = 100                        # Title size for video
-    DESCRIPTION_SIZE = 48                   # Description size for video
+    TITLE_SIZE = 80                        # Title size for video
+    DESCRIPTION_SIZE = 42                   # Description size for video
     
     # Colors (match frontend SCSS preview)
     TITLE_COLOR = WHITE_COLOR                       # #ffffff (white)
