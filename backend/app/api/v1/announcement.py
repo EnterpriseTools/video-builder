@@ -7,7 +7,7 @@ from fastapi import APIRouter, File, Form, UploadFile, HTTPException
 from fastapi.responses import FileResponse
 from app.utils.announcement_overlay import AnnouncementOverlayGenerator
 from app.utils import get_audio_duration, extract_audio_from_media
-from app.utils.easing import slide_up_from_bottom
+from app.utils.easing import slide_up_from_bottom, slide_in_from_right
 
 router = APIRouter()
 
@@ -103,8 +103,9 @@ async def render_announcement(
             # Build filter with all inputs as streams
             # Input 0: image, Input 1: text overlay, Input 2: audio, Input 3: wave, Input 4: highlight
             
-            # Generate wave animation expression (slide up with ease-out cubic)
+            # Generate animation expressions
             wave_y_expr = slide_up_from_bottom(final_y=730, duration=0.5, easing="ease_out_cubic")
+            image_x_expr = slide_in_from_right(final_x=960, duration=0.5, easing="ease_out_cubic")
             
             filter_complex = (
                 # Create background
@@ -118,10 +119,10 @@ async def render_announcement(
                 f"[3:v]scale=2304:-1,loop=loop=-1:size=1:start=0[wave_scaled];"
                 f"[bg_highlight][wave_scaled]overlay=-192:y={wave_y_expr}[bg_wave];"
                 
-                # Prepare featured image (input 0)
+                # Prepare featured image (input 0) with slide-in animation from right
                 f"[0:v]scale=896:1016:force_original_aspect_ratio=decrease[scaled_img];"
                 f"[scaled_img]pad=960:1080:(960-iw)/2:(1080-ih)/2:color=0x00000000[img_container];"
-                f"[bg_wave][img_container]overlay=960:0[bg_img];"
+                f"[bg_wave][img_container]overlay=x={image_x_expr}:0[bg_img];"
                 
                 # Add text overlay (input 1)
                 f"[bg_img][1:v]overlay=100:440[final]"
@@ -149,8 +150,9 @@ async def render_announcement(
         else:
             # No text overlay - simpler filter
             
-            # Generate wave animation expression (slide up with ease-out cubic)
+            # Generate animation expressions
             wave_y_expr = slide_up_from_bottom(final_y=730, duration=0.5, easing="ease_out_cubic")
+            image_x_expr = slide_in_from_right(final_x=960, duration=0.5, easing="ease_out_cubic")
             
             filter_complex = (
                 f"color=c=0x0C090E:size=1920x1080:duration={audio_duration}:rate=30[bg];"
@@ -160,7 +162,7 @@ async def render_announcement(
                 f"[bg_highlight][wave_scaled]overlay=-192:y={wave_y_expr}[bg_wave];"
                 f"[0:v]scale=896:1016:force_original_aspect_ratio=decrease[scaled_img];"
                 f"[scaled_img]pad=960:1080:(960-iw)/2:(1080-ih)/2:color=0x00000000[img_container];"
-                f"[bg_wave][img_container]overlay=960:0[final]"
+                f"[bg_wave][img_container]overlay=x={image_x_expr}:0[final]"
             )
             
             cmd = [
