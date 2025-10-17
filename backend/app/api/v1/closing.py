@@ -7,6 +7,7 @@ from fastapi import APIRouter, File, Form, UploadFile, HTTPException
 from fastapi.responses import FileResponse
 from app.utils.closing_overlay import ClosingOverlayGenerator
 from app.utils import get_audio_duration
+from app.utils.media import extract_audio_from_media
 from app.utils.easing import slide_up_from_bottom
 
 router = APIRouter()
