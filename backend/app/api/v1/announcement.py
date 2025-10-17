@@ -112,7 +112,7 @@ async def render_announcement(
                 
                 # Prepare highlight (input 4)
                 f"[4:v]loop=loop=-1:size=1:start=0[highlight_loop];"
-                f"[bg][highlight_loop]overlay=(W-w)/2:-300[bg_highlight];"
+                f"[bg][highlight_loop]overlay=(W-w)/2:-350[bg_highlight];"
                 
                 # Prepare wave (input 3) with slide-up animation
                 f"[3:v]scale=2304:-1,loop=loop=-1:size=1:start=0[wave_scaled];"
@@ -155,7 +155,7 @@ async def render_announcement(
             filter_complex = (
                 f"color=c=0x0C090E:size=1920x1080:duration={audio_duration}:rate=30[bg];"
                 f"[3:v]loop=loop=-1:size=1:start=0[highlight_loop];"
-                f"[bg][highlight_loop]overlay=(W-w)/2:-300[bg_highlight];"
+                f"[bg][highlight_loop]overlay=(W-w)/2:-350[bg_highlight];"
                 f"[2:v]scale=2304:-1,loop=loop=-1:size=1:start=0[wave_scaled];"
                 f"[bg_highlight][wave_scaled]overlay=-192:y={wave_y_expr}[bg_wave];"
                 f"[0:v]scale=896:1016:force_original_aspect_ratio=decrease[scaled_img];"

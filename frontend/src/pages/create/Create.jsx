@@ -532,7 +532,7 @@ export default function Create() {
                   <span>{renderingProgress}</span>
                 </div>
               ) : hasAnyReady ? (
-                'Create Final Presentation'
+                'Create Video'
               ) : (
                 'Configure at least 1 template'
               )}
