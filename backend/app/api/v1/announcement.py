@@ -122,7 +122,7 @@ async def render_announcement(
                 # Prepare featured image (input 0) with slide-in animation from right
                 f"[0:v]scale=896:1016:force_original_aspect_ratio=decrease[scaled_img];"
                 f"[scaled_img]pad=960:1080:(960-iw)/2:(1080-ih)/2:color=0x00000000[img_container];"
-                f"[bg_wave][img_container]overlay=x={image_x_expr}:0[bg_img];"
+                f"[bg_wave][img_container]overlay=x={image_x_expr}:y=0[bg_img];"
                 
                 # Add text overlay (input 1)
                 f"[bg_img][1:v]overlay=100:440[final]"
@@ -162,7 +162,7 @@ async def render_announcement(
                 f"[bg_highlight][wave_scaled]overlay=-192:y={wave_y_expr}[bg_wave];"
                 f"[0:v]scale=896:1016:force_original_aspect_ratio=decrease[scaled_img];"
                 f"[scaled_img]pad=960:1080:(960-iw)/2:(1080-ih)/2:color=0x00000000[img_container];"
-                f"[bg_wave][img_container]overlay=x={image_x_expr}:0[final]"
+                f"[bg_wave][img_container]overlay=x={image_x_expr}:y=0[final]"
             )
             
             cmd = [
