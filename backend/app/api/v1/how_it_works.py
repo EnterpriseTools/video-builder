@@ -8,7 +8,6 @@ from fastapi.responses import FileResponse
 from app.utils.how_it_works_overlay import HowItWorksOverlayGenerator
 from app.utils import get_audio_duration
 from app.utils.media import extract_audio_from_media
-from app.utils.easing import slide_up_from_bottom
 
 router = APIRouter()
 
@@ -97,23 +96,16 @@ async def render_how_it_works(
         # Create main background canvas (no image, just background)
         filter_parts.append(f"color=c={bg_color}:size=1920x1080:duration={audio_duration}:rate=30[bg]")
         
-        # Add Wave.png overlay with slide-in animation
-        # Load wave using movie filter for animations
+        # Add Wave.png overlay - static position at y=730
         filter_parts.append(f"movie={wave_path}:loop=0,setpts=N/(FRAME_RATE*TB),scale=2304:-1[wave]")
-        
-        # Slide in from bottom over 0.5 seconds with ease-out cubic
-        wave_y_expr = slide_up_from_bottom(final_y=730, duration=0.5, easing="ease_out_cubic")
-        wave_overlay = f"[bg][wave]overlay=x=-192:y={wave_y_expr}[wave_bg]"
+        wave_overlay = f"[bg][wave]overlay=x=-192:y=730[wave_bg]"
         filter_parts.append(wave_overlay)
         
-        # Add Highlight.png overlay with fade in animation (match Feature template position)
-        # Load highlight with movie filter
+        # Add Highlight.png overlay - static position, no animation
         filter_parts.append(f"movie={highlight_path}:loop=0,setpts=N/(FRAME_RATE*TB)[highlight]")
-        # Fade in over 0.3 seconds
-        filter_parts.append(f"[highlight]fade=t=in:st=0:d=0.3:alpha=1[faded_highlight]")
         
         # Position: center top aligned, mostly off-screen (same as Feature template)
-        highlight_overlay = f"[wave_bg][faded_highlight]overlay=(W-w)/2:-300[highlight_video]"
+        highlight_overlay = f"[wave_bg][highlight]overlay=(W-w)/2:-300[highlight_video]"
         filter_parts.append(highlight_overlay)
         
         if has_overlay and overlay_path:
