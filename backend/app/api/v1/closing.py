@@ -122,18 +122,20 @@ async def render_closing(
         
         if has_overlay and overlay_path:
             # Closing text overlay is full-screen (1920x1080), so position at 0,0
-            # No animation needed - text is already positioned correctly in the PNG
-            overlay_filter = f"[highlight_video][0:v]overlay=0:0[final]"
+            # Add fade in animation - start at 0.5s (after wave animation), fade over 0.4s
+            # Load overlay and apply fade
+            filter_parts.append(f"movie={overlay_path}:loop=0,setpts=N/(FRAME_RATE*TB),format=rgba[text_overlay]")
+            filter_parts.append(f"[text_overlay]fade=t=in:st=0.5:d=0.4:alpha=1[faded_text]")
+            overlay_filter = f"[highlight_video][faded_text]overlay=0:0[final]"
             filter_parts.append(overlay_filter)
             
-            # FFmpeg command with overlay (text overlay is input 0)
+            # FFmpeg command with overlay (text overlay loaded via movie filter, audio is input 0)
             cmd = [
                 "ffmpeg", "-y", "-loglevel", "error",
-                "-i", str(overlay_path),               # Input overlay PNG (0)
-                "-i", str(audio_path),                 # Input audio (1)
+                "-i", str(audio_path),                 # Input audio (0)
                 "-filter_complex", ";".join(filter_parts),
                 "-map", "[final]",                     # Use final video output
-                "-map", "1:a",                         # Use audio from second input
+                "-map", "0:a",                         # Use audio from first input
                 "-c:v", "libx264",
                 "-preset", "fast",  # Good balance of speed/quality (restored from ultrafast)
                 "-crf", "23",  # Standard high quality (restored from 28)
