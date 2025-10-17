@@ -94,74 +94,80 @@ async def render_announcement(
         urllib.request.urlretrieve(wave_url, wave_path)
         urllib.request.urlretrieve(highlight_url, highlight_path)
         
-        # Multi-layer composition with STATIC positioning (no animations)
-        # FFmpeg's expression parser is too unreliable for complex animations
-        # Z-index order: highlight(1) → wave(1) → image(2) → text(3)
-        filter_parts = []
+        # Simplified approach: Use input streams instead of movie filter
+        # This avoids the movie filter which can cause timeouts
+        # Z-index order: background → highlight → wave → image → text
         
-        # Layer 1: Background color (z-index: 0)
-        filter_parts.append(f"color=c=0x0C090E:size=1920x1080:duration={audio_duration}:rate=30[bg]")
-        
-        # Layer 2: Highlight overlay (z-index: 1, below everything)
-        filter_parts.append(f"movie={highlight_path}:loop=0,setpts=N/(FRAME_RATE*TB)[highlight]")
-        # Position center top aligned, mostly off-screen (only bottom portion visible)
-        highlight_overlay = f"[bg][highlight]overlay=(W-w)/2:-300[highlight_layer]"
-        filter_parts.append(highlight_overlay)
-        
-        # Layer 3: Wave overlay - STATIC position (no animation)
-        # Scale wave to 2304px wide (120% of 1920)
-        filter_parts.append(f"movie={wave_path}:loop=0,setpts=N/(FRAME_RATE*TB),scale=2304:-1[wave]")
-        # Static position at final location
-        wave_overlay = f"[highlight_layer][wave]overlay=-192:730[wave_layer]"
-        filter_parts.append(wave_overlay)
-        
-        # Layer 4: Image container - STATIC position (no animation)
-        # Scale image to fit in 896x1016 container
-        filter_parts.append(f"[0:v]scale=896:1016:force_original_aspect_ratio=decrease[scaled_image]")
-        # Pad to 960x1080 with transparent background
-        filter_parts.append(f"[scaled_image]pad=960:1080:(960-iw)/2:(1080-ih)/2:color=0x00000000[container]")
-        # Static position at final location
-        image_overlay = f"[wave_layer][container]overlay=960:0[image_layer]"
-        filter_parts.append(image_overlay)
-        
-        # Layer 5: Text overlay - STATIC position (no animation)
         if has_overlay and overlay_path:
-            # Static position at final location
-            overlay_x = 100
-            overlay_y = 440  # Center vertically
-            overlay_filter = f"[image_layer][1:v]overlay={overlay_x}:{overlay_y}[final]"
-            filter_parts.append(overlay_filter)
+            # Build filter with all inputs as streams
+            # Input 0: image, Input 1: text overlay, Input 2: audio, Input 3: wave, Input 4: highlight
+            filter_complex = (
+                # Create background
+                f"color=c=0x0C090E:size=1920x1080:duration={audio_duration}:rate=30[bg];"
+                
+                # Prepare highlight (input 4)
+                f"[4:v]loop=loop=-1:size=1:start=0[highlight_loop];"
+                f"[bg][highlight_loop]overlay=(W-w)/2:-300[bg_highlight];"
+                
+                # Prepare wave (input 3) 
+                f"[3:v]scale=2304:-1,loop=loop=-1:size=1:start=0[wave_scaled];"
+                f"[bg_highlight][wave_scaled]overlay=-192:730[bg_wave];"
+                
+                # Prepare featured image (input 0)
+                f"[0:v]scale=896:1016:force_original_aspect_ratio=decrease[scaled_img];"
+                f"[scaled_img]pad=960:1080:(960-iw)/2:(1080-ih)/2:color=0x00000000[img_container];"
+                f"[bg_wave][img_container]overlay=960:0[bg_img];"
+                
+                # Add text overlay (input 1)
+                f"[bg_img][1:v]overlay=100:440[final]"
+            )
             
-            # FFmpeg command with text overlay
             cmd = [
                 "ffmpeg", "-y", "-loglevel", "error",
-                "-loop", "1", "-i", str(image_path),   # Input image (0)
-                "-i", str(overlay_path),               # Input overlay PNG (1)
-                "-i", str(audio_path),                 # Input audio (2)
-                "-filter_complex", ";".join(filter_parts),
+                "-loop", "1", "-i", str(image_path),      # Input 0: featured image
+                "-loop", "1", "-i", str(overlay_path),    # Input 1: text overlay
+                "-i", str(audio_path),                    # Input 2: audio
+                "-loop", "1", "-i", str(wave_path),       # Input 3: wave
+                "-loop", "1", "-i", str(highlight_path),  # Input 4: highlight
+                "-filter_complex", filter_complex,
                 "-map", "[final]",
                 "-map", "2:a",
                 "-c:v", "libx264",
-                "-preset", "fast",
-                "-crf", "23",
+                "-preset", "ultrafast",  # Use fastest preset to avoid timeout
+                "-crf", "28",           # Lower quality for speed
                 "-c:a", "aac",
+                "-shortest",            # End when shortest input ends
                 "-t", str(audio_duration),
                 "-pix_fmt", "yuv420p",
                 str(output_path)
             ]
         else:
-            # No text overlay - end with image layer as final
+            # No text overlay - simpler filter
+            filter_complex = (
+                f"color=c=0x0C090E:size=1920x1080:duration={audio_duration}:rate=30[bg];"
+                f"[3:v]loop=loop=-1:size=1:start=0[highlight_loop];"
+                f"[bg][highlight_loop]overlay=(W-w)/2:-300[bg_highlight];"
+                f"[2:v]scale=2304:-1,loop=loop=-1:size=1:start=0[wave_scaled];"
+                f"[bg_highlight][wave_scaled]overlay=-192:730[bg_wave];"
+                f"[0:v]scale=896:1016:force_original_aspect_ratio=decrease[scaled_img];"
+                f"[scaled_img]pad=960:1080:(960-iw)/2:(1080-ih)/2:color=0x00000000[img_container];"
+                f"[bg_wave][img_container]overlay=960:0[final]"
+            )
+            
             cmd = [
                 "ffmpeg", "-y", "-loglevel", "error",
-                "-loop", "1", "-i", str(image_path),   # Input image (0)
-                "-i", str(audio_path),                 # Input audio (1)
-                "-filter_complex", ";".join(filter_parts),
-                "-map", "[image_layer]",
+                "-loop", "1", "-i", str(image_path),      # Input 0
+                "-i", str(audio_path),                    # Input 1
+                "-loop", "1", "-i", str(wave_path),       # Input 2
+                "-loop", "1", "-i", str(highlight_path),  # Input 3
+                "-filter_complex", filter_complex,
+                "-map", "[final]",
                 "-map", "1:a",
                 "-c:v", "libx264",
-                "-preset", "fast",
-                "-crf", "23",
+                "-preset", "ultrafast",
+                "-crf", "28",
                 "-c:a", "aac",
+                "-shortest",
                 "-t", str(audio_duration),
                 "-pix_fmt", "yuv420p",
                 str(output_path)
