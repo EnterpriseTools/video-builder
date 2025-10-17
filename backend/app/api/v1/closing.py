@@ -106,7 +106,7 @@ async def render_closing(
         
         # Slide in from bottom over 0.5 seconds with ease-out cubic
         wave_y_expr = slide_up_from_bottom(final_y=730, duration=0.5, easing="ease_out_cubic")
-        wave_overlay = f"[bg][wave]overlay=-192:y={wave_y_expr}[wave_bg]"
+        wave_overlay = f"[bg][wave]overlay=x=-192:y={wave_y_expr}[wave_bg]"
         filter_parts.append(wave_overlay)
         
         # Add Highlight.png overlay with fade in animation (match Feature/HowItWorks position)
