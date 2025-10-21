@@ -246,7 +246,7 @@ class IntroStyles:
     # Layout
     CARD_RADIUS = 24
     LOGO_RADIUS = 16
-    LOGO_SIZE = 200  # Increased from 64px to 200px for new styled logo
+    LOGO_SIZE = 80  # Logo size: 80px x 80px
     LOGO_MARGIN = 20
     LOGO_Y_OFFSET = 18
     TEXT_X_OFFSET = 100  # Space for logo + padding
