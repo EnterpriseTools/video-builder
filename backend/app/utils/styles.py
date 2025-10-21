@@ -236,7 +236,7 @@ class IntroStyles:
     
     # Card dimensions
     CARD_WIDTH = 400
-    CARD_HEIGHT = 100
+    CARD_HEIGHT = 120
     
     # Background colors
     CARD_BG_COLOR = (26, 26, 26, 250)      # Dark background with transparency
