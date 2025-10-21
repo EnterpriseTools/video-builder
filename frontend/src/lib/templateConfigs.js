@@ -360,12 +360,6 @@ export const TEMPLATE_CONFIGS = {
         label: 'Team Name',
         placeholder: 'Enter team name',
         required: false
-      },
-      {
-        id: 'directorName',
-        label: 'Director Name',
-        placeholder: 'Enter director name',
-        required: false
       }
     ],
     
@@ -377,8 +371,7 @@ export const TEMPLATE_CONFIGS = {
       title: 'Thank you.',
       subtitle: 'If you have any questions:',
       email: '',
-      teamName: '',
-      directorName: ''
+      teamName: ''
     },
     
     preview: {

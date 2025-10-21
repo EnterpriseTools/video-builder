@@ -20,7 +20,6 @@ async def render_closing(
     subtitle: Optional[str] = Form(""),
     email: Optional[str] = Form(""),
     teamName: Optional[str] = Form(""),
-    directorName: Optional[str] = Form(""),
     duration: Optional[str] = Form("0")
 ):
     """Render closing video from audio and text overlay only"""
@@ -54,7 +53,7 @@ async def render_closing(
         
         # Generate text overlay PNG if we have text
         overlay_path = None
-        has_overlay = bool(title or subtitle or email or teamName or directorName)
+        has_overlay = bool(title or subtitle or email or teamName)
         
         if has_overlay:
             try:
@@ -63,8 +62,7 @@ async def render_closing(
                     title=title or '',
                     subtitle=subtitle or '',
                     email=email or '',
-                    team_name=teamName or '',
-                    director_name=directorName or ''
+                    team_name=teamName or ''
                 )
                 
                 # Verify overlay was created and is not empty

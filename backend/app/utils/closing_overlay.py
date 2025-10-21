@@ -30,7 +30,6 @@ class ClosingOverlayGenerator:
         subtitle: Optional[str] = "",
         email: Optional[str] = "",
         team_name: Optional[str] = "",
-        director_name: Optional[str] = "",
         output_path: Optional[str] = None
     ) -> str:
         """
@@ -41,7 +40,6 @@ class ClosingOverlayGenerator:
             subtitle: Subtitle text (e.g., "If you have any questions:")
             email: Email address
             team_name: Team name for bottom left
-            director_name: Director name for bottom left
             output_path: Optional output path for the PNG. If None, uses temp file.
             
         Returns:
@@ -59,7 +57,6 @@ class ClosingOverlayGenerator:
             subtitle or '', 
             email or '',
             team_name or '',
-            director_name or '', 
             output_path
         )
     
@@ -69,7 +66,6 @@ class ClosingOverlayGenerator:
         subtitle: str,
         email: str,
         team_name: str,
-        director_name: str, 
         output_path: str
     ) -> str:
         """Create closing overlay using Pillow with Axon-branded layout."""
@@ -163,28 +159,9 @@ class ClosingOverlayGenerator:
             if team_name:
                 draw.text((current_x + shadow_x, text_y + shadow_y), team_name, font=small_font, fill=SHADOW_COLOR)
                 draw.text((current_x, text_y), team_name, font=small_font, fill=ClosingStyles.SMALL_TEXT_COLOR)
-                
-                # Get text width to position separator
-                bbox = draw.textbbox((0, 0), team_name, font=small_font)
-                current_x += (bbox[2] - bbox[0]) + TEAM_SEPARATOR_GAP
-            
-            # Add separator "|" if both team and director name exist
-            if team_name and director_name:
-                separator = "|"
-                draw.text((current_x + shadow_x, text_y + shadow_y), separator, font=small_font, fill=SHADOW_COLOR)
-                draw.text((current_x, text_y), separator, font=small_font, fill=ClosingStyles.SMALL_TEXT_COLOR)
-                
-                # Get separator width
-                bbox = draw.textbbox((0, 0), separator, font=small_font)
-                current_x += (bbox[2] - bbox[0]) + TEAM_SEPARATOR_GAP
-            
-            # Show director name if provided
-            if director_name:
-                draw.text((current_x + shadow_x, text_y + shadow_y), director_name, font=small_font, fill=SHADOW_COLOR)
-                draw.text((current_x, text_y), director_name, font=small_font, fill=ClosingStyles.SMALL_TEXT_COLOR)
             
             # Show placeholder if no team info (match frontend)
-            if not team_name and not director_name:
+            if not team_name:
                 placeholder = "Enter team name..."
                 draw.text((ClosingStyles.BOTTOM_LEFT_MARGIN + shadow_x, text_y + shadow_y), placeholder, font=small_font, fill=SHADOW_COLOR)
                 draw.text((ClosingStyles.BOTTOM_LEFT_MARGIN, text_y), placeholder, font=small_font, fill=ClosingStyles.SMALL_TEXT_COLOR)
