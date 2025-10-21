@@ -107,7 +107,7 @@ export default function Create() {
   const [templates, setTemplates] = useState([
     { id: 'intro', name: 'Introduction', status: 'empty', config: null, previewData: null, savedData: null },
     { id: 'announcement', name: 'Feature', status: 'empty', config: null, previewData: null, savedData: null },
-    { id: 'how-it-works', name: 'Context', status: 'empty', config: null, previewData: null, savedData: null },
+    { id: 'how-it-works', name: 'Title', status: 'empty', config: null, previewData: null, savedData: null },
     { id: 'persona', name: 'Who it\'s for', status: 'empty', config: null, previewData: null, savedData: null },
     { id: 'demo', name: 'Demo', status: 'empty', config: null, previewData: null, savedData: null },
     { id: 'closing', name: 'Closing', status: 'empty', config: null, previewData: null, savedData: null }
@@ -126,10 +126,28 @@ export default function Create() {
   const handleAddClick = (templateName) => {
     const templateId = templateNameToId[templateName];
     const template = templates.find(t => t.id === templateId);
+    
+    // Special handling for Closing template: pre-fill teamName with Intro's team value
+    let initialData = template?.savedData || null;
+    if (templateId === 'closing' && !initialData) {
+      // Find intro template and get its team value
+      const introTemplate = templates.find(t => t.id === 'intro');
+      const introTeamValue = introTemplate?.savedData?.textData?.team;
+      
+      if (introTeamValue) {
+        // Create initial data with intro's team as default teamName
+        initialData = {
+          textData: {
+            teamName: introTeamValue
+          }
+        };
+      }
+    }
+    
     setSelectedTemplate({ 
       name: templateName, 
       id: templateId,
-      savedData: template?.savedData || null // Pass saved data if editing
+      savedData: initialData
     });
     setIsModalOpen(true);
   };
