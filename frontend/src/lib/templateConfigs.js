@@ -158,7 +158,7 @@ export const TEMPLATE_CONFIGS = {
 
   'how-it-works': {
     id: 'how-it-works',
-    name: 'How It Works Video Creator',
+    name: 'Title Video Creator',
     description: 'Create simple tutorial videos with title and description overlays',
     
     // Section headers for new layout

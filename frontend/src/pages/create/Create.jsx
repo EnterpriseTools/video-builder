@@ -117,7 +117,7 @@ export default function Create() {
   const templateNameToId = {
     'Introduction': 'intro',
     'Feature': 'announcement', 
-    'Context': 'how-it-works',
+    'Title': 'how-it-works',
     'Who it\'s for': 'persona',
     'Demo': 'demo',
     'Closing': 'closing'
