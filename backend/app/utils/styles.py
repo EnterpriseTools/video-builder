@@ -21,12 +21,12 @@ CANVAS_HEIGHT = 1080
 # Font paths
 # For SF Pro Rounded, we need to include the font files in the repository
 # SF Pro Rounded is available in multiple weights. For overlays, we'll use:
-# - SF-Pro-Rounded-Regular.ttf for regular text
-# - SF-Pro-Rounded-Semibold.ttf for emphasis
-# - SF-Pro-Rounded-Bold.ttf for titles
-SF_PRO_ROUNDED_REGULAR = "/app/fonts/SF-Pro-Rounded-Regular.ttf"
-SF_PRO_ROUNDED_SEMIBOLD = "/app/fonts/SF-Pro-Rounded-Semibold.ttf"
-SF_PRO_ROUNDED_BOLD = "/app/fonts/SF-Pro-Rounded-Bold.ttf"
+# - SF-Pro-Rounded-Regular.otf for regular text
+# - SF-Pro-Rounded-Semibold.otf for emphasis
+# - SF-Pro-Text-Bold.otf for titles (using Text Bold as Rounded Bold equivalent)
+SF_PRO_ROUNDED_REGULAR = "/app/fonts/SF-Pro-Rounded-Regular.otf"
+SF_PRO_ROUNDED_SEMIBOLD = "/app/fonts/SF-Pro-Rounded-Semibold.otf"
+SF_PRO_ROUNDED_BOLD = "/app/fonts/SF-Pro-Text-Bold.otf"  # Using Text Bold
 
 # Fallback fonts for local development and if SF Pro not available
 PRIMARY_FONT_PATH = SF_PRO_ROUNDED_SEMIBOLD
