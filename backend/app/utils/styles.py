@@ -239,7 +239,7 @@ class IntroStyles:
     CARD_HEIGHT = 120
     
     # Background colors
-    CARD_BG_COLOR = (26, 26, 26, 250)      # Dark background with transparency
+    CARD_BG_COLOR = (26, 26, 26, 255)      # Dark background #1A1A1A - fully opaque
     CARD_BORDER_COLOR = (53, 53, 53, 255)  # Updated border color #353535
     LOGO_BG_COLOR = (74, 74, 74, 230)      # Logo container background
     
