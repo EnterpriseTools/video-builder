@@ -5,6 +5,7 @@ from typing import Optional
 # Import styling constants from the dedicated styles file
 from .styles import (
     PRIMARY_FONT_PATH,
+    SF_PRO_ROUNDED_BOLD,
     IntroStyles,
     get_font
 )
@@ -114,7 +115,7 @@ class IntroOverlayGenerator:
             
             # Load fonts using style configuration
             font_team = get_font(PRIMARY_FONT_PATH, IntroStyles.TEAM_SIZE)
-            font_name = get_font(PRIMARY_FONT_PATH, IntroStyles.NAME_SIZE)
+            font_name = get_font(SF_PRO_ROUNDED_BOLD, IntroStyles.NAME_SIZE)  # Use bold for name
             font_role = get_font(PRIMARY_FONT_PATH, IntroStyles.ROLE_SIZE)
             
             # Draw text elements using style configuration
