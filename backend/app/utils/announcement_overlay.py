@@ -76,18 +76,39 @@ class AnnouncementOverlayGenerator:
             print(f"DEBUG: Description font size: {AnnouncementStyles.DESCRIPTION_SIZE}px")
             print(f"DEBUG: Canvas dimensions: {base_width}x{base_height}")
             
-            # No background - just transparent text overlay to match screenshot
-            # The background will be handled by the video composition
+            # STEP 1: Calculate total content height for vertical centering
+            total_content_height = 0
             
-            # Calculate text positioning using style configuration
-            y_offset = AnnouncementStyles.PADDING
-            
-            # Draw title using style configuration (with bold effect)
+            # Calculate title height
+            title_lines = []
             if title:
-                # Wrap title text
                 wrapped_title = textwrap.fill(title, width=AnnouncementStyles.TITLE_WRAP_WIDTH)
                 title_lines = wrapped_title.split('\n')
+                for line in title_lines:
+                    bbox = draw.textbbox((0, 0), line, font=title_font)
+                    total_content_height += bbox[3] - bbox[1] + AnnouncementStyles.TITLE_LINE_SPACING
                 
+                # Add spacing between title and description
+                if description:
+                    total_content_height += AnnouncementStyles.TITLE_DESC_SPACING
+            
+            # Calculate description height
+            desc_lines = []
+            if description:
+                wrapped_desc = textwrap.fill(description, width=AnnouncementStyles.DESCRIPTION_WRAP_WIDTH)
+                desc_lines = wrapped_desc.split('\n')
+                for line in desc_lines:
+                    bbox = draw.textbbox((0, 0), line, font=desc_font)
+                    total_content_height += bbox[3] - bbox[1] + AnnouncementStyles.DESCRIPTION_LINE_SPACING
+            
+            # STEP 2: Calculate starting Y position to vertically center the content block
+            y_offset = (base_height - total_content_height) // 2
+            
+            print(f"DEBUG: Total content height: {total_content_height}px")
+            print(f"DEBUG: Starting Y offset (centered): {y_offset}px")
+            
+            # STEP 3: Draw title (left-aligned, vertically centered)
+            if title:
                 print(f"DEBUG: Title text: '{title}'")
                 print(f"DEBUG: Title wrapped into {len(title_lines)} lines")
                 
@@ -109,9 +130,11 @@ class AnnouncementOverlayGenerator:
                     
                     y_offset += bbox[3] - bbox[1] + AnnouncementStyles.TITLE_LINE_SPACING
                 
-                y_offset += AnnouncementStyles.TITLE_DESC_SPACING
+                # Add spacing between title and description
+                if description:
+                    y_offset += AnnouncementStyles.TITLE_DESC_SPACING
             
-            # Draw description using style configuration
+            # STEP 4: Draw description (left-aligned, vertically centered)
             if description:
                 # Wrap description text
                 wrapped_desc = textwrap.fill(description, width=AnnouncementStyles.DESCRIPTION_WRAP_WIDTH)

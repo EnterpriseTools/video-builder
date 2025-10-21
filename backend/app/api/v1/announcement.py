@@ -124,8 +124,9 @@ async def render_announcement(
                 f"[scaled_img]pad=960:1080:(960-iw)/2:(1080-ih)/2:color=0x00000000[img_container];"
                 f"[bg_wave][img_container]overlay=x={image_x_expr}:y=0[bg_img];"
                 
-                # Add text overlay (input 1)
-                f"[bg_img][1:v]overlay=100:440[final]"
+                # Add text overlay (input 1) with fade-in animation
+                f"[1:v]fade=t=in:st=0:d=0.5:alpha=1[text_faded];"
+                f"[bg_img][text_faded]overlay=100:440[final]"
             )
             
             cmd = [
