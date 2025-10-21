@@ -126,7 +126,7 @@ async def render_announcement(
                 
                 # Add text overlay (input 1) with fade-in animation
                 f"[1:v]fade=t=in:st=0:d=0.5:alpha=1[text_faded];"
-                f"[bg_img][text_faded]overlay=100:440[final]"
+                f"[bg_img][text_faded]overlay=100:0[final]"  # Y=0 since overlay is now full height
             )
             
             cmd = [

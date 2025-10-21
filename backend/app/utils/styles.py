@@ -168,9 +168,9 @@ class AnnouncementStyles:
     
     # Canvas dimensions (dynamic sizing) - scaled up for 168px/72px fonts
     BASE_WIDTH = 1600                       # Increased from 800 to fit larger text
-    BASE_HEIGHT_MIN = 400                   # Increased from 200
-    BASE_HEIGHT_SINGLE = 500                # Increased from 250
-    BASE_HEIGHT_BOTH = 800                  # Increased from 400
+    BASE_HEIGHT_MIN = 1080                  # Full video height for proper vertical centering
+    BASE_HEIGHT_SINGLE = 1080               # Full video height for proper vertical centering
+    BASE_HEIGHT_BOTH = 1080                 # Full video height for proper vertical centering
     
     # Layout - scaled proportionally for larger fonts
     PADDING = 120                           # Increased from 60 (2x)
