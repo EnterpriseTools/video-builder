@@ -19,10 +19,19 @@ CANVAS_HEIGHT = 1080
 # ==============================================================================
 
 # Font paths
-# Font paths for Linux (Debian) and macOS fallback
-# Debian has DejaVu fonts pre-installed, which are high-quality open-source fonts
-PRIMARY_FONT_PATH = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
-FALLBACK_FONT_PATH = "/System/Library/Fonts/Helvetica.ttc"  # macOS fallback
+# For SF Pro Rounded, we need to include the font files in the repository
+# SF Pro Rounded is available in multiple weights. For overlays, we'll use:
+# - SF-Pro-Rounded-Regular.ttf for regular text
+# - SF-Pro-Rounded-Semibold.ttf for emphasis
+# - SF-Pro-Rounded-Bold.ttf for titles
+SF_PRO_ROUNDED_REGULAR = "/app/fonts/SF-Pro-Rounded-Regular.ttf"
+SF_PRO_ROUNDED_SEMIBOLD = "/app/fonts/SF-Pro-Rounded-Semibold.ttf"
+SF_PRO_ROUNDED_BOLD = "/app/fonts/SF-Pro-Rounded-Bold.ttf"
+
+# Fallback fonts for local development and if SF Pro not available
+PRIMARY_FONT_PATH = SF_PRO_ROUNDED_SEMIBOLD
+FALLBACK_FONT_PATH = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"  # Linux fallback
+FALLBACK_FONT_PATH_2 = "/System/Library/Fonts/Helvetica.ttc"  # macOS fallback
 
 # Font sizes (in pixels)
 FONT_SIZE_EXTRA_LARGE = 80    # Main titles
@@ -310,7 +319,7 @@ def get_font(font_path: str, size: int):
     else:
         print(f"WARNING: Font not found at {font_path}")
     
-    # Try fallback font
+    # Try first fallback font (Linux)
     if os.path.exists(FALLBACK_FONT_PATH):
         try:
             font = ImageFont.truetype(FALLBACK_FONT_PATH, size)
@@ -320,6 +329,17 @@ def get_font(font_path: str, size: int):
             print(f"WARNING: Failed to load fallback font from {FALLBACK_FONT_PATH}: {e}")
     else:
         print(f"WARNING: Fallback font not found at {FALLBACK_FONT_PATH}")
+    
+    # Try second fallback font (macOS)
+    if os.path.exists(FALLBACK_FONT_PATH_2):
+        try:
+            font = ImageFont.truetype(FALLBACK_FONT_PATH_2, size)
+            print(f"DEBUG: Loaded second fallback font from {FALLBACK_FONT_PATH_2} at {size}px")
+            return font
+        except Exception as e:
+            print(f"WARNING: Failed to load second fallback font from {FALLBACK_FONT_PATH_2}: {e}")
+    else:
+        print(f"WARNING: Second fallback font not found at {FALLBACK_FONT_PATH_2}")
     
     # Last resort - but this will cause small text!
     print(f"ERROR: No TrueType fonts available! Falling back to default bitmap font (will be tiny)")
