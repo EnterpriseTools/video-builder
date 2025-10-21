@@ -179,7 +179,7 @@ class AnnouncementStyles:
     TITLE_DESC_SPACING = 40                 # Increased from 20 (2x)
     
     # Text wrapping
-    TITLE_WRAP_WIDTH = 30
+    TITLE_WRAP_WIDTH = 20  # Reduced from 30 to wrap sooner and avoid image overlap
     DESCRIPTION_WRAP_WIDTH = 45
     
     # Shadows
