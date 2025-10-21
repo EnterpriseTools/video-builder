@@ -5,6 +5,7 @@ from typing import Optional
 # Import styling constants from the dedicated styles file
 from .styles import (
     PRIMARY_FONT_PATH,
+    SF_PRO_ROUNDED_REGULAR,
     SF_PRO_ROUNDED_BOLD,
     IntroStyles,
     get_font
@@ -91,8 +92,8 @@ class IntroOverlayGenerator:
             if logo_img_path.exists():
                 try:
                     logo_img = Image.open(logo_img_path).convert('RGBA')
-                    # Resize logo to fit in the logo container with some padding
-                    logo_target_size = logo_size - 16  # 8px padding on each side
+                    # Resize logo to fit in the logo container with more padding
+                    logo_target_size = logo_size - 24  # 12px padding on each side for more balanced spacing
                     logo_img.thumbnail((logo_target_size, logo_target_size), Image.Resampling.LANCZOS)
                     
                     # Center the logo in the container
@@ -114,9 +115,9 @@ class IntroOverlayGenerator:
             text_y = IntroStyles.TEXT_Y_START
             
             # Load fonts using style configuration
-            font_team = get_font(PRIMARY_FONT_PATH, IntroStyles.TEAM_SIZE)
+            font_team = get_font(SF_PRO_ROUNDED_REGULAR, IntroStyles.TEAM_SIZE)  # Use regular weight
             font_name = get_font(SF_PRO_ROUNDED_BOLD, IntroStyles.NAME_SIZE)  # Use bold for name
-            font_role = get_font(PRIMARY_FONT_PATH, IntroStyles.ROLE_SIZE)
+            font_role = get_font(PRIMARY_FONT_PATH, IntroStyles.ROLE_SIZE)  # Semibold for role
             
             # Draw text elements using style configuration
             current_y = text_y

@@ -253,9 +253,9 @@ class IntroStyles:
     TEXT_Y_START = 20
     
     # Font sizes
-    TEAM_SIZE = 14
-    NAME_SIZE = 20
-    ROLE_SIZE = 14
+    TEAM_SIZE = 18
+    NAME_SIZE = 24
+    ROLE_SIZE = 16
     
     # Colors
     TEAM_COLOR = (255, 255, 255, 180)      # Semi-transparent white
