@@ -240,13 +240,13 @@ class IntroStyles:
     
     # Background colors
     CARD_BG_COLOR = (26, 26, 26, 250)      # Dark background with transparency
-    CARD_BORDER_COLOR = (255, 255, 255, 40) # Light border
+    CARD_BORDER_COLOR = (53, 53, 53, 255)  # Updated border color #353535
     LOGO_BG_COLOR = (74, 74, 74, 230)      # Logo container background
     
     # Layout
     CARD_RADIUS = 24
     LOGO_RADIUS = 16
-    LOGO_SIZE = 64
+    LOGO_SIZE = 200  # Increased from 64px to 200px for new styled logo
     LOGO_MARGIN = 20
     LOGO_Y_OFFSET = 18
     TEXT_X_OFFSET = 100  # Space for logo + padding
@@ -265,8 +265,8 @@ class IntroStyles:
     LOGO_ACCENT_COLOR = (255, 255, 255, 180) # Logo accent
     
     # Text spacing
-    TEAM_LINE_HEIGHT = 22
-    NAME_LINE_HEIGHT = 24
+    TEAM_LINE_HEIGHT = 34  # 18px font + 16px padding below
+    NAME_LINE_HEIGHT = 28  # 24px font + 4px padding below
 
 class HowItWorksStyles:
     """Style configuration specifically for how-it-works template"""
