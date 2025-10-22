@@ -252,7 +252,15 @@ export function useVideoTemplate(config) {
       
       // Add text data to form
       Object.entries(textData).forEach(([key, value]) => {
-        formData.append(key, value || '');
+        // For closing template, use default values if field is empty
+        let finalValue = value || '';
+        if (config.id === 'closing' && !value) {
+          const field = config.textFields.find(f => f.id === key);
+          if (field?.defaultValue) {
+            finalValue = field.defaultValue;
+          }
+        }
+        formData.append(key, finalValue);
       });
 
       const response = await fetch(config.api.render, {
