@@ -191,7 +191,7 @@ export const TEMPLATE_CONFIGS = {
         label: 'Title',
         placeholder: 'Enter tutorial title',
         required: false,
-        defaultValue: 'How It Works'
+        defaultValue: 'The Problem'
       },
       {
         id: 'description',
@@ -206,7 +206,7 @@ export const TEMPLATE_CONFIGS = {
     },
     
     defaults: {
-      title: 'How It Works',
+      title: 'The Problem',
       description: ''
     },
     
