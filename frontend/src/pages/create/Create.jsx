@@ -107,7 +107,7 @@ export default function Create() {
   const [templates, setTemplates] = useState([
     { id: 'intro', name: 'Introduction', status: 'empty', config: null, previewData: null, savedData: null },
     { id: 'announcement', name: 'Feature', status: 'empty', config: null, previewData: null, savedData: null },
-    { id: 'how-it-works', name: 'Title', status: 'empty', config: null, previewData: null, savedData: null },
+    { id: 'how-it-works', name: 'Problem', status: 'empty', config: null, previewData: null, savedData: null },
     { id: 'persona', name: 'Who it\'s for', status: 'empty', config: null, previewData: null, savedData: null },
     { id: 'demo', name: 'Demo', status: 'empty', config: null, previewData: null, savedData: null },
     { id: 'closing', name: 'Closing', status: 'empty', config: null, previewData: null, savedData: null }
@@ -117,7 +117,7 @@ export default function Create() {
   const templateNameToId = {
     'Introduction': 'intro',
     'Feature': 'announcement', 
-    'Title': 'how-it-works',
+    'Problem': 'how-it-works',
     'Who it\'s for': 'persona',
     'Demo': 'demo',
     'Closing': 'closing'
