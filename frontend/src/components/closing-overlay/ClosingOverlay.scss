@@ -95,7 +95,7 @@
       align-items: center;
       gap: 8px;
       
-      .team-name, .director-name {
+      .team-name {
         color: #B0B0B0;
         font-size: 14px;
         line-height: 1.2;
@@ -167,7 +167,6 @@
     }
     
     .bottom-left-content .team-info .team-name,
-    .bottom-left-content .team-info .director-name,
     .bottom-right-content .company-info {
       font-size: 16px; // Scale down from 18px
     }
@@ -193,7 +192,6 @@
     }
     
     .bottom-left-content .team-info .team-name,
-    .bottom-left-content .team-info .director-name,
     .bottom-right-content .company-info {
       font-size: 14px; // Scale down from 18px
     }

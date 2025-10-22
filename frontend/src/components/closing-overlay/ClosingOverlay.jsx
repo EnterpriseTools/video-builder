@@ -1,6 +1,6 @@
 import './ClosingOverlay.scss';
 
-export default function ClosingOverlay({ title, subtitle, email, teamName, directorName }) {
+export default function ClosingOverlay({ title, subtitle, email, teamName }) {
   return (
     <div className="closing-overlay">
       {/* Axon logo container - matches backend placeholder */}
@@ -27,10 +27,8 @@ export default function ClosingOverlay({ title, subtitle, email, teamName, direc
       <div className="bottom-left-content">
         <div className="team-info">
           {teamName && <div className="team-name">{teamName}</div>}
-          <div className="director-name-separator">|</div>
-          {directorName && <div className="director-name">{directorName}</div>}
-          {/* Debug: Show when no team info */}
-          {!teamName && !directorName && <div className="team-name">Enter team name...</div>}
+          {/* Show placeholder when no team name */}
+          {!teamName && <div className="team-name">Enter team name...</div>}
         </div>
       </div>
 
