@@ -80,9 +80,7 @@ export default function Trim() {
                       className="video-js vjs-theme-forest"
                       controls
                       preload="metadata"
-                    >
-                      <source src={videoUrl} type="video/mp4" />
-                    </video>
+                    />
                   </div>
                 </div>
 

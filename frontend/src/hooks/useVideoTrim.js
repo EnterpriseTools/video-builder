@@ -222,47 +222,74 @@ export function useVideoTrim() {
   useEffect(() => {
     if (!videoRef.current || !videoUrl) return;
 
+    // Dispose existing player if any
     if (playerRef.current) {
       playerRef.current.dispose();
       playerRef.current = null;
     }
 
-    const player = videojs(videoRef.current, {
-      controls: true,
-      fluid: true,
-      responsive: true,
-      preload: 'metadata',
-      html5: {
-        vhs: {
-          overrideNative: true
+    // Add a small delay to ensure the video element is fully rendered in the DOM
+    // This is especially important when the component is rendered inside a modal
+    const initTimer = setTimeout(() => {
+      if (!videoRef.current) return;
+
+      const player = videojs(videoRef.current, {
+        controls: true,
+        fluid: true,
+        responsive: true,
+        preload: 'metadata',
+        html5: {
+          vhs: {
+            overrideNative: true
+          }
+        }
+      });
+
+      playerRef.current = player;
+
+      // Detect video type from file
+      let videoType = 'video/mp4'; // default
+      if (videoFile) {
+        if (videoFile.type) {
+          videoType = videoFile.type;
+        } else {
+          // Fallback: detect from file extension
+          const ext = videoFile.name.split('.').pop().toLowerCase();
+          const typeMap = {
+            'mp4': 'video/mp4',
+            'mov': 'video/quicktime',
+            'webm': 'video/webm',
+            'avi': 'video/x-msvideo',
+            'mkv': 'video/x-matroska'
+          };
+          videoType = typeMap[ext] || 'video/mp4';
         }
       }
-    });
 
-    playerRef.current = player;
+      player.src({
+        src: videoUrl,
+        type: videoType
+      });
 
-    player.src({
-      src: videoUrl,
-      type: 'video/mp4'
-    });
+      player.on('loadedmetadata', () => {
+        const videoDuration = player.duration();
+        setDuration(videoDuration);
+        setEndTime(videoDuration);
+      });
 
-    player.on('loadedmetadata', () => {
-      const videoDuration = player.duration();
-      setDuration(videoDuration);
-      setEndTime(videoDuration);
-    });
-
-    player.on('timeupdate', () => {
-      setCurrentTime(player.currentTime());
-    });
+      player.on('timeupdate', () => {
+        setCurrentTime(player.currentTime());
+      });
+    }, 100); // 100ms delay to ensure DOM is ready
 
     return () => {
+      clearTimeout(initTimer);
       if (playerRef.current) {
         playerRef.current.dispose();
         playerRef.current = null;
       }
     };
-  }, [videoUrl]);
+  }, [videoUrl, videoFile]); // Added videoFile to dependencies
 
   // Cleanup on unmount
   const cleanup = useCallback(() => {
