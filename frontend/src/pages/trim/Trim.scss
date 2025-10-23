@@ -30,6 +30,12 @@
     margin-bottom: 3rem;
     line-height: 1.6;
   }
+  .flag {
+    color: red;
+    padding: 1rem;
+    border-radius: 4px;
+    background-color: rgba(230, 20, 20, .1);
+  }
 }
 
 // Section Styles - Card-based like Create.scss

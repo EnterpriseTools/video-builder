@@ -49,6 +49,7 @@ export default function Trim() {
         <div className="trim-content">
           <h1>Video Trim Tool</h1>
           <p>Upload a video and use the timeline below to set start and end times.</p>
+          <p className="flag"> This tool is currently a WIP. MP4's and MOV's are supported, but some codecs may not preview correctly.</p>
 
           {/* Step 1: Upload Video */}
           <div className="section">
