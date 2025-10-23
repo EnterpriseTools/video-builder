@@ -127,6 +127,7 @@ async def render_how_it_works(
                 "-preset", "fast",
                 "-crf", "23",
                 "-c:a", "aac",
+                "-b:a", "192k",                        # Audio bitrate
                 "-shortest",                           # Stop when shortest input ends (audio)
                 "-t", str(audio_duration),
                 "-pix_fmt", "yuv420p",
@@ -146,6 +147,7 @@ async def render_how_it_works(
                 "-preset", "fast",
                 "-crf", "23",
                 "-c:a", "aac",
+                "-b:a", "192k",                        # Audio bitrate
                 "-shortest",                           # Stop when shortest input ends (audio)
                 "-t", str(audio_duration),
                 "-pix_fmt", "yuv420p",
