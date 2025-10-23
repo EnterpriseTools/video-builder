@@ -1,16 +1,15 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import videojs from 'video.js';
 import { downloadBlob } from '@/lib/templateValidation';
 import { API_BASE_URL } from '@/lib/config';
 
 /**
  * Custom hook for managing video trim state and operations
+ * Uses native HTML5 video element for better codec support
  * @returns {Object} - Hook state and methods
  */
 export function useVideoTrim() {
-  // Refs for Video.js
+  // Refs for native video element
   const videoRef = useRef(null);
-  const playerRef = useRef(null);
   const timelineRef = useRef(null);
 
   // File state
@@ -74,9 +73,9 @@ export function useVideoTrim() {
     if (videoUrl) {
       URL.revokeObjectURL(videoUrl);
     }
-    if (playerRef.current) {
-      playerRef.current.dispose();
-      playerRef.current = null;
+    if (videoRef.current) {
+      videoRef.current.pause();
+      videoRef.current.src = '';
     }
     setVideoFile(null);
     setVideoUrl(null);
@@ -92,8 +91,8 @@ export function useVideoTrim() {
     const newStart = parseTimecode(value);
     if (newStart >= 0 && newStart < endTime) {
       setStartTime(newStart);
-      if (playerRef.current) {
-        playerRef.current.currentTime(newStart);
+      if (videoRef.current) {
+        videoRef.current.currentTime = newStart;
       }
     }
   }, [endTime, parseTimecode]);
@@ -107,9 +106,9 @@ export function useVideoTrim() {
 
   // Preview range handler
   const handlePreviewRange = useCallback(() => {
-    if (playerRef.current) {
-      playerRef.current.currentTime(startTime);
-      playerRef.current.play();
+    if (videoRef.current) {
+      videoRef.current.currentTime = startTime;
+      videoRef.current.play();
     }
   }, [startTime]);
 
@@ -172,8 +171,8 @@ export function useVideoTrim() {
     const percentage = Math.max(0, Math.min(1, x / rect.width));
     const newTime = percentage * duration;
 
-    if (playerRef.current) {
-      playerRef.current.currentTime(newTime);
+    if (videoRef.current) {
+      videoRef.current.currentTime = newTime;
     }
   }, [duration]);
 
@@ -193,8 +192,8 @@ export function useVideoTrim() {
       if (isDraggingLeft) {
         const newStart = Math.max(0, Math.min(newTime, endTime - 1));
         setStartTime(newStart);
-        if (playerRef.current) {
-          playerRef.current.currentTime(newStart);
+        if (videoRef.current) {
+          videoRef.current.currentTime = newStart;
         }
       } else if (isDraggingRight) {
         const newEnd = Math.max(startTime + 1, Math.min(newTime, duration));
@@ -218,100 +217,64 @@ export function useVideoTrim() {
     };
   }, [isDraggingLeft, isDraggingRight, duration, startTime, endTime]);
 
-  // Video.js player initialization effect
+  // Native video element initialization effect
   useEffect(() => {
     if (!videoRef.current || !videoUrl) return;
 
-    // Dispose existing player if any
-    if (playerRef.current) {
-      playerRef.current.dispose();
-      playerRef.current = null;
-    }
+    const video = videoRef.current;
+    
+    // Set video source
+    video.src = videoUrl;
+    
+    // Event listeners for native video element
+    const handleLoadedMetadata = () => {
+      const videoDuration = video.duration;
+      setDuration(videoDuration);
+      setEndTime(videoDuration);
+      setError(''); // Clear any previous errors
+    };
 
-    // Add a small delay to ensure the video element is fully rendered in the DOM
-    // This is especially important when the component is rendered inside a modal
-    const initTimer = setTimeout(() => {
-      if (!videoRef.current) return;
+    const handleTimeUpdate = () => {
+      setCurrentTime(video.currentTime);
+    };
 
-      const player = videojs(videoRef.current, {
-        controls: true,
-        fluid: true,
-        responsive: true,
-        preload: 'metadata',
-        html5: {
-          nativeVideoTracks: true,
-          nativeAudioTracks: true,
-          nativeTextTracks: true
-        }
-      });
-
-      playerRef.current = player;
-
-      // Detect video type from file
-      let videoType = 'video/mp4'; // default
-      if (videoFile) {
-        if (videoFile.type) {
-          videoType = videoFile.type;
-        } else {
-          // Fallback: detect from file extension
-          const ext = videoFile.name.split('.').pop().toLowerCase();
-          const typeMap = {
-            'mp4': 'video/mp4',
-            'mov': 'video/quicktime',
-            'webm': 'video/webm',
-            'avi': 'video/x-msvideo',
-            'mkv': 'video/x-matroska'
-          };
-          videoType = typeMap[ext] || 'video/mp4';
-        }
-      }
-
-      player.src({
-        src: videoUrl,
-        type: videoType
-      });
-
-      player.on('loadedmetadata', () => {
-        const videoDuration = player.duration();
-        setDuration(videoDuration);
-        setEndTime(videoDuration);
-      });
-
-      player.on('timeupdate', () => {
-        setCurrentTime(player.currentTime());
-      });
-
-      // Add error handler for unsupported video formats
-      player.on('error', () => {
-        const error = player.error();
-        if (error) {
-          console.error('Video.js error:', error);
-          if (error.code === 4) {
-            setError('Video format not supported for browser playback. The video can still be trimmed and exported. Note: .MOV files with certain codecs may not preview but will export correctly.');
-          } else {
-            setError(`Video playback error: ${error.message || 'Unknown error'}. The trim/export function may still work.`);
-          }
-        }
-      });
-    }, 100); // 100ms delay to ensure DOM is ready
-
-    return () => {
-      clearTimeout(initTimer);
-      if (playerRef.current) {
-        playerRef.current.dispose();
-        playerRef.current = null;
+    const handleError = (e) => {
+      console.error('Video error:', e, video.error);
+      if (video.error) {
+        const errorCode = video.error.code;
+        const errorMessages = {
+          1: 'Video loading aborted',
+          2: 'Network error while loading video',
+          3: 'Video decoding failed',
+          4: 'Video format not supported for browser playback. The video can still be trimmed and exported.'
+        };
+        setError(errorMessages[errorCode] || 'Unknown video error');
       }
     };
-  }, [videoUrl, videoFile]); // Added videoFile to dependencies
+
+    // Add event listeners
+    video.addEventListener('loadedmetadata', handleLoadedMetadata);
+    video.addEventListener('timeupdate', handleTimeUpdate);
+    video.addEventListener('error', handleError);
+
+    // Cleanup
+    return () => {
+      video.removeEventListener('loadedmetadata', handleLoadedMetadata);
+      video.removeEventListener('timeupdate', handleTimeUpdate);
+      video.removeEventListener('error', handleError);
+      video.pause();
+      video.src = '';
+    };
+  }, [videoUrl]);
 
   // Cleanup on unmount
   const cleanup = useCallback(() => {
     if (videoUrl) {
       URL.revokeObjectURL(videoUrl);
     }
-    if (playerRef.current) {
-      playerRef.current.dispose();
-      playerRef.current = null;
+    if (videoRef.current) {
+      videoRef.current.pause();
+      videoRef.current.src = '';
     }
   }, [videoUrl]);
 
@@ -323,7 +286,6 @@ export function useVideoTrim() {
   return {
     // Refs
     videoRef,
-    playerRef,
     timelineRef,
 
     // State

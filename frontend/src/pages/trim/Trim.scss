@@ -88,10 +88,12 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.video-container .video-js {
+.video-container .native-video-player {
   width: 100%;
   height: auto;
   min-height: 400px;
+  display: block;
+  background: #000;
 }
 
 // Timeline Section

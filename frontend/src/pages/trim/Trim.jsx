@@ -1,5 +1,4 @@
 import React from 'react';
-import 'video.js/dist/video-js.css';
 import Button from '@/components/shared/button';
 import { Input, FileInput } from '@/components/shared/input';
 import RenderingModal from '@/components/shared/rendering-modal';
@@ -82,7 +81,7 @@ export default function Trim() {
                   <div className="video-container">
                     <video
                       ref={videoRef}
-                      className="video-js vjs-theme-forest"
+                      className="native-video-player"
                       controls
                       preload="metadata"
                       playsInline
