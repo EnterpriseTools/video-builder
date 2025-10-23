@@ -84,7 +84,7 @@ class IntroOverlayGenerator:
                 [logo_x, logo_y, logo_x + logo_size, logo_y + logo_size],
                 radius=IntroStyles.LOGO_RADIUS,
                 fill=IntroStyles.LOGO_BG_COLOR,
-                outline=IntroStyles.CARD_BORDER_COLOR
+                outline=None  # No border
             )
             
             # Load and paste the actual Axon logo image
