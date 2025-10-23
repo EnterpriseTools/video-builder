@@ -36,7 +36,7 @@ All templates are accessed through the Video Builder modal interface. Each templ
 - **API Endpoint**: `/api/announcement/render`
 - **Config**: `templateConfigs.js` - announcement
 
-#### **How It Works Template** (Title)
+#### **How It Works Template** (Problem)
 - **Purpose**: Tutorial and explanation videos
 - **Inputs**: Audio file + title & description (no image required)
 - **Features**: Centered text layout with background elements
