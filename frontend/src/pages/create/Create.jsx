@@ -147,18 +147,29 @@ export default function Create() {
     
     // Special handling for Closing template: pre-fill teamName with Intro's team value
     let initialData = template?.savedData || null;
-    if (templateId === 'closing' && !initialData) {
+    if (templateId === 'closing') {
       // Find intro template and get its team value
       const introTemplate = templates.find(t => t.id === 'intro');
-      const introTeamValue = introTemplate?.savedData?.textData?.team;
+      const introTeamValue = introTemplate?.config?.textData?.team;
       
       if (introTeamValue) {
-        // Create initial data with intro's team as default teamName
-        initialData = {
-          textData: {
-            teamName: introTeamValue
-          }
-        };
+        // If there's no existing initialData, create it
+        if (!initialData) {
+          initialData = {
+            textData: {
+              teamName: introTeamValue
+            }
+          };
+        } else if (!initialData.textData?.teamName) {
+          // If initialData exists but teamName is empty, set it
+          initialData = {
+            ...initialData,
+            textData: {
+              ...initialData.textData,
+              teamName: introTeamValue
+            }
+          };
+        }
       }
     }
     
