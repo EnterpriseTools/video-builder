@@ -99,20 +99,17 @@ async def render_closing(
         # Create main background canvas (no image, just background)
         filter_parts.append(f"color=c={bg_color}:size=1920x1080:duration={audio_duration}:rate=30[bg]")
         
-        # Add Wave.png overlay with slide-in animation and fade out at end
-        # Load wave using movie filter for animations - loop indefinitely
-        filter_parts.append(f"movie={wave_path},loop=-1,setpts=N/(FRAME_RATE*TB),scale=2304:-1[wave]")
+        # Scale and position wave (input 1 when has_overlay, input 1 when no overlay)
+        filter_parts.append(f"[1:v]scale=2304:-1[wave_scaled]")
         
         # Slide in from bottom over 0.5 seconds with ease-out cubic
         wave_y_expr = slide_up_from_bottom(final_y=730, duration=0.5, easing="ease_out_cubic")
-        wave_overlay = f"[bg][wave]overlay=x=-192:y={wave_y_expr}[wave_bg]"
+        wave_overlay = f"[bg][wave_scaled]overlay=x=-192:y={wave_y_expr}[wave_bg]"
         filter_parts.append(wave_overlay)
         
-        # Add Highlight.png overlay with fade in animation (match Feature/HowItWorks position)
-        # Load highlight with movie filter and fade in - loop indefinitely
-        filter_parts.append(f"movie={highlight_path},loop=-1,setpts=N/(FRAME_RATE*TB)[highlight]")
+        # Add Highlight.png overlay with fade in animation (input 2)
         # Fade in over 0.3 seconds
-        filter_parts.append(f"[highlight]fade=t=in:st=0:d=0.3:alpha=1[faded_highlight]")
+        filter_parts.append(f"[2:v]fade=t=in:st=0:d=0.3:alpha=1[faded_highlight]")
         
         # Position: center top aligned, mostly off-screen (same as Feature/HowItWorks)
         highlight_overlay = f"[wave_bg][faded_highlight]overlay=(W-w)/2:-300[highlight_video]"
@@ -121,19 +118,21 @@ async def render_closing(
         if has_overlay and overlay_path:
             # Closing text overlay is full-screen (1920x1080), so position at 0,0
             # Add fade in animation - start at 0.5s (after wave animation), fade over 0.4s
-            # Load overlay and apply fade - loop indefinitely
-            filter_parts.append(f"movie={overlay_path},loop=-1,setpts=N/(FRAME_RATE*TB),format=rgba[text_overlay]")
-            filter_parts.append(f"[text_overlay]fade=t=in:st=0.5:d=0.4:alpha=1[faded_text]")
+            # Text overlay is input 3
+            filter_parts.append(f"[3:v]fade=t=in:st=0.5:d=0.4:alpha=1[faded_text]")
             overlay_filter = f"[highlight_video][faded_text]overlay=0:0[final]"
             filter_parts.append(overlay_filter)
             
-            # FFmpeg command with overlay (text overlay loaded via movie filter, audio is input 0)
+            # FFmpeg command with overlay using -loop 1 for images
             cmd = [
                 "ffmpeg", "-y", "-loglevel", "error",
-                "-i", str(audio_path),                 # Input audio (0)
+                "-i", str(audio_path),                 # Input 0: audio
+                "-loop", "1", "-i", str(wave_path),    # Input 1: Wave.png (looped)
+                "-loop", "1", "-i", str(highlight_path), # Input 2: highlight.png (looped)
+                "-loop", "1", "-i", str(overlay_path),   # Input 3: overlay PNG (looped)
                 "-filter_complex", ";".join(filter_parts),
                 "-map", "[final]",                     # Use final video output
-                "-map", "0:a",                         # Use audio from first input
+                "-map", "0:a",                         # Use audio from input 0
                 "-c:v", "libx264",
                 "-preset", "fast",  # Good balance of speed/quality (restored from ultrafast)
                 "-crf", "23",  # Standard high quality (restored from 28)
@@ -148,10 +147,12 @@ async def render_closing(
             # No text overlay - just wave + highlight + audio with background
             cmd = [
                 "ffmpeg", "-y", "-loglevel", "error",
-                "-i", str(audio_path),                 # Input audio (0)
-                "-filter_complex", ";".join(filter_parts),  # Use highlight_video as final
+                "-i", str(audio_path),                 # Input 0: audio
+                "-loop", "1", "-i", str(wave_path),    # Input 1: Wave.png (looped)
+                "-loop", "1", "-i", str(highlight_path), # Input 2: highlight.png (looped)
+                "-filter_complex", ";".join(filter_parts),
                 "-map", "[highlight_video]",           # Use highlight_video as final
-                "-map", "0:a",                         # Use audio from first input
+                "-map", "0:a",                         # Use audio from input 0
                 "-c:v", "libx264",
                 "-preset", "fast",  # Good balance of speed/quality (restored from ultrafast)
                 "-crf", "23",  # Standard high quality (restored from 28)
