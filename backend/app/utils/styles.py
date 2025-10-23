@@ -153,7 +153,7 @@ class ClosingStyles:
     SMALL_SHADOW = SHADOW_SMALL
     
     # Logo
-    LOGO_WIDTH = LOGO_WIDTH_REGULAR         # 40px
+    LOGO_WIDTH = 80  # 80px (increased from 40px)
 
 class AnnouncementStyles:
     """Style configuration specifically for announcement template"""
