@@ -97,12 +97,13 @@ async def render_how_it_works(
         filter_parts.append(f"color=c={bg_color}:size=1920x1080:duration={audio_duration}:rate=30[bg]")
         
         # Add Wave.png overlay - static position at y=730
-        filter_parts.append(f"movie={wave_path}:loop=-1,setpts=N/(FRAME_RATE*TB),scale=2304:-1[wave]")
+        # Use loop video filter for infinite looping instead of movie filter's loop parameter
+        filter_parts.append(f"movie={wave_path},setpts=N/(FRAME_RATE*TB),scale=2304:-1,loop=loop=-1:size=1:start=0[wave]")
         wave_overlay = f"[bg][wave]overlay=x=-192:y=730[wave_bg]"
         filter_parts.append(wave_overlay)
         
         # Add Highlight.png overlay - static position, no animation
-        filter_parts.append(f"movie={highlight_path}:loop=-1,setpts=N/(FRAME_RATE*TB)[highlight]")
+        filter_parts.append(f"movie={highlight_path},setpts=N/(FRAME_RATE*TB),loop=loop=-1:size=1:start=0[highlight]")
         
         # Position: center top aligned, mostly off-screen (same as Feature template)
         highlight_overlay = f"[wave_bg][highlight]overlay=(W-w)/2:-300[highlight_video]"
