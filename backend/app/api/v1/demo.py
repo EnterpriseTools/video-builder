@@ -53,6 +53,7 @@ async def render_demo(
             "-crf", "23",  # Standard high quality (restored from 28)
             "-c:a", "aac",
             "-b:a", "192k",
+            "-ar", "48000",
             "-movflags", "+faststart",  # Optimize for web playback
             "-pix_fmt", "yuv420p",      # Ensure compatibility
             str(output_path)
