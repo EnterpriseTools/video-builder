@@ -62,7 +62,7 @@ export default function Trim() {
               />
               {videoFile && (
                 <div style={{ marginTop: '1rem', padding: '0.75rem', background: 'rgba(244, 210, 43, 0.1)', border: '1px solid rgba(244, 210, 43, 0.3)', borderRadius: '6px', fontSize: '0.875rem', color: 'rgba(255, 255, 255, 0.8)' }}>
-                  <strong>Note:</strong> Some video formats (.MOV with certain codecs) may not preview in the browser but can still be trimmed and exported successfully.
+                  <strong>Note:</strong> Some video codecs (ProRes, H.265, etc.) cannot preview in browsers but can still be trimmed successfully on the server. If preview fails, use Manual Time Entry below.
                 </div>
               )}
             </div>
@@ -156,8 +156,32 @@ export default function Trim() {
                         <p className="input-instructions">
                           Enter the start and end times in timecode format (e.g., 1:30.500). 
                           The video will be trimmed from the start time to the end time.
+                          {duration === 0 && <strong style={{ color: '#F4D22B', display: 'block', marginTop: '0.5rem' }}>
+                            Video preview failed. Please enter the video duration manually to enable trimming.
+                          </strong>}
                         </p>
                         <div className="time-input-grid">
+                          {duration === 0 && (
+                            <div className="time-input-group">
+                              <Input
+                                id="manual-duration"
+                                label="Video Duration:"
+                                variant="time"
+                                size="medium"
+                                value={formatTimeWithDecimals(endTime)}
+                                onChange={(e) => {
+                                  const newDuration = parseFloat(e.target.value.split(':').reduce((acc, time) => (60 * acc) + +time));
+                                  if (!isNaN(newDuration) && newDuration > 0) {
+                                    setEndTime(newDuration);
+                                  }
+                                }}
+                                placeholder="0:00.000"
+                              />
+                              <span className="time-display" style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)' }}>
+                                Total video length
+                              </span>
+                            </div>
+                          )}
                           <div className="time-input-group">
                             <Input
                               id="manual-start-time"

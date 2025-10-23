@@ -229,9 +229,14 @@ export function useVideoTrim() {
     // Event listeners for native video element
     const handleLoadedMetadata = () => {
       const videoDuration = video.duration;
-      setDuration(videoDuration);
-      setEndTime(videoDuration);
-      setError(''); // Clear any previous errors
+      if (videoDuration && !isNaN(videoDuration) && isFinite(videoDuration)) {
+        setDuration(videoDuration);
+        setEndTime(videoDuration);
+        setError(''); // Clear any previous errors
+      } else {
+        // If duration is invalid, allow manual time entry
+        setError('Video preview not available. You can still trim by entering start/end times manually. Click "Manual Time Entry" below.');
+      }
     };
 
     const handleTimeUpdate = () => {
@@ -245,10 +250,17 @@ export function useVideoTrim() {
         const errorMessages = {
           1: 'Video loading aborted',
           2: 'Network error while loading video',
-          3: 'Video decoding failed',
-          4: 'Video format not supported for browser playback. The video can still be trimmed and exported.'
+          3: 'Video decoding failed - codec not supported by browser. You can still trim by entering times manually.',
+          4: 'Video codec not supported by browser. The video can still be trimmed - enter start/end times manually below.'
         };
-        setError(errorMessages[errorCode] || 'Unknown video error');
+        setError(errorMessages[errorCode] || 'Video preview unavailable. You can still trim by entering times manually.');
+        
+        // For format errors, allow the user to continue with manual time entry
+        // Set a default duration that they can override
+        if (errorCode === 3 || errorCode === 4) {
+          setDuration(0); // User will need to set duration manually
+          setManualTimeOpen(true); // Auto-open manual time entry
+        }
       }
     };
 
@@ -320,7 +332,7 @@ export function useVideoTrim() {
 
     // Computed values
     hasVideo: !!videoFile,
-    canExport: !!videoFile && duration > 0,
+    canExport: !!videoFile && endTime > startTime, // Allow export if we have times, even without duration
     selectionDuration: endTime - startTime
   };
 }
