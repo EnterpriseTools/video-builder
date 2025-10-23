@@ -202,10 +202,13 @@ export function useVideoTemplate(config) {
       .filter(fileConfig => fileConfig.required)
       .filter(fileConfig => !files[fileConfig.id].file);
 
-    // Validate required text fields
-    const missingTextFields = config.textFields
-      .filter(field => field.required)
-      .filter(field => !textData[field.id] || !textData[field.id].trim());
+    // Validate required text fields (skip validation if hideOverlay is true for persona template)
+    const shouldValidateTextFields = !(config.id === 'persona' && config.hideOverlay === true);
+    const missingTextFields = shouldValidateTextFields 
+      ? config.textFields
+          .filter(field => field.required)
+          .filter(field => !textData[field.id] || !textData[field.id].trim())
+      : [];
 
     const missingItems = [];
     if (missingFiles.length > 0) {
@@ -262,6 +265,11 @@ export function useVideoTemplate(config) {
         }
         formData.append(key, finalValue);
       });
+
+      // Add hideOverlay flag for persona template
+      if (config.id === 'persona' && config.hideOverlay !== undefined) {
+        formData.append('hideOverlay', config.hideOverlay.toString());
+      }
 
       const response = await fetch(config.api.render, {
         method: 'POST',

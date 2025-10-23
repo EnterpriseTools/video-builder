@@ -18,7 +18,8 @@ async def render_persona(
     name: Optional[str] = Form(""),
     title: Optional[str] = Form(""),
     industry: Optional[str] = Form(""),
-    duration: Optional[str] = Form("0")
+    duration: Optional[str] = Form("0"),
+    hideOverlay: Optional[str] = Form("false")
 ):
     """Render persona video from fullscreen image, audio, and text overlay"""
     
@@ -32,6 +33,9 @@ async def render_persona(
         media_extensions = ['.mp3', '.wav', '.aifc', '.aiff', '.m4a', '.mov', '.mp4']
         if not any(audio.filename.lower().endswith(ext) for ext in media_extensions):
             raise HTTPException(status_code=400, detail="Invalid audio or video file")
+    
+    # Parse hideOverlay parameter
+    hide_overlay = hideOverlay.lower() == "true"
     
     # Create temporary directory for processing
     temp_dir = Path(tempfile.mkdtemp(prefix="persona_"))
@@ -58,9 +62,9 @@ async def render_persona(
         if not audio_duration:
             audio_duration = get_audio_duration(audio_path)
         
-        # Generate text overlay PNG if we have text
+        # Generate text overlay PNG if we have text AND hideOverlay is False
         overlay_path = None
-        has_overlay = bool(name or title or industry)
+        has_overlay = bool(name or title or industry) and not hide_overlay
         
         if has_overlay:
             try:

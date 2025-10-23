@@ -215,6 +215,63 @@
           }
         }
       }
+
+      // Toggle for persona template overlay
+      .overlay-toggle {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        user-select: none;
+        margin-left: auto;
+
+        input[type="checkbox"] {
+          display: none;
+        }
+
+        .toggle-slider {
+          position: relative;
+          width: 42px;
+          height: 24px;
+          background: rgba(255, 255, 255, 0.1);
+          border-radius: 12px;
+          transition: background-color 0.3s ease;
+
+          &::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.3s ease;
+          }
+        }
+
+        input[type="checkbox"]:checked + .toggle-slider {
+          background: #FDD835;
+
+          &::after {
+            transform: translateX(18px);
+          }
+        }
+
+        .toggle-label {
+          font-size: 0.875rem;
+          color: rgba(255, 255, 255, 0.9);
+          font-weight: 500;
+        }
+
+        &:hover .toggle-slider {
+          background: rgba(255, 255, 255, 0.15);
+        }
+
+        input[type="checkbox"]:checked + .toggle-slider:hover {
+          background: #FBC02D;
+        }
+      }
     }
   }
 
@@ -264,6 +321,21 @@
   .text-fields {
     display: flex;
     flex-direction: column;
+  }
+
+  .overlay-hidden-message {
+    padding: 16px;
+    background: rgba(253, 216, 53, 0.1);
+    border: 1px solid rgba(253, 216, 53, 0.3);
+    border-radius: 8px;
+    text-align: center;
+
+    p {
+      margin: 0;
+      font-size: 0.875rem;
+      color: rgba(255, 255, 255, 0.9);
+      line-height: 1.4;
+    }
   }
 }
 

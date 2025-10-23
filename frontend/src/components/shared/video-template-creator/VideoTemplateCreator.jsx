@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Button from '@/components/shared/button';
 import { Input, FileInput } from '@/components/shared/input';
 import RenderingModal from '@/components/shared/rendering-modal';
@@ -10,7 +10,22 @@ import './VideoTemplateCreator.scss';
  * Shared component for all video template creators
  * Provides consistent UI and behavior across all templates
  */
-export default function VideoTemplateCreator({ config }) {
+export default function VideoTemplateCreator({ config, savedData, onDataChange }) {
+  // Toggle state for persona template overlay visibility
+  // Default: false (show overlay)
+  const [hideOverlay, setHideOverlay] = useState(() => {
+    // Check if this is the persona template
+    if (config.id !== 'persona') return false;
+    // Restore saved state or default to false (show overlay)
+    return savedData?.hideOverlay ?? false;
+  });
+
+  // Create a config with hideOverlay included for the hook
+  const configWithOverlay = {
+    ...config,
+    hideOverlay: config.id === 'persona' ? hideOverlay : undefined
+  };
+
   const {
     // State
     textData,
@@ -42,7 +57,14 @@ export default function VideoTemplateCreator({ config }) {
     // Utilities
     getFormattedDuration,
     cleanup
-  } = useVideoTemplate(config);
+  } = useVideoTemplate(configWithOverlay);
+
+  // Persist hideOverlay state when it changes
+  useEffect(() => {
+    if (config.id === 'persona' && onDataChange) {
+      onDataChange({ ...savedData, hideOverlay });
+    }
+  }, [hideOverlay, config.id, savedData, onDataChange]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -275,6 +297,20 @@ export default function VideoTemplateCreator({ config }) {
               <div className="section-header">
                 <div className="step-number">2</div>
                 <h2>{config.sectionHeaders?.text || 'Add details:'}</h2>
+                
+                {/* Toggle for persona template */}
+                {config.id === 'persona' && (
+                  <label className="overlay-toggle">
+                    <input
+                      type="checkbox"
+                      checked={hideOverlay}
+                      onChange={(e) => setHideOverlay(e.target.checked)}
+                    />
+                    <span className="toggle-slider"></span>
+                    <span className="toggle-label">Hide Overlay</span>
+                  </label>
+                )}
+                
                 {config.tooltips?.text && (
                   <div className="tooltip-container">
                     <span className="tooltip-trigger">
@@ -292,21 +328,31 @@ export default function VideoTemplateCreator({ config }) {
                 )}
               </div>
               <div className="section-content">
-                <div className="text-fields">
-                  {config.textFields.map(fieldConfig => (
-                    <Input
-                      key={fieldConfig.id}
-                      label={fieldConfig.label}
-                      value={textData[fieldConfig.id] || ''}
-                      onChange={(e) => handleTextChange(fieldConfig.id, e.target.value)}
-                      placeholder={fieldConfig.placeholder}
-                      required={fieldConfig.required}
-                      multiline={fieldConfig.multiline}
-                      rows={fieldConfig.rows}
-                      size="small"
-                    />
-                  ))}
-                </div>
+                {/* Only show text fields if hideOverlay is false (for persona template) or if not persona template */}
+                {(!hideOverlay || config.id !== 'persona') && (
+                  <div className="text-fields">
+                    {config.textFields.map(fieldConfig => (
+                      <Input
+                        key={fieldConfig.id}
+                        label={fieldConfig.label}
+                        value={textData[fieldConfig.id] || ''}
+                        onChange={(e) => handleTextChange(fieldConfig.id, e.target.value)}
+                        placeholder={fieldConfig.placeholder}
+                        required={fieldConfig.required}
+                        multiline={fieldConfig.multiline}
+                        rows={fieldConfig.rows}
+                        size="small"
+                      />
+                    ))}
+                  </div>
+                )}
+                
+                {/* Show message when overlay is hidden */}
+                {hideOverlay && config.id === 'persona' && (
+                  <div className="overlay-hidden-message">
+                    <p>Overlay hidden. Your video will render with the background image and audio only.</p>
+                  </div>
+                )}
               </div>
             </div>
           )}

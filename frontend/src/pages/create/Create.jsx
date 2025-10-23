@@ -79,11 +79,23 @@ function renderPreviewThumbnail(template) {
 function VideoTemplateModalWrapper({ templateId, onDone, onCancel, onDelete, initialData }) {
   const config = getTemplateConfig(templateId);
   
+  // State to track template-specific data (like hideOverlay for persona)
+  const [savedData, setSavedData] = useState(initialData || {});
+
+  // Handler to update saved data
+  const handleDataChange = (newData) => {
+    setSavedData(newData);
+  };
+  
   const modalConfig = {
     ...config,
     onRenderIntercept: (templateData) => {
-      // Instead of rendering, call onDone with the configured data
-      onDone(templateData);
+      // Include savedData in the template data when done
+      const completeData = {
+        ...templateData,
+        savedData
+      };
+      onDone(completeData);
     },
     onCancel: onCancel, 
     onDelete: onDelete, 
@@ -92,7 +104,11 @@ function VideoTemplateModalWrapper({ templateId, onDone, onCancel, onDelete, ini
 
   return (
     <div className="modal-template-wrapper">
-      <VideoTemplateCreator config={modalConfig} />
+      <VideoTemplateCreator 
+        config={modalConfig} 
+        savedData={savedData}
+        onDataChange={handleDataChange}
+      />
     </div>
   );
 }
@@ -196,11 +212,14 @@ export default function Create() {
     if (!selectedTemplate) return;
     
     try {
+      // Extract savedData from templateData (e.g., hideOverlay for persona)
+      const { savedData, ...restTemplateData } = templateData;
+      
       // Create stable preview data that won't be revoked
       const stablePreviewData = {};
       
       // Process files and create stable previews
-      for (const [fileId, fileData] of Object.entries(templateData.files)) {
+      for (const [fileId, fileData] of Object.entries(restTemplateData.files)) {
         if (fileData.file) {
           if (fileData.file.type.startsWith('image/')) {
             // Create data URL for images
@@ -231,9 +250,9 @@ export default function Create() {
           ? { 
               ...template, 
               status: 'ready', 
-              config: templateData,
+              config: restTemplateData,
               previewData: stablePreviewData,
-              savedData: templateData // Save for editing later
+              savedData: savedData || restTemplateData // Save template-specific data (like hideOverlay) or full data for editing later
             }
           : template
       ));
@@ -241,14 +260,15 @@ export default function Create() {
     } catch (error) {
       console.error('Error processing template data:', error);
       // Still mark as ready but without preview
+      const { savedData, ...restTemplateData } = templateData;
       setTemplates(prev => prev.map(template => 
         template.id === selectedTemplate.id 
           ? { 
               ...template, 
               status: 'ready', 
-              config: templateData,
+              config: restTemplateData,
               previewData: {},
-              savedData: templateData // Save for editing later
+              savedData: savedData || restTemplateData // Save for editing later
             }
           : template
       ));
