@@ -140,6 +140,7 @@ async def render_closing(
                 "-c:a", "aac",
                 "-b:a", "192k",
                 "-ar", "48000",
+                "-shortest",  # Stop when shortest input ends (audio)
                 "-t", str(audio_duration),
                 "-pix_fmt", "yuv420p",
                 str(output_path)
@@ -158,6 +159,7 @@ async def render_closing(
                 "-c:a", "aac",
                 "-b:a", "192k",
                 "-ar", "48000",
+                "-shortest",  # Stop when shortest input ends (audio)
                 "-t", str(audio_duration),
                 "-pix_fmt", "yuv420p",
                 str(output_path)
