@@ -22,12 +22,18 @@ export default function TemplatePreview({
   files,
   showPreview,
   onClose,
-  audioDuration = 0
+  audioDuration = 0,
+  hideOverlay = false
 }) {
   const { preview } = config;
   
   // Get the overlay component based on config
   const getOverlayComponent = () => {
+    // For persona template, don't render overlay if hideOverlay is true
+    if (config.id === 'persona' && hideOverlay) {
+      return null;
+    }
+    
     const overlayProps = getOverlayProps();
     
     switch (preview.overlayComponent) {

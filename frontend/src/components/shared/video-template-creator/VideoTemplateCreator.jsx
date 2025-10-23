@@ -374,6 +374,7 @@ export default function VideoTemplateCreator({ config, savedData, onDataChange }
                   showPreview={showPreview}
                   onClose={closePreview}
                   audioDuration={files.audio?.duration || files.video?.duration || 0}
+                  hideOverlay={config.id === 'persona' ? hideOverlay : undefined}
                 />
               ) : (
                 <div className="preview-placeholder">
