@@ -100,8 +100,8 @@ async def render_closing(
         filter_parts.append(f"color=c={bg_color}:size=1920x1080:duration={audio_duration}:rate=30[bg]")
         
         # Add Wave.png overlay with slide-in animation and fade out at end
-        # Load wave using movie filter for animations
-        filter_parts.append(f"movie={wave_path}:loop=0,setpts=N/(FRAME_RATE*TB),scale=2304:-1[wave]")
+        # Load wave using movie filter for animations - loop indefinitely
+        filter_parts.append(f"movie={wave_path},loop=-1,setpts=N/(FRAME_RATE*TB),scale=2304:-1[wave]")
         
         # Slide in from bottom over 0.5 seconds with ease-out cubic
         wave_y_expr = slide_up_from_bottom(final_y=730, duration=0.5, easing="ease_out_cubic")
@@ -109,8 +109,8 @@ async def render_closing(
         filter_parts.append(wave_overlay)
         
         # Add Highlight.png overlay with fade in animation (match Feature/HowItWorks position)
-        # Load highlight with movie filter and fade in
-        filter_parts.append(f"movie={highlight_path}:loop=0,setpts=N/(FRAME_RATE*TB)[highlight]")
+        # Load highlight with movie filter and fade in - loop indefinitely
+        filter_parts.append(f"movie={highlight_path},loop=-1,setpts=N/(FRAME_RATE*TB)[highlight]")
         # Fade in over 0.3 seconds
         filter_parts.append(f"[highlight]fade=t=in:st=0:d=0.3:alpha=1[faded_highlight]")
         
@@ -121,8 +121,8 @@ async def render_closing(
         if has_overlay and overlay_path:
             # Closing text overlay is full-screen (1920x1080), so position at 0,0
             # Add fade in animation - start at 0.5s (after wave animation), fade over 0.4s
-            # Load overlay and apply fade
-            filter_parts.append(f"movie={overlay_path}:loop=0,setpts=N/(FRAME_RATE*TB),format=rgba[text_overlay]")
+            # Load overlay and apply fade - loop indefinitely
+            filter_parts.append(f"movie={overlay_path},loop=-1,setpts=N/(FRAME_RATE*TB),format=rgba[text_overlay]")
             filter_parts.append(f"[text_overlay]fade=t=in:st=0.5:d=0.4:alpha=1[faded_text]")
             overlay_filter = f"[highlight_video][faded_text]overlay=0:0[final]"
             filter_parts.append(overlay_filter)

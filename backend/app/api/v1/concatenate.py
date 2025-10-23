@@ -239,8 +239,8 @@ async def concatenate_videos_multipart(
             "-crf", "23",  # Standard high quality (restored from 28)
             "-c:a", "aac",
             "-b:a", "192k",  # Better audio quality
-            "-r", "30",  # 30fps
-            "-s", "1920x1080",  # 1920x1080 resolution
+            "-ar", "48000",  # Consistent 48 kHz audio
+            "-vsync", "cfr",  # Constant frame rate for proper sync
             "-pix_fmt", "yuv420p",
             "-movflags", "+faststart",  # Optimize for web playback
             str(output_path)
