@@ -44,18 +44,24 @@ async def render_demo(
         output_path = temp_dir / f"demo-output.mp4"
         
         # For demo template, we just need to ensure the video is in the right format
-        # Convert to standard format for consistency
+        # Convert to standard format for consistency - match ALL other templates exactly
+        # CRITICAL: Demo must have identical specs to other templates for concatenation
         cmd = [
             "ffmpeg", "-y", "-loglevel", "error",
             "-i", str(video_path),
+            "-vf", "scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2,fps=30",  # Normalize resolution and fps to exactly 30fps
             "-c:v", "libx264",
-            "-preset", "fast",  # Good balance of speed/quality (restored from ultrafast)
-            "-crf", "23",  # Standard high quality (restored from 28)
+            "-preset", "fast",  # Good balance of speed/quality
+            "-crf", "23",  # Standard high quality
+            "-profile:v", "high",  # H.264 profile (match other templates)
+            "-level", "4.0",  # H.264 level
             "-c:a", "aac",
             "-b:a", "192k",
-            "-ar", "48000",
+            "-ar", "48000",  # 48kHz sample rate (match all templates)
             "-movflags", "+faststart",  # Optimize for web playback
             "-pix_fmt", "yuv420p",      # Ensure compatibility
+            "-vsync", "cfr",  # CRITICAL: Constant frame rate for proper concatenation
+            "-max_muxing_queue_size", "1024",  # Prevent buffer issues
             str(output_path)
         ]
         
