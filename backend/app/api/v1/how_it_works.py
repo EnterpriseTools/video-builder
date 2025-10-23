@@ -96,18 +96,12 @@ async def render_how_it_works(
         # Create main background canvas (no image, just background)
         filter_parts.append(f"color=c={bg_color}:size=1920x1080:duration={audio_duration}:rate=30[bg]")
         
-        # Add Wave.png overlay - static position at y=730
-        # Use loop video filter for infinite looping instead of movie filter's loop parameter
-        filter_parts.append(f"movie={wave_path},setpts=N/(FRAME_RATE*TB),scale=2304:-1,loop=loop=-1:size=1:start=0[wave]")
-        wave_overlay = f"[bg][wave]overlay=x=-192:y=730[wave_bg]"
-        filter_parts.append(wave_overlay)
+        # Scale and position wave (input 2)
+        filter_parts.append(f"[2:v]scale=2304:-1[wave_scaled]")
+        filter_parts.append(f"[bg][wave_scaled]overlay=x=-192:y=730[wave_bg]")
         
-        # Add Highlight.png overlay - static position, no animation
-        filter_parts.append(f"movie={highlight_path},setpts=N/(FRAME_RATE*TB),loop=loop=-1:size=1:start=0[highlight]")
-        
-        # Position: center top aligned, mostly off-screen (same as Feature template)
-        highlight_overlay = f"[wave_bg][highlight]overlay=(W-w)/2:-300[highlight_video]"
-        filter_parts.append(highlight_overlay)
+        # Position highlight (input 3) - centered horizontally, mostly off-screen vertically
+        filter_parts.append(f"[wave_bg][3:v]overlay=(W-w)/2:-300[highlight_video]")
         
         if has_overlay and overlay_path:
             # Center text overlay (no animation)
@@ -115,22 +109,25 @@ async def render_how_it_works(
             overlay_x = 460  # Center horizontally: (1920 - 1000) / 2 = 460px
             overlay_y = 365  # Center vertically: (1080 - 350) / 2 = 365px (approximate)
             
-            # Text overlay - static position, no animation
+            # Text overlay - static position, no animation (input 0)
             overlay_filter = f"[highlight_video][0:v]overlay={overlay_x}:{overlay_y}[final]"
             filter_parts.append(overlay_filter)
             
-            # FFmpeg command with overlay (no image input, text overlay is input 0)
+            # FFmpeg command with overlay using -loop 1 for images
             cmd = [
                 "ffmpeg", "-y", "-loglevel", "error",
-                "-i", str(overlay_path),               # Input overlay PNG (0)
-                "-i", str(audio_path),                 # Input audio (1)
+                "-i", str(overlay_path),               # Input 0: overlay PNG
+                "-i", str(audio_path),                 # Input 1: audio
+                "-loop", "1", "-i", str(wave_path),    # Input 2: Wave.png (looped)
+                "-loop", "1", "-i", str(highlight_path), # Input 3: highlight.png (looped)
                 "-filter_complex", ";".join(filter_parts),
                 "-map", "[final]",                     # Use final video output
-                "-map", "1:a",                         # Use audio from second input
+                "-map", "1:a",                         # Use audio from input 1
                 "-c:v", "libx264",
-                "-preset", "fast",  # Good balance of speed/quality (restored from ultrafast)
-                "-crf", "23",  # Standard high quality (restored from 28)
+                "-preset", "fast",
+                "-crf", "23",
                 "-c:a", "aac",
+                "-shortest",                           # Stop when shortest input ends (audio)
                 "-t", str(audio_duration),
                 "-pix_fmt", "yuv420p",
                 str(output_path)
@@ -139,14 +136,17 @@ async def render_how_it_works(
             # No text overlay - just wave + highlight + audio with background
             cmd = [
                 "ffmpeg", "-y", "-loglevel", "error",
-                "-i", str(audio_path),                 # Input audio (0)
-                "-filter_complex", ";".join(filter_parts),  # Use highlight_video as final
+                "-i", str(audio_path),                 # Input 0: audio
+                "-loop", "1", "-i", str(wave_path),    # Input 1: Wave.png (looped)
+                "-loop", "1", "-i", str(highlight_path), # Input 2: highlight.png (looped)
+                "-filter_complex", ";".join(filter_parts),
                 "-map", "[highlight_video]",           # Use highlight_video as final
-                "-map", "0:a",                         # Use audio from first input
+                "-map", "0:a",                         # Use audio from input 0
                 "-c:v", "libx264",
-                "-preset", "fast",  # Good balance of speed/quality (restored from ultrafast)
-                "-crf", "23",  # Standard high quality (restored from 28)
+                "-preset", "fast",
+                "-crf", "23",
                 "-c:a", "aac",
+                "-shortest",                           # Stop when shortest input ends (audio)
                 "-t", str(audio_duration),
                 "-pix_fmt", "yuv420p",
                 str(output_path)
