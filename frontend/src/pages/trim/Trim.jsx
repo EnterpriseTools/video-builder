@@ -27,6 +27,7 @@ export default function Trim() {
 
     // Handlers
     handleFileUpload,
+    handleClearFile,
     handleStartTimecodeChange,
     handleEndTimecodeChange,
     handlePreviewRange,
@@ -57,14 +58,44 @@ export default function Trim() {
               <h3>1. Upload Video</h3>
             </div>
             <div className="section-content">
-              <FileInput
-                accept="video/*"
-                onChange={handleFileUpload}
-                uploadText="Click to upload video"
-              />
-              {videoFile && (
-                <div style={{ marginTop: '1rem', padding: '0.75rem', background: 'rgba(244, 210, 43, 0.1)', border: '1px solid rgba(244, 210, 43, 0.3)', borderRadius: '6px', fontSize: '0.875rem', color: 'rgba(255, 255, 255, 0.8)' }}>
-                  <strong>Note:</strong> Some video codecs (ProRes, H.265, etc.) cannot preview in browsers but can still be trimmed successfully on the server. If preview fails, use Manual Time Entry below.
+              {!videoFile ? (
+                <FileInput
+                  accept="video/*"
+                  onChange={handleFileUpload}
+                  uploadText="Click to upload video"
+                />
+              ) : (
+                <div className="uploaded-video-preview">
+                  <div className="video-thumbnail-container">
+                    <video
+                      src={videoUrl}
+                      className="video-thumbnail"
+                      muted
+                    />
+                    <div className="video-info">
+                      <div className="video-filename">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M14 2H6C4.9 2 4 2.9 4 4V20C4 21.1 4.9 22 6 22H18C19.1 22 20 21.1 20 20V8L14 2ZM18 20H6V4H13V9H18V20ZM8 15.01L9.41 16.42L11 14.84V19H13V14.84L14.59 16.43L16 15.01L12.01 11L8 15.01Z" fill="currentColor"/>
+                        </svg>
+                        <span>{videoFile.name}</span>
+                      </div>
+                      <div className="video-size">
+                        {(videoFile.size / (1024 * 1024)).toFixed(1)} MB
+                      </div>
+                    </div>
+                    <button
+                      className="delete-video-button"
+                      onClick={handleClearFile}
+                      title="Remove video"
+                    >
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M6 19C6 20.1 6.9 21 8 21H16C17.1 21 18 20.1 18 19V7H6V19ZM19 4H15.5L14.5 3H9.5L8.5 4H5V6H19V4Z" fill="currentColor"/>
+                      </svg>
+                    </button>
+                  </div>
+                  <div className="info-note">
+                    <strong>Note:</strong> Some video codecs (ProRes, H.265, etc.) cannot preview in browsers but can still be trimmed successfully on the server. If preview fails, use Manual Time Entry below.
+                  </div>
                 </div>
               )}
             </div>
