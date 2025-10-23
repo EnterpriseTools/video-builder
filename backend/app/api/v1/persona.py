@@ -121,6 +121,7 @@ async def render_persona(
                 "-crf", "23",  # Standard high quality (restored from 28)
                 "-c:a", "aac",
                 "-b:a", "192k",
+                "-ar", "48000",
                 "-shortest",  # Stop when shortest input ends (audio)
                 "-t", str(audio_duration),
                 "-pix_fmt", "yuv420p",
@@ -140,6 +141,7 @@ async def render_persona(
                 "-crf", "23",  # Standard high quality (restored from 28)
                 "-c:a", "aac",
                 "-b:a", "192k",
+                "-ar", "48000",
                 "-shortest",  # Stop when shortest input ends (audio)
                 "-t", str(audio_duration),
                 "-pix_fmt", "yuv420p",

@@ -116,6 +116,7 @@ async def render_intro_video(
                 "-crf", "23",
                 "-c:a", "aac",
                 "-b:a", "192k",
+                "-ar", "48000",
                 "-pix_fmt", "yuv420p",
                 str(output_path)
             ])
@@ -127,6 +128,7 @@ async def render_intro_video(
                 "-crf", "23",
                 "-c:a", "aac",
                 "-b:a", "192k",
+                "-ar", "48000",
                 "-pix_fmt", "yuv420p",
                 str(output_path)
             ])
