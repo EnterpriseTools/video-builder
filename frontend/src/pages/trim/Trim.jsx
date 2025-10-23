@@ -61,6 +61,11 @@ export default function Trim() {
                 onChange={handleFileUpload}
                 uploadText="Click to upload video"
               />
+              {videoFile && (
+                <div style={{ marginTop: '1rem', padding: '0.75rem', background: 'rgba(244, 210, 43, 0.1)', border: '1px solid rgba(244, 210, 43, 0.3)', borderRadius: '6px', fontSize: '0.875rem', color: 'rgba(255, 255, 255, 0.8)' }}>
+                  <strong>Note:</strong> Some video formats (.MOV with certain codecs) may not preview in the browser but can still be trimmed and exported successfully.
+                </div>
+              )}
             </div>
           </div>
 
@@ -80,7 +85,10 @@ export default function Trim() {
                       className="video-js vjs-theme-forest"
                       controls
                       preload="metadata"
-                    />
+                      playsInline
+                    >
+                      Your browser does not support the video tag.
+                    </video>
                   </div>
                 </div>
 

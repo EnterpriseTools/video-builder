@@ -239,9 +239,9 @@ export function useVideoTrim() {
         responsive: true,
         preload: 'metadata',
         html5: {
-          vhs: {
-            overrideNative: true
-          }
+          nativeVideoTracks: true,
+          nativeAudioTracks: true,
+          nativeTextTracks: true
         }
       });
 
@@ -279,6 +279,19 @@ export function useVideoTrim() {
 
       player.on('timeupdate', () => {
         setCurrentTime(player.currentTime());
+      });
+
+      // Add error handler for unsupported video formats
+      player.on('error', () => {
+        const error = player.error();
+        if (error) {
+          console.error('Video.js error:', error);
+          if (error.code === 4) {
+            setError('Video format not supported for browser playback. The video can still be trimmed and exported. Note: .MOV files with certain codecs may not preview but will export correctly.');
+          } else {
+            setError(`Video playback error: ${error.message || 'Unknown error'}. The trim/export function may still work.`);
+          }
+        }
       });
     }, 100); // 100ms delay to ensure DOM is ready
 
