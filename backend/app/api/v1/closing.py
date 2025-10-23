@@ -138,6 +138,7 @@ async def render_closing(
                 "-preset", "fast",  # Good balance of speed/quality (restored from ultrafast)
                 "-crf", "23",  # Standard high quality (restored from 28)
                 "-c:a", "aac",
+                "-b:a", "192k",
                 "-t", str(audio_duration),
                 "-pix_fmt", "yuv420p",
                 str(output_path)
@@ -154,6 +155,7 @@ async def render_closing(
                 "-preset", "fast",  # Good balance of speed/quality (restored from ultrafast)
                 "-crf", "23",  # Standard high quality (restored from 28)
                 "-c:a", "aac",
+                "-b:a", "192k",
                 "-t", str(audio_duration),
                 "-pix_fmt", "yuv420p",
                 str(output_path)

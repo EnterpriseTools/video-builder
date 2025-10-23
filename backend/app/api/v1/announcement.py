@@ -143,6 +143,7 @@ async def render_announcement(
                 "-preset", "fast",      # Good quality, reasonable speed
                 "-crf", "23",           # High quality
                 "-c:a", "aac",
+                "-b:a", "192k",
                 "-shortest",            # End when shortest input ends
                 "-t", str(audio_duration),
                 "-pix_fmt", "yuv420p",
@@ -179,6 +180,7 @@ async def render_announcement(
                 "-preset", "fast",
                 "-crf", "23",
                 "-c:a", "aac",
+                "-b:a", "192k",
                 "-shortest",
                 "-t", str(audio_duration),
                 "-pix_fmt", "yuv420p",
