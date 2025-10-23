@@ -15,6 +15,7 @@ export function useVideoTrim() {
   // File state
   const [videoFile, setVideoFile] = useState(null);
   const [videoUrl, setVideoUrl] = useState(null);
+  const [isGeneratingPreview, setIsGeneratingPreview] = useState(false);
 
   // Timeline state
   const [duration, setDuration] = useState(0);
@@ -247,20 +248,74 @@ export function useVideoTrim() {
       console.error('Video error:', e, video.error);
       if (video.error) {
         const errorCode = video.error.code;
-        const errorMessages = {
-          1: 'Video loading aborted',
-          2: 'Network error while loading video',
-          3: 'Video decoding failed - codec not supported by browser. You can still trim by entering times manually.',
-          4: 'Video codec not supported by browser. The video can still be trimmed - enter start/end times manually below.'
-        };
-        setError(errorMessages[errorCode] || 'Video preview unavailable. You can still trim by entering times manually.');
         
-        // For format errors, allow the user to continue with manual time entry
-        // Set a default duration that they can override
+        // For format errors, try to generate a preview on the server
         if (errorCode === 3 || errorCode === 4) {
+          setError('Video codec not supported by browser. Generating preview...');
+          generateServerPreview();
+        } else {
+          const errorMessages = {
+            1: 'Video loading aborted',
+            2: 'Network error while loading video'
+          };
+          setError(errorMessages[errorCode] || 'Video preview unavailable. You can still trim by entering times manually.');
           setDuration(0); // User will need to set duration manually
           setManualTimeOpen(true); // Auto-open manual time entry
         }
+      }
+    };
+
+    // Function to generate server-side preview
+    const generateServerPreview = async () => {
+      if (!videoFile || isGeneratingPreview) return;
+      
+      setIsGeneratingPreview(true);
+      setError('Generating browser-compatible preview... This may take a moment.');
+      
+      try {
+        const formData = new FormData();
+        formData.append('video', videoFile);
+        
+        const response = await fetch(`${API_BASE_URL}/api/trim/preview`, {
+          method: 'POST',
+          body: formData
+        });
+        
+        if (!response.ok) {
+          throw new Error('Preview generation failed');
+        }
+        
+        // Get duration from response headers
+        const durationHeader = response.headers.get('X-Video-Duration');
+        const previewDuration = durationHeader ? parseFloat(durationHeader) : 0;
+        
+        // Get the preview video blob
+        const blob = await response.blob();
+        const previewUrl = URL.createObjectURL(blob);
+        
+        // Clean up old URL
+        if (videoUrl) {
+          URL.revokeObjectURL(videoUrl);
+        }
+        
+        // Set the preview URL
+        setVideoUrl(previewUrl);
+        
+        // Set duration if we got it
+        if (previewDuration > 0) {
+          setDuration(previewDuration);
+          setEndTime(previewDuration);
+        }
+        
+        setError(''); // Clear error
+        setIsGeneratingPreview(false);
+        
+      } catch (err) {
+        console.error('Preview generation error:', err);
+        setError('Preview generation failed. You can still trim by entering times manually below.');
+        setDuration(0);
+        setManualTimeOpen(true);
+        setIsGeneratingPreview(false);
       }
     };
 
@@ -277,7 +332,7 @@ export function useVideoTrim() {
       video.pause();
       video.src = '';
     };
-  }, [videoUrl]);
+  }, [videoUrl, videoFile, isGeneratingPreview]); // Added videoFile and isGeneratingPreview to dependencies
 
   // Cleanup on unmount
   const cleanup = useCallback(() => {
@@ -308,6 +363,7 @@ export function useVideoTrim() {
     endTime,
     currentTime,
     isExporting,
+    isGeneratingPreview,
     error,
     manualTimeOpen,
     isDraggingLeft,

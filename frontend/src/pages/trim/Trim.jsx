@@ -19,6 +19,7 @@ export default function Trim() {
     endTime,
     currentTime,
     isExporting,
+    isGeneratingPreview,
     error,
     manualTimeOpen,
     isDraggingLeft,
@@ -79,12 +80,20 @@ export default function Trim() {
                 <div className="video-section">
                   <h4>Video Player</h4>
                   <div className="video-container">
+                    {isGeneratingPreview && (
+                      <div className="preview-loading-overlay">
+                        <div className="spinner"></div>
+                        <p>Generating browser-compatible preview...</p>
+                        <p style={{ fontSize: '0.85rem', opacity: 0.7 }}>This may take a moment</p>
+                      </div>
+                    )}
                     <video
                       ref={videoRef}
                       className="native-video-player"
                       controls
                       preload="metadata"
                       playsInline
+                      style={{ opacity: isGeneratingPreview ? 0.3 : 1 }}
                     >
                       Your browser does not support the video tag.
                     </video>
