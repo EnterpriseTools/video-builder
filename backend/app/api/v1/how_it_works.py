@@ -147,14 +147,13 @@ async def render_how_it_works(
         current_layer = "bg_complete"
         
         # Add optional user image above text (if provided)
-        # Image specs: max 1000px wide, 800px tall, centered, 40px spacing above text
+        # Image specs: max 1000px wide, 1600px tall, centered, 40px spacing above text
         if image_path:
-            # Scale image to fit within 1000x800 while maintaining aspect ratio
-            filter_parts.append(f"[{image_input_idx}:v]scale=w='min(1000,iw)':h='min(800,ih)':force_original_aspect_ratio=decrease[scaled_image]")
+            # Scale image to fit within 1000x1600 while maintaining aspect ratio
+            filter_parts.append(f"[{image_input_idx}:v]scale=w='min(1000,iw)':h='min(1600,ih)':force_original_aspect_ratio=decrease[scaled_image]")
             # Position image centered horizontally, positioned higher up on screen
-            # Y position: (1080 - 800) / 2 = 140px from top (accounting for max image height)
-            # But we need to center it dynamically, so: (1920-w)/2 for X, and let's put it at y=100
-            filter_parts.append(f"[{current_layer}][scaled_image]overlay=(W-w)/2:100[with_image]")
+            # Y position: (1080 - 1600) / 2 would be negative, so let's position at y=50 to allow tall images
+            filter_parts.append(f"[{current_layer}][scaled_image]overlay=(W-w)/2:50[with_image]")
             current_layer = "with_image"
         
         # Add text overlay if available
@@ -163,10 +162,10 @@ async def render_how_it_works(
             # If image exists, position text lower (to account for image + 40px spacing)
             # Otherwise, center text as before
             if image_path:
-                # Position text below image: image is at y=100, max height 800, so image bottom is at 900
-                # Add 40px spacing = 940px
-                # But overlay height varies, so let's position at y=650 to be safe
-                overlay_y = 650
+                # Position text below image: image is at y=50, max height 1600, so image bottom could be at 1650
+                # This would go off screen (1080px), so text needs to be positioned dynamically
+                # Let's position at y=700 to be safe for most image sizes
+                overlay_y = 700
             else:
                 # Center text overlay (no image)
                 overlay_y = 365  # Center vertically as before

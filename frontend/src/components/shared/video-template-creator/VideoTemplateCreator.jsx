@@ -301,9 +301,17 @@ export default function VideoTemplateCreator({ config, savedData, onDataChange }
                 )}
               </div>
               <div className="section-content">
-                {config.files.map((fileConfig, index) => 
-                  renderFileSection(fileConfig, index + 1)
-                )}
+                {config.files
+                  .filter(fileConfig => {
+                    // For how-it-works template, exclude image file from step 1
+                    if (config.id === 'how-it-works' && fileConfig.id === 'image') {
+                      return false;
+                    }
+                    return true;
+                  })
+                  .map((fileConfig, index) => 
+                    renderFileSection(fileConfig, index + 1)
+                  )}
               </div>
             </div>
           )}
@@ -325,19 +333,6 @@ export default function VideoTemplateCreator({ config, savedData, onDataChange }
                     />
                     <span className="toggle-slider"></span>
                     <span className="toggle-label">Hide Overlay</span>
-                  </label>
-                )}
-
-                {/* Toggle for how-it-works template image */}
-                {config.id === 'how-it-works' && (
-                  <label className="overlay-toggle">
-                    <input
-                      type="checkbox"
-                      checked={showImage}
-                      onChange={(e) => setShowImage(e.target.checked)}
-                    />
-                    <span className="toggle-slider"></span>
-                    <span className="toggle-label">Show Image</span>
                   </label>
                 )}
                 
@@ -384,6 +379,45 @@ export default function VideoTemplateCreator({ config, savedData, onDataChange }
                   </div>
                 )}
               </div>
+            </div>
+          )}
+
+          {/* Step 3: Optional Image Section (for how-it-works template only) */}
+          {config.id === 'how-it-works' && (
+            <div className="config-section">
+              <div className="section-header">
+                <div className="step-number">3</div>
+                <h2>Add Image: <span className="optional-label">(Optional)</span></h2>
+                
+                {/* Toggle for showing image upload */}
+                <label className="overlay-toggle">
+                  <input
+                    type="checkbox"
+                    checked={showImage}
+                    onChange={(e) => setShowImage(e.target.checked)}
+                  />
+                  <span className="toggle-slider"></span>
+                  <span className="toggle-label">Show Image</span>
+                </label>
+              </div>
+              
+              {/* Only show image upload when toggle is ON */}
+              {showImage && (
+                <div className="section-content">
+                  {config.files
+                    .filter(fileConfig => fileConfig.id === 'image')
+                    .map((fileConfig) => renderFileSection(fileConfig, 3))}
+                </div>
+              )}
+              
+              {/* Show message when toggle is OFF */}
+              {!showImage && (
+                <div className="section-content">
+                  <div className="overlay-hidden-message">
+                    <p>Toggle "Show Image" to add an optional image above your text overlay.</p>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
