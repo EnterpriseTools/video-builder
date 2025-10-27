@@ -20,10 +20,20 @@ export default function VideoTemplateCreator({ config, savedData, onDataChange }
     return savedData?.hideOverlay ?? false;
   });
 
-  // Create a config with hideOverlay included for the hook
+  // Toggle state for how-it-works template image visibility
+  // Default: false (don't show image)
+  const [showImage, setShowImage] = useState(() => {
+    // Check if this is the how-it-works template
+    if (config.id !== 'how-it-works') return false;
+    // Restore saved state or default to false (don't show image)
+    return savedData?.showImage ?? false;
+  });
+
+  // Create a config with hideOverlay and showImage included for the hook
   const configWithOverlay = {
     ...config,
-    hideOverlay: config.id === 'persona' ? hideOverlay : undefined
+    hideOverlay: config.id === 'persona' ? hideOverlay : undefined,
+    showImage: config.id === 'how-it-works' ? showImage : undefined
   };
 
   const {
@@ -65,6 +75,13 @@ export default function VideoTemplateCreator({ config, savedData, onDataChange }
       onDataChange({ ...savedData, hideOverlay });
     }
   }, [hideOverlay, config.id, savedData, onDataChange]);
+
+  // Persist showImage state when it changes
+  useEffect(() => {
+    if (config.id === 'how-it-works' && onDataChange) {
+      onDataChange({ ...savedData, showImage });
+    }
+  }, [showImage, config.id, savedData, onDataChange]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -310,6 +327,19 @@ export default function VideoTemplateCreator({ config, savedData, onDataChange }
                     <span className="toggle-label">Hide Overlay</span>
                   </label>
                 )}
+
+                {/* Toggle for how-it-works template image */}
+                {config.id === 'how-it-works' && (
+                  <label className="overlay-toggle">
+                    <input
+                      type="checkbox"
+                      checked={showImage}
+                      onChange={(e) => setShowImage(e.target.checked)}
+                    />
+                    <span className="toggle-slider"></span>
+                    <span className="toggle-label">Show Image</span>
+                  </label>
+                )}
                 
                 {config.tooltips?.text && (
                   <div className="tooltip-container">
@@ -375,6 +405,7 @@ export default function VideoTemplateCreator({ config, savedData, onDataChange }
                   onClose={closePreview}
                   audioDuration={files.audio?.duration || files.video?.duration || 0}
                   hideOverlay={config.id === 'persona' ? hideOverlay : undefined}
+                  showImage={config.id === 'how-it-works' ? showImage : undefined}
                 />
               ) : (
                 <div className="preview-placeholder">

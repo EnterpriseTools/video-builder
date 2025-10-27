@@ -15,6 +15,7 @@ router = APIRouter()
 @router.post("/how-it-works/render")
 async def render_how_it_works(
     audio: UploadFile = File(...),
+    image: Optional[UploadFile] = File(None),
     title: Optional[str] = Form(""),
     description: Optional[str] = Form(""),
     duration: Optional[str] = Form("0")
@@ -39,6 +40,15 @@ async def render_how_it_works(
         with open(media_path, "wb") as f:
             content = await audio.read()
             f.write(content)
+        
+        # Save optional image file if provided
+        image_path = None
+        if image and image.filename:
+            image_path = temp_dir / f"image{Path(image.filename).suffix}"
+            with open(image_path, "wb") as f:
+                image_content = await image.read()
+                f.write(image_content)
+            print(f"Image uploaded: {image_path} ({image_path.stat().st_size} bytes)")
         
         # Extract audio if it's a video file, otherwise use as-is
         audio_path = await extract_audio_from_media(media_path, temp_dir)
@@ -87,74 +97,110 @@ async def render_how_it_works(
         urllib.request.urlretrieve(wave_url, wave_path)
         urllib.request.urlretrieve(highlight_url, highlight_path)
         
-        # Build FFmpeg command with how-it-works specific styling (audio + text overlay only)
+        # Build FFmpeg command with how-it-works specific styling (audio + optional image + text overlay)
         filter_parts = []
         
         # Create background with standard color scheme
         bg_color = "0x0C090E"  # Standard background color (#0C090E)
         
-        # Create main background canvas (no image, just background)
+        # Create main background canvas
         filter_parts.append(f"color=c={bg_color}:size=1920x1080:duration={audio_duration}:rate=30[bg]")
         
-        # Scale and position wave (input 2)
-        filter_parts.append(f"[2:v]scale=2304:-1[wave_scaled]")
+        # Determine input indices based on what's available
+        # Inputs will be arranged as: [optional: overlay_png] [optional: image] [audio] [wave] [highlight]
+        input_idx = 0
+        inputs = []
+        
+        # Input 0: overlay PNG (if has text overlay)
+        if has_overlay and overlay_path:
+            inputs.append(("-i", str(overlay_path)))
+            overlay_input_idx = input_idx
+            input_idx += 1
+        
+        # Input N: optional user image
+        if image_path:
+            inputs.append(("-loop", "1", "-i", str(image_path)))
+            image_input_idx = input_idx
+            input_idx += 1
+        
+        # Input N: audio
+        inputs.append(("-i", str(audio_path)))
+        audio_input_idx = input_idx
+        input_idx += 1
+        
+        # Input N: Wave.png
+        inputs.append(("-loop", "1", "-i", str(wave_path)))
+        wave_input_idx = input_idx
+        input_idx += 1
+        
+        # Input N: highlight.png
+        inputs.append(("-loop", "1", "-i", str(highlight_path)))
+        highlight_input_idx = input_idx
+        
+        # Scale and position wave
+        filter_parts.append(f"[{wave_input_idx}:v]scale=2304:-1[wave_scaled]")
         filter_parts.append(f"[bg][wave_scaled]overlay=x=-192:y=730[wave_bg]")
         
-        # Position highlight (input 3) - centered horizontally, mostly off-screen vertically
-        filter_parts.append(f"[wave_bg][3:v]overlay=(W-w)/2:-300[highlight_video]")
+        # Position highlight - centered horizontally, mostly off-screen vertically
+        filter_parts.append(f"[wave_bg][{highlight_input_idx}:v]overlay=(W-w)/2:-300[bg_complete]")
         
+        current_layer = "bg_complete"
+        
+        # Add optional user image above text (if provided)
+        # Image specs: max 1000px wide, 800px tall, centered, 40px spacing above text
+        if image_path:
+            # Scale image to fit within 1000x800 while maintaining aspect ratio
+            filter_parts.append(f"[{image_input_idx}:v]scale=w='min(1000,iw)':h='min(800,ih)':force_original_aspect_ratio=decrease[scaled_image]")
+            # Position image centered horizontally, positioned higher up on screen
+            # Y position: (1080 - 800) / 2 = 140px from top (accounting for max image height)
+            # But we need to center it dynamically, so: (1920-w)/2 for X, and let's put it at y=100
+            filter_parts.append(f"[{current_layer}][scaled_image]overlay=(W-w)/2:100[with_image]")
+            current_layer = "with_image"
+        
+        # Add text overlay if available
         if has_overlay and overlay_path:
-            # Center text overlay (no animation)
-            # Overlay is 1000px wide (HowItWorksStyles.BASE_WIDTH)
+            # Position text overlay
+            # If image exists, position text lower (to account for image + 40px spacing)
+            # Otherwise, center text as before
+            if image_path:
+                # Position text below image: image is at y=100, max height 800, so image bottom is at 900
+                # Add 40px spacing = 940px
+                # But overlay height varies, so let's position at y=650 to be safe
+                overlay_y = 650
+            else:
+                # Center text overlay (no image)
+                overlay_y = 365  # Center vertically as before
+            
             overlay_x = 460  # Center horizontally: (1920 - 1000) / 2 = 460px
-            overlay_y = 365  # Center vertically: (1080 - 350) / 2 = 365px (approximate)
-            
-            # Text overlay - static position, no animation (input 0)
-            overlay_filter = f"[highlight_video][0:v]overlay={overlay_x}:{overlay_y}[final]"
-            filter_parts.append(overlay_filter)
-            
-            # FFmpeg command with overlay using -loop 1 for images
-            cmd = [
-                "ffmpeg", "-y", "-loglevel", "error",
-                "-i", str(overlay_path),               # Input 0: overlay PNG
-                "-i", str(audio_path),                 # Input 1: audio
-                "-loop", "1", "-i", str(wave_path),    # Input 2: Wave.png (looped)
-                "-loop", "1", "-i", str(highlight_path), # Input 3: highlight.png (looped)
-                "-filter_complex", ";".join(filter_parts),
-                "-map", "[final]",                     # Use final video output
-                "-map", "1:a",                         # Use audio from input 1
-                "-c:v", "libx264",
-                "-preset", "fast",
-                "-crf", "23",
-                "-c:a", "aac",
-                "-b:a", "192k",                        # Audio bitrate
-                "-ar", "48000",                        # Audio sample rate
-                "-shortest",                           # Stop when shortest input ends (audio)
-                "-t", str(audio_duration),
-                "-pix_fmt", "yuv420p",
-                str(output_path)
-            ]
+            filter_parts.append(f"[{current_layer}][{overlay_input_idx}:v]overlay={overlay_x}:{overlay_y}[final]")
+            current_layer = "final"
         else:
-            # No text overlay - just wave + highlight + audio with background
-            cmd = [
-                "ffmpeg", "-y", "-loglevel", "error",
-                "-i", str(audio_path),                 # Input 0: audio
-                "-loop", "1", "-i", str(wave_path),    # Input 1: Wave.png (looped)
-                "-loop", "1", "-i", str(highlight_path), # Input 2: highlight.png (looped)
-                "-filter_complex", ";".join(filter_parts),
-                "-map", "[highlight_video]",           # Use highlight_video as final
-                "-map", "0:a",                         # Use audio from input 0
-                "-c:v", "libx264",
-                "-preset", "fast",
-                "-crf", "23",
-                "-c:a", "aac",
-                "-b:a", "192k",                        # Audio bitrate
-                "-ar", "48000",                        # Audio sample rate
-                "-shortest",                           # Stop when shortest input ends (audio)
-                "-t", str(audio_duration),
-                "-pix_fmt", "yuv420p",
-                str(output_path)
-            ]
+            # No text overlay, rename current layer to final
+            filter_parts.append(f"[{current_layer}]copy[final]")
+        
+        # Build FFmpeg command
+        cmd = ["ffmpeg", "-y", "-loglevel", "error"]
+        
+        # Add all inputs
+        for input_args in inputs:
+            cmd.extend(input_args)
+        
+        # Add filter complex
+        cmd.extend([
+            "-filter_complex", ";".join(filter_parts),
+            "-map", "[final]",                     # Use final video output
+            "-map", f"{audio_input_idx}:a",        # Use audio from audio input
+            "-c:v", "libx264",
+            "-preset", "fast",
+            "-crf", "23",
+            "-c:a", "aac",
+            "-b:a", "192k",                        # Audio bitrate
+            "-ar", "48000",                        # Audio sample rate
+            "-shortest",                           # Stop when shortest input ends (audio)
+            "-t", str(audio_duration),
+            "-pix_fmt", "yuv420p",
+            str(output_path)
+        ])
         
         # Execute FFmpeg command
         print(f"Running FFmpeg command: {' '.join(cmd)}")

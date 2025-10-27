@@ -23,7 +23,8 @@ export default function TemplatePreview({
   showPreview,
   onClose,
   audioDuration = 0,
-  hideOverlay = false
+  hideOverlay = false,
+  showImage = false
 }) {
   const { preview } = config;
   
@@ -78,7 +79,9 @@ export default function TemplatePreview({
           title: textData.title || config.defaults?.title || 'How It Works',
           description: textData.description || config.defaults?.description || 'Describe how it works',
           stepNumber: null, // No step number in this template
-          subtitle: null // No subtitle in this template
+          subtitle: null, // No subtitle in this template
+          imagePreview: files.image?.preview || null,
+          showImage: showImage
         };
       case 'closing':
         return {

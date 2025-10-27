@@ -182,6 +182,15 @@ export const TEMPLATE_CONFIGS = {
         accept: 'audio/*,video/*,.mp3,.wav,.aifc,.mov,.mp4',
         required: true,
         uploadText: 'Click to upload audio or video file'
+      },
+      {
+        id: 'image',
+        label: 'Image (Optional)',
+        description: 'Upload an optional image to display above text',
+        type: 'image',
+        accept: 'image/*',
+        required: false,
+        uploadText: 'Click to upload image (optional)'
       }
     ],
     

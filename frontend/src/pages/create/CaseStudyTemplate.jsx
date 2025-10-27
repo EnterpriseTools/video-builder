@@ -34,6 +34,8 @@ function renderPreviewThumbnail(template) {
             description={textData.description || config.defaults?.description || ''}
             stepNumber={null}
             subtitle={null}
+            imagePreview={files.image?.preview || null}
+            showImage={template.savedData?.showImage || false}
           />
         );
       case 'closing':
