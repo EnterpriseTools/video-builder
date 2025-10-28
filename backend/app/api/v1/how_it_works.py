@@ -147,10 +147,10 @@ async def render_how_it_works(
         current_layer = "bg_complete"
         
         # Add optional user image above text (if provided)
-        # Image specs: max 1000px wide, 1600px tall, centered, 40px spacing above text
+        # Image specs: max 1800px wide, 1600px tall, centered, 16px spacing above text
         if image_path:
-            # Scale image to fit within 1000x1600 while maintaining aspect ratio
-            filter_parts.append(f"[{image_input_idx}:v]scale=w='min(1000,iw)':h='min(1600,ih)':force_original_aspect_ratio=decrease[scaled_image]")
+            # Scale image to fit within 1800x1600 while maintaining aspect ratio
+            filter_parts.append(f"[{image_input_idx}:v]scale=w='min(1800,iw)':h='min(1600,ih)':force_original_aspect_ratio=decrease[scaled_image]")
             # Position image centered horizontally, positioned higher up on screen
             # Y position: (1080 - 1600) / 2 would be negative, so let's position at y=50 to allow tall images
             filter_parts.append(f"[{current_layer}][scaled_image]overlay=(W-w)/2:50[with_image]")
@@ -159,18 +159,18 @@ async def render_how_it_works(
         # Add text overlay if available
         if has_overlay and overlay_path:
             # Position text overlay
-            # If image exists, position text lower (to account for image + 40px spacing)
+            # If image exists, position text lower (to account for image + 16px spacing)
             # Otherwise, center text as before
             if image_path:
                 # Position text below image: image is at y=50, max height 1600, so image bottom could be at 1650
                 # This would go off screen (1080px), so text needs to be positioned dynamically
-                # Let's position at y=700 to be safe for most image sizes
-                overlay_y = 700
+                # Let's position at y=684 (700 - 16px reduced spacing) to be safe for most image sizes
+                overlay_y = 684
             else:
                 # Center text overlay (no image)
                 overlay_y = 365  # Center vertically as before
             
-            overlay_x = 460  # Center horizontally: (1920 - 1000) / 2 = 460px
+            overlay_x = 460  # Center horizontally: (1920 - 1000) / 2 = 460px (text overlay is still 1000px wide)
             filter_parts.append(f"[{current_layer}][{overlay_input_idx}:v]overlay={overlay_x}:{overlay_y}[final]")
             current_layer = "final"
         else:

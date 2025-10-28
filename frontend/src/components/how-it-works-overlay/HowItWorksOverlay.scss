@@ -25,12 +25,12 @@
       justify-content: center;
       gap: 24px;
       
-      // Image styling - max 1000px wide, 1600px tall, centered
+      // Image styling - max 1800px wide, 1600px tall, centered
       .how-it-works-image {
-        max-width: 1000px;
+        max-width: 1800px;
         max-height: 1600px;
         width: 100%;
-        margin-bottom: 40px; // 40px spacing between image and text
+        margin-bottom: 16px; // 16px spacing between image and text
         display: flex;
         align-items: center;
         justify-content: center;
