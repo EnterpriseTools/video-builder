@@ -83,6 +83,9 @@ function VideoTemplateModalWrapper({ templateId, onDone, onCancel, onDelete, ini
   
   // State to track template-specific data (like hideOverlay for persona)
   const [savedData, setSavedData] = useState(initialData || {});
+  
+  // Track if there are unsaved changes
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   // Handler to update saved data
   const handleDataChange = (newData) => {
@@ -99,9 +102,10 @@ function VideoTemplateModalWrapper({ templateId, onDone, onCancel, onDelete, ini
       };
       onDone(completeData);
     },
-    onCancel: onCancel, 
+    onCancel: () => onCancel(hasUnsavedChanges), 
     onDelete: onDelete, 
-    initialData: initialData 
+    initialData: initialData,
+    onUnsavedChanges: setHasUnsavedChanges
   };
 
   return (
@@ -122,6 +126,10 @@ export default function Create() {
   const [isRendering, setIsRendering] = useState(false);
   const [renderingProgress, setRenderingProgress] = useState('');
   const [isTrimModalOpen, setIsTrimModalOpen] = useState(false);
+  
+  // Confirmation dialog state
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [pendingClose, setPendingClose] = useState(false);
 
   // Timeline state - templates in fixed order
   const [templates, setTemplates] = useState([
@@ -186,6 +194,37 @@ export default function Create() {
   const closeModal = () => {
     setIsModalOpen(false);
     setSelectedTemplate(null);
+    setShowConfirmDialog(false);
+    setPendingClose(false);
+  };
+
+  const handleModalClose = (hasUnsavedChanges) => {
+    if (hasUnsavedChanges) {
+      // Show confirmation dialog
+      setShowConfirmDialog(true);
+      setPendingClose(true);
+    } else {
+      // No unsaved changes, close immediately
+      closeModal();
+    }
+  };
+
+  const handleConfirmDiscard = () => {
+    // User chose to discard changes
+    closeModal();
+  };
+
+  const handleConfirmSave = async () => {
+    // User chose to save changes - trigger save via render button
+    // We'll need to pass this through the modal wrapper
+    setPendingClose(true);
+    // The VideoTemplateCreator will call onRenderIntercept which calls handleTemplateDone
+  };
+
+  const handleCancelClose = () => {
+    // User chose to stay in modal
+    setShowConfirmDialog(false);
+    setPendingClose(false);
   };
 
   const handleTemplateDelete = () => {
@@ -606,11 +645,11 @@ export default function Create() {
 
       {/* Modal */}
       {isModalOpen && selectedTemplate && (
-        <div className="modal-overlay" onClick={closeModal}>
+        <div className="modal-overlay" onClick={() => handleModalClose(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2 className="modal-title">{selectedTemplate.name} Template</h2>
-              <button className="modal-close" onClick={closeModal}>
+              <button className="modal-close" onClick={() => handleModalClose(true)}>
                 ×
               </button>
             </div>
@@ -618,12 +657,30 @@ export default function Create() {
               <VideoTemplateModalWrapper
                 templateId={selectedTemplate.id}
                 onDone={handleTemplateDone}
-                onCancel={closeModal}
+                onCancel={handleModalClose}
                 onDelete={handleTemplateDelete}
                 initialData={selectedTemplate.savedData}
               />
             </div>
           </div>
+          
+          {/* Confirmation Dialog */}
+          {showConfirmDialog && (
+            <div className="confirmation-overlay" onClick={(e) => e.stopPropagation()}>
+              <div className="confirmation-dialog">
+                <h3>Unsaved Changes</h3>
+                <p>You have unsaved changes. What would you like to do?</p>
+                <div className="confirmation-actions">
+                  <button className="btn-discard" onClick={handleConfirmDiscard}>
+                    Discard Changes
+                  </button>
+                  <button className="btn-cancel" onClick={handleCancelClose}>
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

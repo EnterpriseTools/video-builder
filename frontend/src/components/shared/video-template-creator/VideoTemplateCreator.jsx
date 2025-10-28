@@ -29,6 +29,9 @@ export default function VideoTemplateCreator({ config, savedData, onDataChange }
     return savedData?.showImage ?? false;
   });
 
+  // Track if there are unsaved changes
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+
   // Create a config with hideOverlay and showImage included for the hook
   const configWithOverlay = {
     ...config,
@@ -69,6 +72,12 @@ export default function VideoTemplateCreator({ config, savedData, onDataChange }
     cleanup
   } = useVideoTemplate(configWithOverlay);
 
+  // Track unsaved changes when data changes
+  useEffect(() => {
+    // Mark as having unsaved changes when any data changes
+    setHasUnsavedChanges(true);
+  }, [textData, files, hideOverlay, showImage]);
+
   // Persist hideOverlay state when it changes
   useEffect(() => {
     if (config.id === 'persona' && onDataChange) {
@@ -87,6 +96,13 @@ export default function VideoTemplateCreator({ config, savedData, onDataChange }
   useEffect(() => {
     return cleanup;
   }, [cleanup]);
+
+  // Expose hasUnsavedChanges to parent via config callback
+  useEffect(() => {
+    if (config.onUnsavedChanges) {
+      config.onUnsavedChanges(hasUnsavedChanges);
+    }
+  }, [hasUnsavedChanges, config]);
 
   // Render file upload section for a specific file type
   const renderFileSection = (fileConfig, stepNumber) => {
