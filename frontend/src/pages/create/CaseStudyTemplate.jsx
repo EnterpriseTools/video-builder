@@ -304,7 +304,7 @@ export default function CaseStudyTemplate() {
               status: 'ready', 
               config: restTemplateData,
               previewData: stablePreviewData,
-              savedData: savedData || restTemplateData // Save template-specific data (like hideOverlay) or full data for editing later
+              savedData: restTemplateData // Save full template data (files + textData) for editing later
             }
           : template
       ));
@@ -320,7 +320,7 @@ export default function CaseStudyTemplate() {
               status: 'ready', 
               config: restTemplateData,
               previewData: {},
-              savedData: savedData || restTemplateData // Save for editing later
+              savedData: restTemplateData // Save full template data for editing later
             }
           : template
       ));
