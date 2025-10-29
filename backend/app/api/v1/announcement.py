@@ -145,6 +145,7 @@ async def render_announcement(
                 "-c:a", "aac",
                 "-b:a", "192k",
                 "-ar", "48000",
+                "-ac", "2",  # Force stereo audio
                 "-shortest",            # End when shortest input ends
                 "-t", str(audio_duration),
                 "-pix_fmt", "yuv420p",
@@ -183,6 +184,7 @@ async def render_announcement(
                 "-c:a", "aac",
                 "-b:a", "192k",
                 "-ar", "48000",
+                "-ac", "2",  # Force stereo audio
                 "-shortest",
                 "-t", str(audio_duration),
                 "-pix_fmt", "yuv420p",

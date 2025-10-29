@@ -240,6 +240,7 @@ async def concatenate_videos_multipart(
             "-c:a", "aac",
             "-b:a", "192k",  # Better audio quality
             "-ar", "48000",  # Consistent 48 kHz audio
+            "-ac", "2",  # Force stereo audio (normalize all segments)
             "-vsync", "cfr",  # Constant frame rate for proper sync
             "-pix_fmt", "yuv420p",
             "-movflags", "+faststart",  # Optimize for web playback

@@ -195,6 +195,7 @@ async def render_how_it_works(
             "-c:a", "aac",
             "-b:a", "192k",                        # Audio bitrate
             "-ar", "48000",                        # Audio sample rate
+            "-ac", "2",                            # Force stereo audio
             "-shortest",                           # Stop when shortest input ends (audio)
             "-t", str(audio_duration),
             "-pix_fmt", "yuv420p",

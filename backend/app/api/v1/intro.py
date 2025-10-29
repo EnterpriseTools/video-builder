@@ -117,6 +117,7 @@ async def render_intro_video(
                 "-c:a", "aac",
                 "-b:a", "192k",
                 "-ar", "48000",
+                "-ac", "2",  # Force stereo audio
                 "-pix_fmt", "yuv420p",
                 str(output_path)
             ])
@@ -129,6 +130,7 @@ async def render_intro_video(
                 "-c:a", "aac",
                 "-b:a", "192k",
                 "-ar", "48000",
+                "-ac", "2",  # Force stereo audio
                 "-pix_fmt", "yuv420p",
                 str(output_path)
             ])

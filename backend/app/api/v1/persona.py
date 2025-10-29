@@ -122,6 +122,7 @@ async def render_persona(
                 "-c:a", "aac",
                 "-b:a", "192k",
                 "-ar", "48000",
+                "-ac", "2",  # Force stereo audio
                 "-shortest",  # Stop when shortest input ends (audio)
                 "-t", str(audio_duration),  # Explicit duration cap
                 "-pix_fmt", "yuv420p",
@@ -142,6 +143,7 @@ async def render_persona(
                 "-c:a", "aac",
                 "-b:a", "192k",
                 "-ar", "48000",
+                "-ac", "2",  # Force stereo audio
                 "-shortest",  # Stop when shortest input ends (audio)
                 "-t", str(audio_duration),  # Explicit duration cap
                 "-pix_fmt", "yuv420p",

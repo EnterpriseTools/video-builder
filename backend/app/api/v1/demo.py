@@ -58,6 +58,7 @@ async def render_demo(
             "-c:a", "aac",
             "-b:a", "192k",
             "-ar", "48000",  # 48kHz sample rate (match all templates)
+            "-ac", "2",  # Force stereo audio (convert mono to stereo if needed)
             "-movflags", "+faststart",  # Optimize for web playback
             "-pix_fmt", "yuv420p",      # Ensure compatibility
             "-vsync", "cfr",  # CRITICAL: Constant frame rate for proper concatenation
