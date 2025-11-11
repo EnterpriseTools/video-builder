@@ -218,7 +218,20 @@ export function useVideoTemplate(config) {
     const fileData = files[fileId];
     if (!fileData.file) return;
 
-    const isTrimmed = trimStart > 0 || trimEnd < fileData.duration;
+    // Check if trim has been meaningfully adjusted
+    // Use 0.5 second tolerance to avoid false positives from floating point precision
+    const isTrimmedFromStart = trimStart > 0.5;
+    const isTrimmedFromEnd = trimEnd < (fileData.duration - 0.5);
+    const isTrimmed = isTrimmedFromStart || isTrimmedFromEnd;
+    
+    console.log(`Trim change for ${fileId}:`, {
+      trimStart,
+      trimEnd,
+      duration: fileData.duration,
+      isTrimmedFromStart,
+      isTrimmedFromEnd,
+      isTrimmed
+    });
     
     updateFileState(fileId, {
       trimStart,
@@ -320,12 +333,17 @@ export function useVideoTemplate(config) {
           // Apply trim if file is trimmed and it's a video/media file
           if (fileData.isTrimmed && (fileData.duration > 0)) {
             try {
+              console.log(`Trimming ${fileId}: ${fileData.trimStart}s to ${fileData.trimEnd}s (duration: ${fileData.duration}s)`);
               setError('Applying trim...');
               fileToUpload = await applyTrimToFile(fileId, fileData.file);
+              console.log(`Trim applied successfully for ${fileId}`);
               setError(''); // Clear trim message
             } catch (trimError) {
+              console.error(`Trim error for ${fileId}:`, trimError);
               throw new Error(`Failed to trim ${fileId}: ${trimError.message}`);
             }
+          } else {
+            console.log(`No trim needed for ${fileId}. isTrimmed: ${fileData.isTrimmed}, duration: ${fileData.duration}`);
           }
           
           formData.append(fileId, fileToUpload);

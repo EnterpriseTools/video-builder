@@ -513,16 +513,6 @@ export default function Create() {
       <div className="video-builder-container">
 
         <div className="video-builder-section-title ">
-          <button 
-            className="trim-clip-button"
-            onClick={() => setIsTrimModalOpen(true)}
-            title="Trim Clip"
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" fill="currentColor"/>
-            </svg>
-            Trim Clip
-          </button>
           <div className="logo-container">
             <img src="/TakeOneLogo.png" alt="Axon TakeOne Logo" />
             <div className="video-builder-title">
@@ -681,23 +671,6 @@ export default function Create() {
               </div>
             </div>
           )}
-        </div>
-      )}
-
-      {/* Trim Clip Modal */}
-      {isTrimModalOpen && (
-        <div className="modal-overlay" onClick={() => setIsTrimModalOpen(false)}>
-          <div className="modal-content trim-modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2 className="modal-title">Trim Clip</h2>
-              <button className="modal-close" onClick={() => setIsTrimModalOpen(false)}>
-                ×
-              </button>
-            </div>
-            <div className="modal-body">
-              <Trim />
-            </div>
-          </div>
         </div>
       )}
     </div>
