@@ -108,6 +108,11 @@ segment_*.mp4
 frontend/public/Examples/
 
 # ===========================
+# Documentation (LLM Context)
+# ===========================
+TECHNICAL_DOCUMENTATION.md
+
+# ===========================
 # System / OS
 # ===========================
 .DS_Store

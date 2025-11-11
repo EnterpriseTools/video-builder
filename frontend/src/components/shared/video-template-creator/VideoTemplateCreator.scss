@@ -534,7 +534,7 @@
   display: flex;
   flex-direction: column;
   height: 100%; // Use full height of the grid cell
-  overflow: hidden; // Prevent scrolling in preview column
+  overflow: scroll; 
 
   .preview-section {
     display: flex;
@@ -559,7 +559,7 @@
 
   // Inline Video Player for intro and demo templates
   .inline-video-player {
-    margin-top: 1.5rem;
+    margin-top: .25rem;
     padding: 1rem;
     background: rgba(255, 255, 255, 0.03);
     border: 1px solid rgba(255, 255, 255, 0.1);
@@ -569,7 +569,7 @@
       margin-bottom: 0.75rem;
 
       h3 {
-        font-size: 0.95rem;
+        font-size: 0.95rem; 
         font-weight: 600;
         color: white;
         margin: 0;

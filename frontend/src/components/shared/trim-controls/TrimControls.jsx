@@ -15,7 +15,8 @@ export default function TrimControls({
   onEndTimeChange,
   onPreviewRange,
   videoRef = null,
-  disabled = false
+  disabled = false,
+  stopAtEnd = false  // NEW: Optional prop to stop playback at trim end
 }) {
   const timelineRef = useRef(null);
   const [isDraggingLeft, setIsDraggingLeft] = useState(false);
@@ -136,10 +137,20 @@ export default function TrimControls({
 
   // Update current time from video
   useEffect(() => {
-    if (!videoRef?.current) return;
+    if (!videoRef?.current || !endTime) return;
 
     const handleTimeUpdate = () => {
-      setCurrentTime(videoRef.current.currentTime);
+      const video = videoRef.current;
+      const currentTime = video.currentTime;
+      
+      setCurrentTime(currentTime);
+      
+      // Only stop at trim end if stopAtEnd prop is true
+      // This prevents stopping during normal video preview
+      if (stopAtEnd && currentTime >= endTime && !video.paused) {
+        video.pause();
+        video.currentTime = startTime;
+      }
     };
 
     const video = videoRef.current;
@@ -148,7 +159,7 @@ export default function TrimControls({
     return () => {
       video.removeEventListener('timeupdate', handleTimeUpdate);
     };
-  }, [videoRef]);
+  }, [videoRef, endTime, startTime, stopAtEnd]);
 
   if (!duration || disabled) {
     return null;
@@ -188,7 +199,9 @@ export default function TrimControls({
               />
               <div 
                 className="timeline-handle timeline-handle-right"
-                style={{ left: `${(endTime / duration) * 100}%` }}
+                style={{ 
+                  left: `calc(${(endTime / duration) * 100}% - 12px)` 
+                }}
                 onMouseDown={handleRightHandleMouseDown}
               />
               <div 

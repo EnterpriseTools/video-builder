@@ -481,6 +481,9 @@ export default function VideoTemplateCreator({ config, savedData, onDataChange }
               <div className="video-player-header">
                 <h3>Video Preview</h3>
               </div>
+              <div className="video-player-tutorial">
+                <h3>View Tutorial</h3>
+              </div>
               <div className="video-player-container">
                 <video
                   ref={videoPlayerRef}

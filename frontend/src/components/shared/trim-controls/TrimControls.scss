@@ -70,7 +70,6 @@
   top: 0;
   left: 0;
   height: 100%;
-  background: #646cff;
   opacity: 0.3;
   z-index: 5;
   transition: width 0.1s ease;
@@ -113,11 +112,12 @@
 }
 
 .timeline-handle-left {
-  left: 0;
+  // Left handle stays at calculated position
 }
 
 .timeline-handle-right {
-  right: 0;
+  // Right handle uses calc() to subtract its own width
+  // This prevents it from going outside the timeline container
 }
 
 .timeline-current-time {
