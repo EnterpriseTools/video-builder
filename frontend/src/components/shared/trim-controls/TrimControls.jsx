@@ -40,6 +40,25 @@ export default function TrimControls({
     }
   }, [audioFile]);
 
+  // Initialize audio currentTime to startTime when audio loads
+  useEffect(() => {
+    if (!audioRef?.current) return;
+    
+    const handleLoadedMetadata = () => {
+      if (audioRef.current) {
+        audioRef.current.currentTime = startTime;
+        setCurrentTime(startTime);
+      }
+    };
+    
+    const audio = audioRef.current;
+    audio.addEventListener('loadedmetadata', handleLoadedMetadata);
+    
+    return () => {
+      audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
+    };
+  }, [startTime]);
+
   // Time formatting function
   const formatTimeWithDecimals = useCallback((seconds) => {
     if (!seconds || isNaN(seconds)) return '0:00.000';
