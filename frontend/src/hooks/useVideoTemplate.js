@@ -7,6 +7,7 @@ import {
   downloadBlob,
   formatDuration 
 } from '@/lib/templateValidation';
+import { API_BASE_URL } from '@/lib/config';
 
 /**
  * Custom hook for managing video template state and operations
@@ -47,7 +48,11 @@ export function useVideoTemplate(config) {
           name: null,
           preview: null,
           duration: 0,
-          thumbnail: null
+          thumbnail: null,
+          // Trim state for each file
+          trimStart: 0,
+          trimEnd: 0,
+          isTrimmed: false
         };
       }
     });
@@ -144,7 +149,11 @@ export function useVideoTemplate(config) {
       if (fileConfig.type === 'media' || fileConfig.type === 'video') {
         try {
           const duration = await getMediaDuration(file);
-          updateFileState(fileId, { duration });
+          updateFileState(fileId, { 
+            duration,
+            trimEnd: duration, // Set initial trim end to full duration
+            trimStart: 0
+          });
         } catch (durationError) {
           // Some audio formats (like .aifc) aren't supported by browser Audio API
           // This is expected and doesn't affect video rendering (backend handles duration)
@@ -188,11 +197,66 @@ export function useVideoTemplate(config) {
       name: null,
       preview: null,
       duration: 0,
-      thumbnail: null
+      thumbnail: null,
+      trimStart: 0,
+      trimEnd: 0,
+      isTrimmed: false
     });
     
     setError('');
   }, [files, updateFileState]);
+
+  // Trim handlers
+  const handleTrimChange = useCallback((fileId, trimStart, trimEnd) => {
+    const fileData = files[fileId];
+    if (!fileData.file) return;
+
+    const isTrimmed = trimStart > 0 || trimEnd < fileData.duration;
+    
+    updateFileState(fileId, {
+      trimStart,
+      trimEnd,
+      isTrimmed
+    });
+  }, [files, updateFileState]);
+
+  // Apply trim to a file using the backend trim API
+  const applyTrimToFile = useCallback(async (fileId, file) => {
+    const fileData = files[fileId];
+    
+    // If not trimmed, return original file
+    if (!fileData.isTrimmed) {
+      return file;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append('video', file);
+      formData.append('start', fileData.trimStart.toString());
+      formData.append('end', fileData.trimEnd.toString());
+
+      const response = await fetch(`${API_BASE_URL}/api/trim`, {
+        method: 'POST',
+        body: formData
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Trim failed: ${errorText}`);
+      }
+
+      // Get the trimmed file blob
+      const blob = await response.blob();
+      
+      // Create a new File object from the blob with the original filename
+      const trimmedFile = new File([blob], file.name, { type: file.type });
+      
+      return trimmedFile;
+    } catch (error) {
+      console.error('Error trimming file:', error);
+      throw error;
+    }
+  }, [files]);
 
 
   // Render video
@@ -241,17 +305,34 @@ export function useVideoTemplate(config) {
     try {
       const formData = new FormData();
       
-      // Add files to form data
-      Object.entries(files).forEach(([fileId, fileData]) => {
+      // Add files to form data - apply trim if necessary
+      for (const [fileId, fileData] of Object.entries(files)) {
         if (fileData.file) {
-          formData.append(fileId, fileData.file);
+          let fileToUpload = fileData.file;
           
-          // Add duration if available
-          if (fileData.duration > 0) {
-            formData.append('duration', fileData.duration.toString());
+          // Apply trim if file is trimmed and it's a video/media file
+          if (fileData.isTrimmed && (fileData.duration > 0)) {
+            try {
+              setError('Applying trim...');
+              fileToUpload = await applyTrimToFile(fileId, fileData.file);
+              setError(''); // Clear trim message
+            } catch (trimError) {
+              throw new Error(`Failed to trim ${fileId}: ${trimError.message}`);
+            }
+          }
+          
+          formData.append(fileId, fileToUpload);
+          
+          // Add duration if available (use trimmed duration if trimmed)
+          const finalDuration = fileData.isTrimmed 
+            ? (fileData.trimEnd - fileData.trimStart)
+            : fileData.duration;
+            
+          if (finalDuration > 0) {
+            formData.append('duration', finalDuration.toString());
           }
         }
-      });
+      }
       
       // Add text data to form
       Object.entries(textData).forEach(([key, value]) => {
@@ -337,6 +418,10 @@ export function useVideoTemplate(config) {
 
     // Text handlers
     handleTextChange,
+
+    // Trim handlers
+    handleTrimChange,
+    applyTrimToFile,
 
     // Render handlers
     renderVideo,

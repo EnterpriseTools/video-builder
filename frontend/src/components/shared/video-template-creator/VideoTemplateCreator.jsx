@@ -1,8 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import Button from '@/components/shared/button';
 import { Input, FileInput } from '@/components/shared/input';
 import RenderingModal from '@/components/shared/rendering-modal';
 import TemplatePreview from '@/components/shared/template-preview';
+import TrimControls from '@/components/shared/trim-controls';
+import AudioWaveform from '@/components/shared/audio-waveform';
 import { useVideoTemplate } from '@/hooks/useVideoTemplate';
 import './VideoTemplateCreator.scss';
 
@@ -39,6 +41,9 @@ export default function VideoTemplateCreator({ config, savedData, onDataChange }
     showImage: config.id === 'how-it-works' ? showImage : undefined
   };
 
+  // Ref for video player (for intro and demo templates)
+  const videoPlayerRef = useRef(null);
+
   const {
     // State
     textData,
@@ -54,6 +59,9 @@ export default function VideoTemplateCreator({ config, savedData, onDataChange }
 
     // Text handlers
     handleTextChange,
+
+    // Trim handlers
+    handleTrimChange,
 
     // Render handlers
     renderVideo,
@@ -466,6 +474,68 @@ export default function VideoTemplateCreator({ config, savedData, onDataChange }
               )}
             </div>
           </div>
+
+          {/* Inline Video Player for intro and demo templates */}
+          {(config.id === 'intro' || config.id === 'demo') && files.video?.file && files.video?.preview && (
+            <div className="inline-video-player">
+              <div className="video-player-header">
+                <h3>Video Preview</h3>
+              </div>
+              <div className="video-player-container">
+                <video
+                  ref={videoPlayerRef}
+                  src={files.video.preview}
+                  controls
+                  preload="metadata"
+                  playsInline
+                  className="inline-video"
+                >
+                  Your browser does not support the video tag.
+                </video>
+              </div>
+            </div>
+          )}
+
+          {/* Audio Waveform for audio-only templates */}
+          {['announcement', 'how-it-works', 'persona', 'closing'].includes(config.id) && files.audio?.file && (
+            <AudioWaveform 
+              audioFile={files.audio.file}
+              duration={files.audio.duration}
+            />
+          )}
+
+          {/* Trim Controls - show for any file with duration */}
+          {Object.entries(files).map(([fileId, fileData]) => {
+            // Only show trim controls for files with duration (video or audio)
+            if (!fileData.file || fileData.duration <= 0) return null;
+            
+            const fileConfig = config.files.find(f => f.id === fileId);
+            if (!fileConfig) return null;
+
+            // Check if this file type supports trimming (video or media)
+            const supportsTrimmingTypes = ['video', 'media'];
+            if (!supportsTrimmingTypes.includes(fileConfig.type)) return null;
+
+            return (
+              <TrimControls
+                key={fileId}
+                duration={fileData.duration}
+                startTime={fileData.trimStart}
+                endTime={fileData.trimEnd}
+                onStartTimeChange={(newStart) => handleTrimChange(fileId, newStart, fileData.trimEnd)}
+                onEndTimeChange={(newEnd) => handleTrimChange(fileId, fileData.trimStart, newEnd)}
+                onPreviewRange={() => {
+                  // For video files, seek to start and play
+                  if (videoPlayerRef.current && fileConfig.type === 'video') {
+                    videoPlayerRef.current.currentTime = fileData.trimStart;
+                    videoPlayerRef.current.play();
+                  }
+                }}
+                videoRef={fileConfig.type === 'video' ? videoPlayerRef : null}
+                disabled={false}
+              />
+            );
+          })}
         </div>
       </div>
 

@@ -1,0 +1,269 @@
+// Trim Controls Component Styles
+.trim-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  margin-top: 1rem;
+}
+
+.trim-header {
+  h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0 0 0.25rem 0;
+    color: white;
+  }
+  
+  p {
+    font-size: 0.875rem;
+    color: rgba(255, 255, 255, 0.6);
+    margin: 0;
+  }
+}
+
+// Timeline Section
+.timeline-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.timeline-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.timeline {
+  position: relative;
+  height: 50px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  cursor: pointer;
+  user-select: none;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+  
+  &.dragging {
+    cursor: ew-resize;
+  }
+}
+
+.timeline-track {
+  position: relative;
+  height: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.timeline-progress {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: #646cff;
+  opacity: 0.3;
+  z-index: 5;
+  transition: width 0.1s ease;
+}
+
+.timeline-selection {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  background: #646cff;
+  opacity: 0.5;
+  border: 2px solid #646cff;
+  box-sizing: border-box;
+  z-index: 10;
+  pointer-events: none;
+  transition: all 0.1s ease;
+}
+
+.timeline-handle {
+  position: absolute;
+  top: 0;
+  width: 12px;
+  height: 100%;
+  background: #646cff;
+  border: 2px solid white;
+  border-radius: 6px;
+  cursor: ew-resize;
+  z-index: 20;
+  user-select: none;
+  transition: all 0.1s ease;
+  
+  &:hover {
+    transform: scaleX(1.2);
+    background: #535bf2;
+  }
+  
+  &:active {
+    transform: scaleX(1.1);
+  }
+}
+
+.timeline-handle-left {
+  left: 0;
+}
+
+.timeline-handle-right {
+  right: 0;
+}
+
+.timeline-current-time {
+  position: absolute;
+  top: 0;
+  width: 2px;
+  height: 100%;
+  background: white;
+  z-index: 15;
+  pointer-events: none;
+  transition: left 0.1s ease;
+}
+
+.timeline-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.timeline-time {
+  display: flex;
+  gap: 1rem;
+  font-family: monospace;
+}
+
+.dragging-indicator {
+  color: #646cff;
+  font-weight: 600;
+}
+
+// Manual Time Entry Accordion
+.manual-time-accordion {
+  margin-top: 0.5rem;
+}
+
+.accordion-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: #646cff;
+  }
+  
+  h4 {
+    margin: 0;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: white;
+  }
+}
+
+.accordion-toggle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #646cff;
+  transition: transform 0.2s ease;
+  line-height: 1;
+}
+
+.accordion-content {
+  padding: 1.25rem;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+}
+
+.input-instructions {
+  margin-bottom: 1rem;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.5;
+}
+
+.time-input-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.time-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.time-display {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.5);
+  font-family: monospace;
+}
+
+.selection-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.875rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  font-size: 0.8rem;
+  
+  strong {
+    color: white;
+  }
+}
+
+.selection-duration {
+  color: white;
+}
+
+.trim-info {
+  display: flex;
+  gap: 1rem;
+  color: rgba(255, 255, 255, 0.7);
+  font-family: monospace;
+}
+
+// Action Buttons
+.trim-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.5rem;
+}
+
+// Responsive Design
+@media (max-width: 768px) {
+  .time-input-grid {
+    grid-template-columns: 1fr;
+    gap: 0.875rem;
+  }
+  
+  .selection-info {
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: flex-start;
+  }
+}
+

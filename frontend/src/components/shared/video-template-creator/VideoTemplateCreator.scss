@@ -32,6 +32,8 @@
 }
 
 // Configuration column styles
+
+// Configuration column styles
 .template-config-column {
   display: flex;
   flex-direction: column;
@@ -552,6 +554,41 @@
       font-weight: 600;
       color: #c1c1c1;
       margin: 0;
+    }
+  }
+
+  // Inline Video Player for intro and demo templates
+  .inline-video-player {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+
+    .video-player-header {
+      margin-bottom: 0.75rem;
+
+      h3 {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: white;
+        margin: 0;
+      }
+    }
+
+    .video-player-container {
+      width: 100%;
+      border-radius: 8px;
+      overflow: hidden;
+      background: #000;
+
+      .inline-video {
+        width: 100%;
+        height: auto;
+        display: block;
+        max-height: 400px;
+        object-fit: contain;
+      }
     }
   }
 
