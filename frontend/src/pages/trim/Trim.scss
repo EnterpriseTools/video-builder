@@ -282,13 +282,6 @@
   }
 }
 
-.timeline-track {
-  position: relative;
-  height: 100%;
-  border-radius: 8px;
-  overflow: hidden;
-}
-
 .timeline-progress {
   position: absolute;
   top: 0;
@@ -305,7 +298,6 @@
   height: 100%;
   background: #e91e63;
   opacity: 0.5;
-  border: 2px solid #e91e63;
   box-sizing: border-box;
   z-index: 10;
   pointer-events: none;
