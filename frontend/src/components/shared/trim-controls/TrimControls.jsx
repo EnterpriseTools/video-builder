@@ -22,7 +22,6 @@ export default function TrimControls({
   const [isDraggingLeft, setIsDraggingLeft] = useState(false);
   const [isDraggingRight, setIsDraggingRight] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
-  const [manualTimeOpen, setManualTimeOpen] = useState(false);
 
   // Time formatting function
   const formatTimeWithDecimals = useCallback((seconds) => {
@@ -32,37 +31,6 @@ export default function TrimControls({
     const decimals = Math.floor((seconds % 1) * 1000);
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}.${decimals.toString().padStart(3, '0')}`;
   }, []);
-
-  // Parse timecode function
-  const parseTimecode = useCallback((timecode) => {
-    if (!timecode) return 0;
-    const match = timecode.match(/^(\d+):(\d{2})\.(\d{3})$/);
-    if (match) {
-      const minutes = parseInt(match[1]);
-      const seconds = parseInt(match[2]);
-      const decimals = parseInt(match[3]) / 1000;
-      return minutes * 60 + seconds + decimals;
-    }
-    return 0;
-  }, []);
-
-  // Handle timecode changes
-  const handleStartTimecodeChange = useCallback((value) => {
-    const newStart = parseTimecode(value);
-    if (newStart >= 0 && newStart < endTime) {
-      onStartTimeChange(newStart);
-      if (videoRef?.current) {
-        videoRef.current.currentTime = newStart;
-      }
-    }
-  }, [endTime, parseTimecode, onStartTimeChange, videoRef]);
-
-  const handleEndTimecodeChange = useCallback((value) => {
-    const newEnd = parseTimecode(value);
-    if (newEnd > startTime && newEnd <= duration) {
-      onEndTimeChange(newEnd);
-    }
-  }, [startTime, duration, parseTimecode, onEndTimeChange]);
 
   // Timeline drag handlers
   const handleLeftHandleMouseDown = useCallback((e) => {
@@ -210,72 +178,6 @@ export default function TrimControls({
               />
             </div>
           </div>
-          
-          <div className="timeline-info">
-            <div className="timeline-time">
-              <span>Current: {formatTimeWithDecimals(currentTime)}</span>
-              <span>Duration: {formatTimeWithDecimals(duration)}</span>
-              {(isDraggingLeft || isDraggingRight) && (
-                <span className="dragging-indicator">Dragging...</span>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Manual Time Entry Accordion */}
-        <div className="manual-time-accordion">
-          <div 
-            className="accordion-header"
-            onClick={() => setManualTimeOpen(!manualTimeOpen)}
-          >
-            <h4>Manual Time Entry</h4>
-            <span className="accordion-toggle">{manualTimeOpen ? '−' : '+'}</span>
-          </div>
-          
-          {manualTimeOpen && (
-            <div className="accordion-content">
-              <p className="input-instructions">
-                Enter the start and end times in timecode format (e.g., 1:30.500). 
-                The media will be trimmed from the start time to the end time.
-              </p>
-              <div className="time-input-grid">
-                <div className="time-input-group">
-                  <Input
-                    id="trim-start-time"
-                    label="Start Time:"
-                    variant="time"
-                    size="small"
-                    value={formatTimeWithDecimals(startTime)}
-                    onChange={(e) => handleStartTimecodeChange(e.target.value)}
-                    placeholder="0:00.000"
-                  />
-                  <span className="time-display">{formatTimeWithDecimals(startTime)}</span>
-                </div>
-                
-                <div className="time-input-group">
-                  <Input
-                    id="trim-end-time"
-                    label="End Time:"
-                    variant="time"
-                    size="small"
-                    value={formatTimeWithDecimals(endTime)}
-                    onChange={(e) => handleEndTimecodeChange(e.target.value)}
-                    placeholder={formatTimeWithDecimals(duration)}
-                  />
-                  <span className="time-display">{formatTimeWithDecimals(endTime)}</span>
-                </div>
-              </div>
-              
-              <div className="selection-info">
-                <div className="selection-duration">
-                  <strong>Selection Duration: {formatTimeWithDecimals(endTime - startTime)}</strong>
-                </div>
-                <div className="trim-info">
-                  <span>Total Duration: {formatTimeWithDecimals(duration)}</span>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Preview Range Button */}
