@@ -136,7 +136,7 @@ export default function VideoTemplateCreator({ config, savedData, onDataChange }
                     size="small" 
                     onClick={() => handleClearFile(fileConfig.id)}
                   >
-                    ✕ Clear
+                    ✕
                   </Button>
                 </div>
               </div>
@@ -160,7 +160,7 @@ export default function VideoTemplateCreator({ config, savedData, onDataChange }
                       size="small" 
                       onClick={() => handleClearFile(fileConfig.id)}
                     >
-                      ✕ Clear
+                      ✕
                     </Button>
                     {config.features?.showVideoPreviewButton && (
                       <Button 
@@ -193,7 +193,7 @@ export default function VideoTemplateCreator({ config, savedData, onDataChange }
                     size="small" 
                     onClick={() => handleClearFile(fileConfig.id)}
                   >
-                    ✕ Clear
+                    ✕
                   </Button>
                 </div>
               </div>
