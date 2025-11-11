@@ -354,9 +354,9 @@ export default function Create() {
         // Create FormData for this template
         const formData = new FormData();
         
-        // Add files
+        // Add files - apply trim if necessary
         console.log(`Processing files for ${template.name}:`, template.config.files);
-        Object.entries(template.config.files).forEach(([fileId, fileData]) => {
+        for (const [fileId, fileData] of Object.entries(template.config.files)) {
           if (fileData.file) {
             console.log(`File ${fileId}:`, {
               name: fileData.file.name,
@@ -366,12 +366,66 @@ export default function Create() {
               trimEnd: fileData.trimEnd,
               duration: fileData.duration
             });
-            formData.append(fileId, fileData.file);
-            if (fileData.duration > 0) {
-              formData.append('duration', fileData.duration.toString());
+            
+            let fileToUpload = fileData.file;
+            
+            // Debug the condition
+            console.log(`Checking trim condition for ${fileId}:`, {
+              isTrimmed: fileData.isTrimmed,
+              isTrimmedType: typeof fileData.isTrimmed,
+              duration: fileData.duration,
+              durationType: typeof fileData.duration,
+              conditionResult: fileData.isTrimmed && fileData.duration > 0
+            });
+            
+            // Apply trim if file is trimmed and it's a video/media file
+            if (fileData.isTrimmed && fileData.duration > 0) {
+              try {
+                console.log(`Trimming ${fileId} for ${template.name}: ${fileData.trimStart}s to ${fileData.trimEnd}s (duration: ${fileData.duration}s)`);
+                setRenderingProgress(`Trimming ${template.name}...`);
+                
+                // Call trim API
+                const trimFormData = new FormData();
+                trimFormData.append('video', fileData.file);
+                trimFormData.append('start', fileData.trimStart.toString());
+                trimFormData.append('end', fileData.trimEnd.toString());
+                
+                const trimResponse = await fetch(`${API_BASE_URL}/api/trim`, {
+                  method: 'POST',
+                  body: trimFormData
+                });
+                
+                if (!trimResponse.ok) {
+                  const errorText = await trimResponse.text();
+                  throw new Error(`Trim failed: ${errorText}`);
+                }
+                
+                // Get the trimmed file blob
+                const trimmedBlob = await trimResponse.blob();
+                fileToUpload = new File([trimmedBlob], fileData.file.name, { type: fileData.file.type });
+                
+                console.log(`Trim applied successfully for ${fileId}, new size: ${fileToUpload.size}`);
+                setRenderingProgress(`Rendering ${template.name}...`);
+              } catch (trimError) {
+                console.error(`Trim error for ${fileId}:`, trimError);
+                throw new Error(`Failed to trim ${fileId}: ${trimError.message}`);
+              }
+            } else {
+              console.log(`No trim needed for ${fileId}. isTrimmed: ${fileData.isTrimmed}, duration: ${fileData.duration}`);
+            }
+            
+            formData.append(fileId, fileToUpload);
+            
+            // Use trimmed duration if trimmed
+            const finalDuration = fileData.isTrimmed 
+              ? (fileData.trimEnd - fileData.trimStart)
+              : fileData.duration;
+            
+            if (finalDuration > 0) {
+              formData.append('duration', finalDuration.toString());
             }
           }
-        });
+        }
         
         // Add text data
         Object.entries(template.config.textData).forEach(([key, value]) => {
