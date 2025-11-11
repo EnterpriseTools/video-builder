@@ -13,10 +13,8 @@ export default function TrimControls({
   endTime = 0,
   onStartTimeChange,
   onEndTimeChange,
-  onPreviewRange,
   videoRef = null,
-  disabled = false,
-  stopAtEnd = false  // NEW: Optional prop to stop playback at trim end
+  disabled = false
 }) {
   const timelineRef = useRef(null);
   const [isDraggingLeft, setIsDraggingLeft] = useState(false);
@@ -103,9 +101,9 @@ export default function TrimControls({
     };
   }, [isDraggingLeft, isDraggingRight, duration, startTime, endTime, onStartTimeChange, onEndTimeChange, videoRef, disabled]);
 
-  // Update current time from video
+  // Update current time from video and enforce trim boundaries
   useEffect(() => {
-    if (!videoRef?.current || !endTime) return;
+    if (!videoRef?.current || !duration) return;
 
     const handleTimeUpdate = () => {
       const video = videoRef.current;
@@ -113,11 +111,15 @@ export default function TrimControls({
       
       setCurrentTime(currentTime);
       
-      // Only stop at trim end if stopAtEnd prop is true
-      // This prevents stopping during normal video preview
-      if (stopAtEnd && currentTime >= endTime && !video.paused) {
+      // Only enforce trim boundaries if the trim has been meaningfully adjusted
+      // Allow 0.5 second tolerance to treat near-full-length as "no trim"
+      const isTrimmedFromStart = startTime > 0.5;
+      const isTrimmedFromEnd = endTime < (duration - 0.5);
+      const hasValidTrim = isTrimmedFromStart || isTrimmedFromEnd;
+      
+      if (hasValidTrim && currentTime >= endTime && !video.paused) {
         video.pause();
-        video.currentTime = startTime;
+        video.currentTime = startTime; // Loop back to trim start
       }
     };
 
@@ -127,7 +129,22 @@ export default function TrimControls({
     return () => {
       video.removeEventListener('timeupdate', handleTimeUpdate);
     };
-  }, [videoRef, endTime, startTime, stopAtEnd]);
+  }, [videoRef, endTime, startTime, duration]);
+
+  // Sync video position with trim boundaries when handles are adjusted
+  useEffect(() => {
+    if (!videoRef?.current) return;
+    
+    const video = videoRef.current;
+    const currentTime = video.currentTime;
+    
+    // If current position is outside trim boundaries, seek to nearest boundary
+    if (currentTime < startTime) {
+      video.currentTime = startTime;
+    } else if (currentTime > endTime) {
+      video.currentTime = endTime;
+    }
+  }, [startTime, endTime, videoRef]);
 
   if (!duration || disabled) {
     return null;
@@ -179,19 +196,6 @@ export default function TrimControls({
             </div>
           </div>
         </div>
-
-        {/* Preview Range Button */}
-        {onPreviewRange && videoRef && (
-          <div className="trim-actions">
-            <Button 
-              onClick={onPreviewRange}
-              variant="secondary"
-              size="small"
-            >
-              Preview Trimmed Range
-            </Button>
-          </div>
-        )}
       </div>
     </div>
   );

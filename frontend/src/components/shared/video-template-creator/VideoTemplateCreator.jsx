@@ -521,13 +521,6 @@ export default function VideoTemplateCreator({ config, savedData, onDataChange }
                 endTime={fileData.trimEnd}
                 onStartTimeChange={(newStart) => handleTrimChange(fileId, newStart, fileData.trimEnd)}
                 onEndTimeChange={(newEnd) => handleTrimChange(fileId, fileData.trimStart, newEnd)}
-                onPreviewRange={() => {
-                  // For video files, seek to start and play
-                  if (videoPlayerRef.current && fileConfig.type === 'video') {
-                    videoPlayerRef.current.currentTime = fileData.trimStart;
-                    videoPlayerRef.current.play();
-                  }
-                }}
                 videoRef={fileConfig.type === 'video' ? videoPlayerRef : null}
                 disabled={false}
               />
