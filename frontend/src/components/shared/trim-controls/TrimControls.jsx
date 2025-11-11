@@ -59,6 +59,16 @@ export default function TrimControls({
     };
   }, [startTime]);
 
+  // Sync playhead position with startTime when not playing
+  useEffect(() => {
+    if (!isPlaying) {
+      setCurrentTime(startTime);
+      if (audioRef?.current) {
+        audioRef.current.currentTime = startTime;
+      }
+    }
+  }, [startTime, isPlaying]);
+
   // Time formatting function
   const formatTimeWithDecimals = useCallback((seconds) => {
     if (!seconds || isNaN(seconds)) return '0:00.000';
