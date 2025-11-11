@@ -539,8 +539,7 @@
   .preview-section {
     display: flex;
     flex-direction: column;
-    height: 100%; // Use full height
-    overflow: hidden; // Prevent scrolling
+    overflow: hidden;
   }
 
   .preview-header {

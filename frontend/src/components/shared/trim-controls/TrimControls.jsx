@@ -20,9 +20,25 @@ export default function TrimControls({
   disabled = false
 }) {
   const timelineRef = useRef(null);
+  const audioRef = useRef(null);
   const [isDraggingLeft, setIsDraggingLeft] = useState(false);
   const [isDraggingRight, setIsDraggingRight] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [audioUrl, setAudioUrl] = useState(null);
+
+  // Create audio URL when audioFile changes
+  useEffect(() => {
+    if (audioFile) {
+      const url = URL.createObjectURL(audioFile);
+      setAudioUrl(url);
+      
+      return () => {
+        URL.revokeObjectURL(url);
+        setAudioUrl(null);
+      };
+    }
+  }, [audioFile]);
 
   // Time formatting function
   const formatTimeWithDecimals = useCallback((seconds) => {
@@ -32,6 +48,23 @@ export default function TrimControls({
     const decimals = Math.floor((seconds % 1) * 1000);
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}.${decimals.toString().padStart(3, '0')}`;
   }, []);
+
+  // Audio play/pause handler
+  const handlePlayPause = useCallback(() => {
+    if (!audioRef.current) return;
+    
+    if (isPlaying) {
+      audioRef.current.pause();
+      setIsPlaying(false);
+    } else {
+      // Start from trim start if not within trim boundaries
+      if (audioRef.current.currentTime < startTime || audioRef.current.currentTime >= endTime) {
+        audioRef.current.currentTime = startTime;
+      }
+      audioRef.current.play();
+      setIsPlaying(true);
+    }
+  }, [isPlaying, startTime, endTime]);
 
   // Timeline drag handlers
   const handleLeftHandleMouseDown = useCallback((e) => {
@@ -59,6 +92,9 @@ export default function TrimControls({
     if (videoRef?.current) {
       videoRef.current.currentTime = newTime;
     }
+    if (audioRef?.current) {
+      audioRef.current.currentTime = newTime;
+    }
   }, [duration, videoRef, disabled]);
 
   // Timeline dragging effect
@@ -81,6 +117,9 @@ export default function TrimControls({
         onStartTimeChange(newStart);
         if (videoRef?.current) {
           videoRef.current.currentTime = newStart;
+        }
+        if (audioRef?.current) {
+          audioRef.current.currentTime = newStart;
         }
       } else if (isDraggingRight) {
         const newEnd = Math.max(startTime + 0.1, Math.min(newTime, duration));
@@ -134,6 +173,48 @@ export default function TrimControls({
     };
   }, [videoRef, endTime, startTime, duration]);
 
+  // Update current time from audio and enforce trim boundaries
+  useEffect(() => {
+    if (!audioRef?.current || !duration) return;
+
+    const handleTimeUpdate = () => {
+      const audio = audioRef.current;
+      const currentTime = audio.currentTime;
+      
+      setCurrentTime(currentTime);
+      
+      // Only enforce trim boundaries if the trim has been meaningfully adjusted
+      const isTrimmedFromStart = startTime > 0.5;
+      const isTrimmedFromEnd = endTime < (duration - 0.5);
+      const hasValidTrim = isTrimmedFromStart || isTrimmedFromEnd;
+      
+      if (hasValidTrim && currentTime >= endTime && !audio.paused) {
+        audio.pause();
+        audio.currentTime = startTime; // Loop back to trim start
+        setIsPlaying(false);
+      }
+    };
+
+    const handlePause = () => {
+      setIsPlaying(false);
+    };
+
+    const handlePlay = () => {
+      setIsPlaying(true);
+    };
+
+    const audio = audioRef.current;
+    audio.addEventListener('timeupdate', handleTimeUpdate);
+    audio.addEventListener('pause', handlePause);
+    audio.addEventListener('play', handlePlay);
+
+    return () => {
+      audio.removeEventListener('timeupdate', handleTimeUpdate);
+      audio.removeEventListener('pause', handlePause);
+      audio.removeEventListener('play', handlePlay);
+    };
+  }, [audioRef, endTime, startTime, duration]);
+
   // Sync video position with trim boundaries when handles are adjusted
   useEffect(() => {
     if (!videoRef?.current) return;
@@ -149,15 +230,61 @@ export default function TrimControls({
     }
   }, [startTime, endTime, videoRef]);
 
+  // Sync audio position with trim boundaries when handles are adjusted
+  useEffect(() => {
+    if (!audioRef?.current) return;
+    
+    const audio = audioRef.current;
+    const currentTime = audio.currentTime;
+    
+    // If current position is outside trim boundaries, seek to nearest boundary
+    if (currentTime < startTime) {
+      audio.currentTime = startTime;
+    } else if (currentTime > endTime) {
+      audio.currentTime = endTime;
+    }
+  }, [startTime, endTime]);
+
   if (!duration || disabled) {
     return null;
   }
 
   return (
     <div className="trim-controls">
+      {/* Hidden audio element for playback */}
+      {audioFile && audioUrl && (
+        <audio
+          ref={audioRef}
+          src={audioUrl}
+          preload="metadata"
+        />
+      )}
+
       <div className="trim-header">
-        <h4>Trim Video/Audio</h4>
-        <p>Drag the handles or enter times to trim your media</p>
+        <div className="trim-header-content">
+          <div>
+            <h4>Trim Video/Audio</h4>
+            <p>Drag the handles or enter times to trim your media</p>
+          </div>
+          {audioFile && (
+            <button 
+              className="audio-play-button"
+              onClick={handlePlayPause}
+              aria-label={isPlaying ? "Pause audio" : "Play audio"}
+            >
+              {isPlaying ? (
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect x="6" y="5" width="4" height="14" rx="1" fill="currentColor"/>
+                  <rect x="14" y="5" width="4" height="14" rx="1" fill="currentColor"/>
+                </svg>
+              ) : (
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M8 5.14v13.72L19 12L8 5.14z" fill="currentColor"/>
+                </svg>
+              )}
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Timeline with Drag Handles and Optional Waveform */}

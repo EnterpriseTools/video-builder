@@ -11,6 +11,13 @@
 }
 
 .trim-header {
+  .trim-header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+  }
+
   h4 {
     font-size: 1rem;
     font-weight: 600;
@@ -22,6 +29,35 @@
     font-size: 0.875rem;
     color: rgba(255, 255, 255, 0.6);
     margin: 0;
+  }
+}
+
+.audio-play-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #646cff;
+  border: none;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  
+  &:hover {
+    background: #535bf2;
+    transform: scale(1.05);
+  }
+  
+  &:active {
+    transform: scale(0.95);
+  }
+  
+  svg {
+    width: 24px;
+    height: 24px;
   }
 }
 
