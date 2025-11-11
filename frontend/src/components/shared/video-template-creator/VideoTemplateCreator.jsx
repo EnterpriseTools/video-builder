@@ -4,7 +4,6 @@ import { Input, FileInput } from '@/components/shared/input';
 import RenderingModal from '@/components/shared/rendering-modal';
 import TemplatePreview from '@/components/shared/template-preview';
 import TrimControls from '@/components/shared/trim-controls';
-import AudioWaveform from '@/components/shared/audio-waveform';
 import { useVideoTemplate } from '@/hooks/useVideoTemplate';
 import './VideoTemplateCreator.scss';
 
@@ -493,14 +492,6 @@ export default function VideoTemplateCreator({ config, savedData, onDataChange }
             </div>
           )}
 
-          {/* Audio Waveform for audio-only templates */}
-          {['announcement', 'how-it-works', 'persona', 'closing'].includes(config.id) && files.audio?.file && (
-            <AudioWaveform 
-              audioFile={files.audio.file}
-              duration={files.audio.duration}
-            />
-          )}
-
           {/* Trim Controls - show for any file with duration */}
           {Object.entries(files).map(([fileId, fileData]) => {
             // Only show trim controls for files with duration (video or audio)
@@ -522,6 +513,7 @@ export default function VideoTemplateCreator({ config, savedData, onDataChange }
                 onStartTimeChange={(newStart) => handleTrimChange(fileId, newStart, fileData.trimEnd)}
                 onEndTimeChange={(newEnd) => handleTrimChange(fileId, fileData.trimStart, newEnd)}
                 videoRef={fileConfig.type === 'video' ? videoPlayerRef : null}
+                audioFile={fileConfig.type === 'media' ? fileData.file : null}
                 disabled={false}
               />
             );

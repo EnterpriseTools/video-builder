@@ -1,11 +1,13 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Button from '@/components/shared/button';
 import { Input } from '@/components/shared/input';
+import AudioWaveform from '@/components/shared/audio-waveform';
 import './TrimControls.scss';
 
 /**
  * Shared trim controls component with timeline and manual time entry
  * Used across all templates that support video/audio trimming
+ * Can display audio waveform visualization when audioFile is provided
  */
 export default function TrimControls({ 
   duration = 0,
@@ -14,6 +16,7 @@ export default function TrimControls({
   onStartTimeChange,
   onEndTimeChange,
   videoRef = null,
+  audioFile = null, // Optional audio file for waveform visualization
   disabled = false
 }) {
   const timelineRef = useRef(null);
@@ -157,15 +160,43 @@ export default function TrimControls({
         <p>Drag the handles or enter times to trim your media</p>
       </div>
 
-      {/* Timeline with Drag Handles */}
+      {/* Timeline with Drag Handles and Optional Waveform */}
       <div className="timeline-section">
         <div className="timeline-container">
           <div 
             ref={timelineRef}
-            className={`timeline ${isDraggingLeft || isDraggingRight ? 'dragging' : ''}`}
+            className={`timeline ${isDraggingLeft || isDraggingRight ? 'dragging' : ''} ${audioFile ? 'with-waveform' : ''}`}
             onClick={handleTimelineClick}
           >
             <div className="timeline-track">
+              {/* Audio Waveform Background */}
+              {audioFile && (
+                <AudioWaveform 
+                  audioFile={audioFile}
+                  duration={duration}
+                  embedded={true}
+                  startTime={startTime}
+                  endTime={endTime}
+                />
+              )}
+              
+              {/* Dimmed overlay for unselected regions */}
+              {audioFile && (
+                <>
+                  <div 
+                    className="timeline-dim-left"
+                    style={{ width: `${(startTime / duration) * 100}%` }}
+                  />
+                  <div 
+                    className="timeline-dim-right"
+                    style={{ 
+                      left: `${(endTime / duration) * 100}%`,
+                      width: `${((duration - endTime) / duration) * 100}%`
+                    }}
+                  />
+                </>
+              )}
+              
               <div 
                 className="timeline-progress"
                 style={{ width: `${(currentTime / duration) * 100}%` }}

@@ -39,6 +39,13 @@
       height: 100%;
       display: block;
       transition: opacity 0.3s ease;
+      
+      &.embedded {
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 1;
+      }
     }
 
     .waveform-loading {
@@ -54,6 +61,11 @@
       gap: 0.5rem;
       background: rgba(0, 0, 0, 0.5);
       z-index: 10;
+      
+      &.embedded {
+        z-index: 25;
+        border-radius: 8px;
+      }
 
       .spinner {
         width: 24px;

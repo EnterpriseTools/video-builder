@@ -4,8 +4,15 @@ import './AudioWaveform.scss';
 /**
  * Audio Waveform Visualization Component
  * Displays a waveform visualization for audio files
+ * Can be used standalone or embedded in other components
  */
-export default function AudioWaveform({ audioFile, duration = 0 }) {
+export default function AudioWaveform({ 
+  audioFile, 
+  duration = 0, 
+  embedded = false, // When true, renders just the canvas without wrapper
+  startTime = 0,    // For visual masking of trim selection
+  endTime = 0       // For visual masking of trim selection
+}) {
   const canvasRef = useRef(null);
   const audioContextRef = useRef(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -108,6 +115,26 @@ export default function AudioWaveform({ audioFile, duration = 0 }) {
     };
   }, [audioFile]);
 
+  // If embedded mode, return just the canvas
+  if (embedded) {
+    return (
+      <>
+        {isLoading && (
+          <div className="waveform-loading embedded">
+            <div className="spinner"></div>
+            <span>Generating waveform...</span>
+          </div>
+        )}
+        <canvas 
+          ref={canvasRef}
+          className="waveform-canvas embedded"
+          style={{ opacity: isLoading ? 0.3 : 1 }}
+        />
+      </>
+    );
+  }
+
+  // Standalone mode with header and container
   return (
     <div className="audio-waveform">
       <div className="waveform-header">

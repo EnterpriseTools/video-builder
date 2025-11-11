@@ -48,8 +48,17 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
   transition: all 0.2s ease;
   
+  &.with-waveform {
+    height: 80px;
+    background: rgba(0, 0, 0, 0.3);
+  }
+  
   &:hover {
     background: rgba(255, 255, 255, 0.08);
+    
+    &.with-waveform {
+      background: rgba(0, 0, 0, 0.4);
+    }
     border-color: rgba(255, 255, 255, 0.2);
   }
   
@@ -70,9 +79,22 @@
   top: 0;
   left: 0;
   height: 100%;
+  background: #646cff;
   opacity: 0.3;
   z-index: 5;
   transition: width 0.1s ease;
+}
+
+// Dim overlays for waveform - darken unselected regions
+.timeline-dim-left,
+.timeline-dim-right {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 2;
+  pointer-events: none;
+  transition: all 0.1s ease;
 }
 
 .timeline-selection {
@@ -80,8 +102,9 @@
   top: 0;
   height: 100%;
   background: #646cff;
-  opacity: 0.5;
-  border: 2px solid #646cff;
+  opacity: 0.3;
+  border-left: 2px solid #646cff;
+  border-right: 2px solid #646cff;
   box-sizing: border-box;
   z-index: 10;
   pointer-events: none;
