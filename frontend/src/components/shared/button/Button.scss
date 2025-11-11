@@ -50,15 +50,15 @@
   
   /* Primary - Main call-to-action buttons */
   &--primary {
-    background: #F51B77;
-    color: var(--color-fg-on-primary);
+    background: #FEC62E;
+    color: #1A1A1A;
     border: 1px solid transparent;
 
     
     
     &:hover:not(.btn--disabled):not(.btn--loading) {
-      background: #f73e8b;
-      border: 1px solid #F51B77;
+      background: #fed051;
+      border: 1px solid #FEC62E;
     }
     
     &:active:not(.btn--disabled):not(.btn--loading) {

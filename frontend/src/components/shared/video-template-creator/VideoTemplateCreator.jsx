@@ -478,12 +478,6 @@ export default function VideoTemplateCreator({ config, savedData, onDataChange }
           {/* Inline Video Player for intro and demo templates */}
           {(config.id === 'intro' || config.id === 'demo') && files.video?.file && files.video?.preview && (
             <div className="inline-video-player">
-              <div className="video-player-header">
-                <h3>Video Preview</h3>
-              </div>
-              <div className="video-player-tutorial">
-                <h3>View Tutorial</h3>
-              </div>
               <div className="video-player-container">
                 <video
                   ref={videoPlayerRef}
