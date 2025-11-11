@@ -35,10 +35,14 @@ export default function AudioWaveform({
         const canvas = canvasRef.current;
         const ctx = canvas.getContext('2d');
         
-        // Set canvas dimensions
-        const width = canvas.width = canvas.offsetWidth * window.devicePixelRatio;
-        const height = canvas.height = canvas.offsetHeight * window.devicePixelRatio;
+        // Set canvas dimensions to match container size
+        const rect = canvas.getBoundingClientRect();
+        const width = canvas.width = rect.width * window.devicePixelRatio;
+        const height = canvas.height = rect.height * window.devicePixelRatio;
         ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+        
+        const displayWidth = rect.width;
+        const displayHeight = rect.height;
 
         // Read the audio file
         const arrayBuffer = await audioFile.arrayBuffer();
@@ -46,17 +50,18 @@ export default function AudioWaveform({
         
         // Get channel data
         const channelData = audioBuffer.getChannelData(0);
-        const samples = Math.floor(width / 2); // Number of bars to draw
+        const samples = Math.floor(displayWidth / 2); // Number of bars to draw
         const blockSize = Math.floor(channelData.length / samples);
         
         // Clear canvas
         ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
-        ctx.fillRect(0, 0, width / window.devicePixelRatio, height / window.devicePixelRatio);
+        ctx.fillRect(0, 0, displayWidth, displayHeight);
         
-        // Draw waveform
+        // Draw waveform - centered vertically
         ctx.fillStyle = '#646cff';
-        const barWidth = (width / samples) / window.devicePixelRatio;
-        const centerY = height / (2 * window.devicePixelRatio);
+        const barWidth = displayWidth / samples;
+        const centerY = displayHeight / 2;
+        const maxBarHeight = displayHeight * 0.8; // Use 80% of height for bars
         
         for (let i = 0; i < samples; i++) {
           const blockStart = blockSize * i;
@@ -68,7 +73,7 @@ export default function AudioWaveform({
           }
           
           const average = sum / blockSize;
-          const barHeight = (average * height) / (2 * window.devicePixelRatio);
+          const barHeight = average * maxBarHeight;
           
           const x = i * barWidth;
           const y = centerY - barHeight / 2;
@@ -85,21 +90,26 @@ export default function AudioWaveform({
         // Draw fallback bars
         const canvas = canvasRef.current;
         const ctx = canvas.getContext('2d');
-        const width = canvas.width = canvas.offsetWidth * window.devicePixelRatio;
-        const height = canvas.height = canvas.offsetHeight * window.devicePixelRatio;
+        const rect = canvas.getBoundingClientRect();
+        const width = canvas.width = rect.width * window.devicePixelRatio;
+        const height = canvas.height = rect.height * window.devicePixelRatio;
         ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
         
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
-        ctx.fillRect(0, 0, width / window.devicePixelRatio, height / window.devicePixelRatio);
+        const displayWidth = rect.width;
+        const displayHeight = rect.height;
         
-        // Draw simple bars as fallback
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
+        ctx.fillRect(0, 0, displayWidth, displayHeight);
+        
+        // Draw simple bars as fallback - centered vertically
         ctx.fillStyle = 'rgba(100, 108, 255, 0.3)';
         const barCount = 50;
-        const barWidth = (width / barCount) / window.devicePixelRatio;
-        const centerY = height / (2 * window.devicePixelRatio);
+        const barWidth = displayWidth / barCount;
+        const centerY = displayHeight / 2;
+        const maxBarHeight = displayHeight * 0.6;
         
         for (let i = 0; i < barCount; i++) {
-          const barHeight = Math.random() * (height / (2 * window.devicePixelRatio));
+          const barHeight = Math.random() * maxBarHeight;
           const x = i * barWidth;
           const y = centerY - barHeight / 2;
           ctx.fillRect(x, y, barWidth - 1, barHeight);

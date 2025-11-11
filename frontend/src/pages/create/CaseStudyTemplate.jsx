@@ -701,11 +701,11 @@ export default function CaseStudyTemplate() {
                 <h3>Unsaved Changes</h3>
                 <p>You have unsaved changes. What would you like to do?</p>
                 <div className="confirmation-actions">
-                  <button className="btn-discard" onClick={handleConfirmDiscard}>
-                    Discard Changes
-                  </button>
                   <button className="btn-cancel" onClick={handleCancelClose}>
                     Cancel
+                  </button>
+                  <button className="btn-discard" onClick={handleConfirmDiscard}>
+                    Discard Changes
                   </button>
                 </div>
               </div>
