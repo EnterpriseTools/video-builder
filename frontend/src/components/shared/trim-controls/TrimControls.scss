@@ -173,11 +173,26 @@
 .timeline-current-time {
   position: absolute;
   top: 0;
-  width: 2px;
+  width: 3px;
   height: 100%;
   background: white;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
   z-index: 15;
   pointer-events: none;
   transition: left 0.1s ease;
+  
+  // Add a circular handle at the top for better visibility
+  &::before {
+    content: '';
+    position: absolute;
+    top: -4px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 12px;
+    height: 12px;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  }
 }
 
