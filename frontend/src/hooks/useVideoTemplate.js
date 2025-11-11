@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { 
   validateFileType, 
   generateVideoThumbnail, 
@@ -15,6 +15,9 @@ import { API_BASE_URL } from '@/lib/config';
  * @returns {Object} - Hook state and methods
  */
 export function useVideoTemplate(config) {
+  // Track blob URLs to revoke on cleanup
+  const blobUrlsToRevoke = useRef(new Set());
+
   // Initialize text data with saved data (if editing) or defaults
   const [textData, setTextData] = useState(() => {
     // If editing with saved data, use that
@@ -130,10 +133,12 @@ export function useVideoTemplate(config) {
         
         if (previewPromise instanceof Promise) {
           previewPromise.then(preview => {
+            blobUrlsToRevoke.current.add(preview);
             updateFileState(fileId, { preview });
           });
         } else {
           // Fallback for non-promise return
+          blobUrlsToRevoke.current.add(previewPromise);
           updateFileState(fileId, { preview: previewPromise });
         }
       }
@@ -141,6 +146,7 @@ export function useVideoTemplate(config) {
       // Create video preview and thumbnail
       if (fileConfig.type === 'video') {
         const preview = createFilePreview(file);
+        blobUrlsToRevoke.current.add(preview);
         const thumbnail = await generateVideoThumbnail(file);
         updateFileState(fileId, { preview, thumbnail });
       }
@@ -187,9 +193,10 @@ export function useVideoTemplate(config) {
   const handleClearFile = useCallback((fileId) => {
     const currentFile = files[fileId];
     
-    // Revoke preview URLs to free memory
+    // Revoke preview URLs to free memory and remove from tracking set
     if (currentFile.preview) {
       URL.revokeObjectURL(currentFile.preview);
+      blobUrlsToRevoke.current.delete(currentFile.preview);
     }
     
     updateFileState(fileId, {
@@ -394,14 +401,12 @@ export function useVideoTemplate(config) {
 
   // Cleanup function for component unmount
   const cleanup = useCallback(() => {
-    // Revoke all object URLs to prevent memory leaks
-    Object.values(files).forEach(fileData => {
-      if (fileData.preview) {
-        URL.revokeObjectURL(fileData.preview);
-      }
+    // Revoke all tracked blob URLs to prevent memory leaks
+    blobUrlsToRevoke.current.forEach(url => {
+      URL.revokeObjectURL(url);
     });
-    
-  }, [files]);
+    blobUrlsToRevoke.current.clear();
+  }, []); // Empty dependencies - only run on unmount
 
   return {
     // State
