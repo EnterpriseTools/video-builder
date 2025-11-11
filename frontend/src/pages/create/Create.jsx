@@ -355,8 +355,17 @@ export default function Create() {
         const formData = new FormData();
         
         // Add files
+        console.log(`Processing files for ${template.name}:`, template.config.files);
         Object.entries(template.config.files).forEach(([fileId, fileData]) => {
           if (fileData.file) {
+            console.log(`File ${fileId}:`, {
+              name: fileData.file.name,
+              size: fileData.file.size,
+              isTrimmed: fileData.isTrimmed,
+              trimStart: fileData.trimStart,
+              trimEnd: fileData.trimEnd,
+              duration: fileData.duration
+            });
             formData.append(fileId, fileData.file);
             if (fileData.duration > 0) {
               formData.append('duration', fileData.duration.toString());
