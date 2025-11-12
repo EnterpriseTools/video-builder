@@ -519,8 +519,8 @@ export default function VideoTemplateCreator({ config, savedData, onDataChange }
                   Your browser does not support the video tag.
                 </video>
                 
-                {/* Overlay TxtOverlay on top of video for intro/demo templates */}
-                {hasTextData && (
+                {/* Overlay TxtOverlay on top of video for intro template only */}
+                {config.id === 'intro' && hasTextData && (
                   <div className="video-overlay-preview">
                     <TemplatePreview
                       config={config}

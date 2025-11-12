@@ -24,6 +24,7 @@ export default function OverlayPreviewSection({
   // Feature flags
   showRestartButton = false,
   showDecorativeElements = true,
+  overlayOnly = false,
   
   // CSS class overrides
   containerClassName = "",

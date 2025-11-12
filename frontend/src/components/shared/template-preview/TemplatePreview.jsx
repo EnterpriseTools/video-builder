@@ -24,7 +24,8 @@ export default function TemplatePreview({
   onClose,
   audioDuration = 0,
   hideOverlay = false,
-  showImage = false
+  showImage = false,
+  overlayOnly = false
 }) {
   const { preview } = config;
   
@@ -104,7 +105,8 @@ export default function TemplatePreview({
     
     // Use video thumbnail as background if available, otherwise use image
     const finalBackgroundImage = videoThumbnail || backgroundImage;
-    const shouldSetBackground = !!finalBackgroundImage;
+    // Don't show background for Intro template when overlayOnly is true
+    const shouldSetBackground = overlayOnly && config.id === 'intro' ? false : !!finalBackgroundImage;
     
     return (
       <OverlayPreviewSection
@@ -117,6 +119,7 @@ export default function TemplatePreview({
         showRestartButton={false}
         showDecorativeElements={true}
         className="modal-preview"
+        overlayOnly={overlayOnly}
       />
     );
   };
@@ -127,6 +130,8 @@ export default function TemplatePreview({
     const videoThumbnail = files.video?.thumbnail;
     const imagePreview = files.image?.preview;
     const backgroundImage = videoThumbnail || imagePreview;
+    // Don't show background for Intro template when overlayOnly is true
+    const shouldSetBackground = overlayOnly && config.id === 'intro' ? false : !!backgroundImage;
     
     return (
       <OverlayPreviewSection
@@ -135,11 +140,12 @@ export default function TemplatePreview({
         audioDuration={audioDuration}
         files={files}
         backgroundImage={backgroundImage}
-        shouldSetBackground={!!backgroundImage}
+        shouldSetBackground={shouldSetBackground}
         showRestartButton={false}
         showDecorativeElements={true}
         containerClassName={backgroundImage ? 'has-background' : ''}
         className="modal-preview"
+        overlayOnly={overlayOnly}
       />
     );
   };
