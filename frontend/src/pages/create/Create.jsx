@@ -699,7 +699,7 @@ export default function Create() {
           <ConfirmationDialog
             isVisible={showConfirmDialog}
             title="Unsaved Changes"
-            message="You have unsaved changes. What would you like to do?"
+            message="What would you like to do?"
             cancelText="Cancel"
             discardText="Discard"
             onCancel={handleCancelClose}

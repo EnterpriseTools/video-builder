@@ -474,6 +474,33 @@ export default function VideoTemplateCreator({ config, savedData, onDataChange }
                 )}
               </div>
             </div>
+
+            {/* Trim Controls - show for any file with duration */}
+            {Object.entries(files).map(([fileId, fileData]) => {
+              // Only show trim controls for files with duration (video or audio)
+              if (!fileData.file || fileData.duration <= 0) return null;
+              
+              const fileConfig = config.files.find(f => f.id === fileId);
+              if (!fileConfig) return null;
+
+              // Check if this file type supports trimming (video or media)
+              const supportsTrimmingTypes = ['video', 'media'];
+              if (!supportsTrimmingTypes.includes(fileConfig.type)) return null;
+
+              return (
+                <TrimControls
+                  key={fileId}
+                  duration={fileData.duration}
+                  startTime={fileData.trimStart}
+                  endTime={fileData.trimEnd}
+                  onStartTimeChange={(newStart) => handleTrimChange(fileId, newStart, fileData.trimEnd)}
+                  onEndTimeChange={(newEnd) => handleTrimChange(fileId, fileData.trimStart, newEnd)}
+                  videoRef={fileConfig.type === 'video' ? videoPlayerRef : null}
+                  audioFile={fileConfig.type === 'media' ? fileData.file : null}
+                  disabled={false}
+                />
+              );
+            })}
           </div>
         )}
 
@@ -509,33 +536,6 @@ export default function VideoTemplateCreator({ config, savedData, onDataChange }
               </div>
             </div>
           )}
-
-          {/* Trim Controls - show for any file with duration */}
-          {Object.entries(files).map(([fileId, fileData]) => {
-            // Only show trim controls for files with duration (video or audio)
-            if (!fileData.file || fileData.duration <= 0) return null;
-            
-            const fileConfig = config.files.find(f => f.id === fileId);
-            if (!fileConfig) return null;
-
-            // Check if this file type supports trimming (video or media)
-            const supportsTrimmingTypes = ['video', 'media'];
-            if (!supportsTrimmingTypes.includes(fileConfig.type)) return null;
-
-            return (
-              <TrimControls
-                key={fileId}
-                duration={fileData.duration}
-                startTime={fileData.trimStart}
-                endTime={fileData.trimEnd}
-                onStartTimeChange={(newStart) => handleTrimChange(fileId, newStart, fileData.trimEnd)}
-                onEndTimeChange={(newEnd) => handleTrimChange(fileId, fileData.trimStart, newEnd)}
-                videoRef={fileConfig.type === 'video' ? videoPlayerRef : null}
-                audioFile={fileConfig.type === 'media' ? fileData.file : null}
-                disabled={false}
-              />
-            );
-          })}
         </div>
 
       {/* Bottom Actions */}
