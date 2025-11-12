@@ -168,8 +168,8 @@
       }
 
       .add-button {
-        color: #ff1f7a;
-        background: rgba(232, 41, 127, 0.05);
+        color: #4791ff;
+        background: rgba(71, 145, 255, .2);
         
         svg {
           transform: scale(1.1) rotate(90deg);
@@ -448,7 +448,7 @@
     padding: 1rem 2rem;
     font-size: 1.125rem;
     font-weight: 600;
-    background: linear-gradient(135deg, #ff007f, #ff4da6);
+    background: linear-gradient(135deg, #FEC62E, #F8CE5D);
     color: white;
     border: none;
     border-radius: 12px;
@@ -460,7 +460,7 @@
     
     &:hover:not(:disabled) {
       transform: translateY(-2px);
-      box-shadow: 0 8px 25px rgba(255, 0, 127, 0.3);
+      box-shadow: 0 8px 25px rgba(248, 206, 93, 0.3);
     }
     
     &:disabled {
@@ -470,7 +470,7 @@
     }
     
     &.loading {
-      background: linear-gradient(135deg, #ff007f, #ff4da6);
+      background: linear-gradient(135deg, #deaa18, #caa339);
       cursor: wait;
       
       .loading-content {
