@@ -593,8 +593,8 @@
       // Overlay preview on top of video
       .video-overlay-preview {
         position: absolute;
-        bottom: 50px; // Position above video controls
-        left: 0;
+        bottom: 64px;
+        left: 24px;
         width: 100%;
         pointer-events: none;
         z-index: 1;
