@@ -232,6 +232,16 @@ export default function TemplatePreview({
 
   // Determine which preview type to render based on config
   const renderPreview = () => {
+    // For Intro template with overlayOnly, render just the overlay component without OverlayPreviewSection
+    if (config.id === 'intro' && overlayOnly) {
+      const overlayComponent = getOverlayComponent();
+      return (
+        <Suspense fallback={<div>Loading...</div>}>
+          {overlayComponent}
+        </Suspense>
+      );
+    }
+    
     switch (preview.type) {
       case 'live':
         return renderLivePreview();
