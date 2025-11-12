@@ -475,7 +475,7 @@ export default function VideoTemplateCreator({ config, savedData, onDataChange }
               </div>
             </div>
           </div>
-          )}
+        )}
 
         {/* Inline Video Player for intro and demo templates */}
         {(config.id === 'intro' || config.id === 'demo') && files.video?.file && files.video?.preview && (
@@ -537,7 +537,6 @@ export default function VideoTemplateCreator({ config, savedData, onDataChange }
             );
           })}
         </div>
-      </div>
 
       {/* Bottom Actions */}
       <div className="template-actions">
