@@ -3,6 +3,7 @@ import VideoTemplateCreator from '@/components/shared/video-template-creator';
 import { getTemplateConfig } from '@/lib/templateConfigs';
 import OverlayPreviewSection from '@/components/shared/overlay-preview-section';
 import ConfirmationDialog from '@/components/shared/confirmation-dialog';
+import SuccessModal from '@/components/shared/success-modal';
 import { API_BASE_URL } from '@/lib/config';
 import Trim from '@/pages/trim/Trim';
 import './Create.scss';
@@ -131,6 +132,11 @@ export default function Create() {
   // Confirmation dialog state
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [pendingClose, setPendingClose] = useState(false);
+
+  // Success modal state
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successVideoUrl, setSuccessVideoUrl] = useState(null);
+  const [successVideoName, setSuccessVideoName] = useState('');
 
   // Timeline state - templates in fixed order
   const [templates, setTemplates] = useState([
@@ -524,16 +530,17 @@ export default function Create() {
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      URL.revokeObjectURL(url);
       
       console.log('Final presentation video created successfully!');
       setRenderingProgress(`Successfully created "${finalFilename}.mp4"!`);
       
-      // Show success message briefly, then clear
+      // Show success modal with video preview
       setTimeout(() => {
         setIsRendering(false);
         setRenderingProgress('');
-        alert(`Successfully created final presentation: "${finalFilename}.mp4"`);
+        setSuccessVideoUrl(url);
+        setSuccessVideoName(`${finalFilename}.mp4`);
+        setShowSuccessModal(true);
       }, 1000);
       
     } catch (error) {
@@ -707,6 +714,18 @@ export default function Create() {
           />
         </div>
       )}
+
+      {/* Success Modal */}
+      <SuccessModal
+        isVisible={showSuccessModal}
+        videoName={successVideoName}
+        videoUrl={successVideoUrl}
+        onClose={() => {
+          setShowSuccessModal(false);
+          setSuccessVideoUrl(null);
+          setSuccessVideoName('');
+        }}
+      />
     </div>
   );
 }
