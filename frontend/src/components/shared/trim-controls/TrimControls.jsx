@@ -219,11 +219,12 @@ export default function TrimControls({
   useEffect(() => {
     if (!audioRef?.current) return;
 
+    const audio = audioRef.current;
+
     const handleTimeUpdate = () => {
-      const audio = audioRef.current;
-      if (!audio) return;
+      if (!audioRef.current) return;
       
-      const currentTime = audio.currentTime;
+      const currentTime = audioRef.current.currentTime;
       
       setCurrentTime(currentTime);
       
@@ -232,8 +233,8 @@ export default function TrimControls({
       const isTrimmedFromEnd = endTime < (duration - 0.5);
       const hasValidTrim = isTrimmedFromStart || isTrimmedFromEnd;
       
-      if (hasValidTrim && currentTime >= endTime && !audio.paused) {
-        audio.pause();
+      if (hasValidTrim && currentTime >= endTime && !audioRef.current.paused) {
+        audioRef.current.pause();
         setIsPlaying(false);
         // Stay at end position, don't loop back
       }
@@ -247,12 +248,11 @@ export default function TrimControls({
       setIsPlaying(true);
     };
 
-    const audio = audioRef.current;
     audio.addEventListener('timeupdate', handleTimeUpdate);
     audio.addEventListener('pause', handlePause);
     audio.addEventListener('play', handlePlay);
     
-    // Trigger initial update
+    // Trigger initial update immediately if audio is ready
     if (audio.readyState >= 1) {
       setCurrentTime(audio.currentTime || startTime);
     }
