@@ -452,8 +452,15 @@ export default function VideoTemplateCreator({ config, savedData, onDataChange }
               <h2>Preview:</h2>
             </div>
             <div className="preview-content">
-              {/* Show preview for announcement template if image is uploaded, or for other templates when all required files are present */}
-              {(config.id === 'announcement' && files.image?.file) || hasRequiredFiles ? (
+              {/* Show preview for intro/demo templates only in right column if no video (shouldn't happen) */}
+              {/* For other templates, show preview when requirements are met */}
+              {config.id === 'intro' || config.id === 'demo' ? (
+                <div className="preview-placeholder">
+                  <div className="placeholder-content">
+                    {files.video?.file ? 'See video player below for preview with overlay' : 'Upload video to see preview'}
+                  </div>
+                </div>
+              ) : (config.id === 'announcement' && files.image?.file) || hasRequiredFiles ? (
                 <TemplatePreview
                   config={config}
                   textData={textData}
@@ -488,6 +495,21 @@ export default function VideoTemplateCreator({ config, savedData, onDataChange }
                 >
                   Your browser does not support the video tag.
                 </video>
+                
+                {/* Overlay TxtOverlay on top of video for intro/demo templates */}
+                {hasTextData && (
+                  <div className="video-overlay-preview">
+                    <TemplatePreview
+                      config={config}
+                      textData={textData}
+                      files={files}
+                      showPreview={false}
+                      onClose={closePreview}
+                      audioDuration={files.video?.duration || 0}
+                      overlayOnly={true}
+                    />
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -525,7 +547,7 @@ export default function VideoTemplateCreator({ config, savedData, onDataChange }
       <div className="template-actions">
         <div className="action-buttons">
           <Button 
-            variant="destructive" 
+            variant="tertiary" 
             size="medium"
             onClick={config.onDelete}
           >

@@ -23,7 +23,7 @@ export default function TrimControls({
   const audioRef = useRef(null);
   const [isDraggingLeft, setIsDraggingLeft] = useState(false);
   const [isDraggingRight, setIsDraggingRight] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
+  const [currentTime, setCurrentTime] = useState(startTime);
   const [isPlaying, setIsPlaying] = useState(false);
   const [audioUrl, setAudioUrl] = useState(null);
 
@@ -59,15 +59,26 @@ export default function TrimControls({
     };
   }, [startTime]);
 
-  // Sync playhead position with startTime when not playing
+  // Adjust playhead when handles are dragged past it (only when not playing)
   useEffect(() => {
-    if (!isPlaying) {
+    if (isPlaying) return;
+    
+    // If left handle moved past current position, snap to new startTime
+    if (currentTime < startTime) {
       setCurrentTime(startTime);
       if (audioRef?.current) {
         audioRef.current.currentTime = startTime;
       }
     }
-  }, [startTime, isPlaying]);
+    
+    // If right handle moved past current position, snap to new endTime
+    if (currentTime > endTime) {
+      setCurrentTime(endTime);
+      if (audioRef?.current) {
+        audioRef.current.currentTime = endTime;
+      }
+    }
+  }, [startTime, endTime, currentTime, isPlaying]);
 
   // Time formatting function
   const formatTimeWithDecimals = useCallback((seconds) => {
@@ -86,9 +97,11 @@ export default function TrimControls({
       audioRef.current.pause();
       setIsPlaying(false);
     } else {
-      // Start from trim start if not within trim boundaries
-      if (audioRef.current.currentTime < startTime || audioRef.current.currentTime >= endTime) {
+      // Start from trim start if at end or outside trim boundaries
+      const currentPos = audioRef.current.currentTime;
+      if (currentPos < startTime || currentPos >= endTime) {
         audioRef.current.currentTime = startTime;
+        setCurrentTime(startTime);
       }
       audioRef.current.play();
       setIsPlaying(true);
@@ -204,10 +217,12 @@ export default function TrimControls({
 
   // Update current time from audio and enforce trim boundaries
   useEffect(() => {
-    if (!audioRef?.current || !duration) return;
+    if (!audioRef?.current) return;
 
     const handleTimeUpdate = () => {
       const audio = audioRef.current;
+      if (!audio) return;
+      
       const currentTime = audio.currentTime;
       
       setCurrentTime(currentTime);
@@ -219,8 +234,8 @@ export default function TrimControls({
       
       if (hasValidTrim && currentTime >= endTime && !audio.paused) {
         audio.pause();
-        audio.currentTime = startTime; // Loop back to trim start
         setIsPlaying(false);
+        // Stay at end position, don't loop back
       }
     };
 
@@ -236,15 +251,20 @@ export default function TrimControls({
     audio.addEventListener('timeupdate', handleTimeUpdate);
     audio.addEventListener('pause', handlePause);
     audio.addEventListener('play', handlePlay);
+    
+    // Trigger initial update
+    if (audio.readyState >= 1) {
+      setCurrentTime(audio.currentTime || startTime);
+    }
 
     return () => {
       audio.removeEventListener('timeupdate', handleTimeUpdate);
       audio.removeEventListener('pause', handlePause);
       audio.removeEventListener('play', handlePlay);
     };
-  }, [audioRef, endTime, startTime, duration]);
+  }, [endTime, startTime, duration]);
 
-  // Sync video position with trim boundaries when handles are adjusted
+  // Sync video position with trim boundaries when handles are dragged past it
   useEffect(() => {
     if (!videoRef?.current) return;
     
@@ -258,21 +278,6 @@ export default function TrimControls({
       video.currentTime = endTime;
     }
   }, [startTime, endTime, videoRef]);
-
-  // Sync audio position with trim boundaries when handles are adjusted
-  useEffect(() => {
-    if (!audioRef?.current) return;
-    
-    const audio = audioRef.current;
-    const currentTime = audio.currentTime;
-    
-    // If current position is outside trim boundaries, seek to nearest boundary
-    if (currentTime < startTime) {
-      audio.currentTime = startTime;
-    } else if (currentTime > endTime) {
-      audio.currentTime = endTime;
-    }
-  }, [startTime, endTime]);
 
   if (!duration || disabled) {
     return null;
