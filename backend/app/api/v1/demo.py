@@ -1,16 +1,20 @@
 import tempfile
 import subprocess
+import logging
 from pathlib import Path
 from typing import Optional
-from fastapi import APIRouter, File, Form, UploadFile, HTTPException
+from fastapi import APIRouter, BackgroundTasks, File, Form, UploadFile, HTTPException
 from fastapi.responses import FileResponse
 from app.utils import get_video_duration
+from app.utils.file_utils import cleanup_temp_path
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 
 @router.post("/demo/render")
 async def render_demo(
+    background_tasks: BackgroundTasks,
     video: UploadFile = File(...),
     duration: Optional[str] = Form("0")
 ):
@@ -94,7 +98,8 @@ async def render_demo(
         except subprocess.TimeoutExpired:
             process.kill()
             stdout, stderr = process.communicate()
-            print(f"FFmpeg timed out. Last output: {stderr[-500:]}")
+            cleanup_temp_path(temp_dir)  # Immediate cleanup on timeout
+            logger.error(f"FFmpeg timed out for {temp_dir}. Last output: {stderr[-500:]}")
             raise HTTPException(
                 status_code=500,
                 detail="FFmpeg processing timed out after 60 seconds"
@@ -103,6 +108,8 @@ async def render_demo(
         if result.returncode != 0:
             print(f"FFmpeg stderr: {result.stderr}")
             print(f"FFmpeg stdout: {result.stdout}")
+            cleanup_temp_path(temp_dir)  # Immediate cleanup on FFmpeg failure
+            logger.error(f"FFmpeg failed for {temp_dir}: {result.stderr}")
             raise HTTPException(
                 status_code=500, 
                 detail=f"Video processing failed: {result.stderr}"
@@ -110,7 +117,11 @@ async def render_demo(
         
         # Verify output file was created
         if not output_path.exists():
+            cleanup_temp_path(temp_dir)  # Immediate cleanup on missing output
             raise HTTPException(status_code=500, detail="Output video file was not created")
+        
+        # Schedule cleanup AFTER FileResponse finishes streaming
+        background_tasks.add_task(cleanup_temp_path, temp_dir)
         
         return FileResponse(
             output_path,
@@ -121,8 +132,7 @@ async def render_demo(
     except HTTPException:
         raise
     except Exception as e:
+        # Defensive cleanup on any other exception
+        cleanup_temp_path(temp_dir)
+        logger.exception(f"Unexpected error during demo render for {temp_dir}")
         raise HTTPException(status_code=500, detail=f"Failed to process demo video: {str(e)}")
-    finally:
-        # Cleanup temporary files (but keep them briefly for file download)
-        # The temp directory will be cleaned up by the OS eventually
-        pass

@@ -1,15 +1,19 @@
-from fastapi import APIRouter, UploadFile, File, Form, HTTPException
+from fastapi import APIRouter, BackgroundTasks, UploadFile, File, Form, HTTPException
 from fastapi.responses import FileResponse, JSONResponse
 import tempfile
 import subprocess
 import os
+import logging
 from pathlib import Path
 import shutil
+from app.utils.file_utils import cleanup_temp_path
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 @router.post("/trim/preview")
 async def generate_preview(
+    background_tasks: BackgroundTasks,
     video: UploadFile = File(...)
 ):
     """
@@ -58,9 +62,11 @@ async def generate_preview(
             duration = float(probe_data.get('format', {}).get('duration', 0))
             
         except subprocess.CalledProcessError:
+            cleanup_temp_path(temp_dir)  # Immediate cleanup on ffprobe failure
             raise HTTPException(status_code=400, detail="Could not read video metadata")
         except subprocess.TimeoutExpired:
             process.kill()
+            cleanup_temp_path(temp_dir)  # Immediate cleanup on timeout
             raise HTTPException(status_code=400, detail="FFprobe timed out")
         
         # Output file
@@ -98,6 +104,8 @@ async def generate_preview(
                 raise subprocess.CalledProcessError(process.returncode, cmd, stdout, stderr)
                 
         except subprocess.CalledProcessError as e:
+            cleanup_temp_path(temp_dir)  # Immediate cleanup on FFmpeg failure
+            logger.error(f"FFmpeg preview conversion failed: {e.stderr}")
             raise HTTPException(
                 status_code=500, 
                 detail=f"FFmpeg preview conversion failed: {e.stderr}"
@@ -105,6 +113,8 @@ async def generate_preview(
         except subprocess.TimeoutExpired:
             process.kill()
             stdout, stderr = process.communicate()
+            cleanup_temp_path(temp_dir)  # Immediate cleanup on timeout
+            logger.error(f"Preview conversion timed out")
             raise HTTPException(
                 status_code=500,
                 detail="Preview conversion timed out"
@@ -112,7 +122,11 @@ async def generate_preview(
         
         # Check if output file exists
         if not os.path.exists(output_path):
+            cleanup_temp_path(temp_dir)  # Immediate cleanup on missing output
             raise HTTPException(status_code=500, detail="Failed to create preview file")
+        
+        # Schedule cleanup AFTER FileResponse finishes streaming
+        background_tasks.add_task(cleanup_temp_path, temp_dir)
         
         # Return the preview file
         return FileResponse(
@@ -122,19 +136,20 @@ async def generate_preview(
             headers={
                 "X-Video-Duration": str(duration),
                 "X-Preview-Generated": "true"
-            },
-            background=lambda: shutil.rmtree(temp_dir, ignore_errors=True)
+            }
         )
         
     except Exception as e:
-        # Clean up on error
-        shutil.rmtree(temp_dir, ignore_errors=True)
+        # Defensive cleanup on any other exception
+        cleanup_temp_path(temp_dir)
+        logger.exception(f"Unexpected error during preview generation for {temp_dir}")
         if isinstance(e, HTTPException):
             raise
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/trim")
 async def trim_video(
+    background_tasks: BackgroundTasks,
     video: UploadFile = File(...),
     start: float = Form(...),
     end: float = Form(...),
@@ -193,9 +208,11 @@ async def trim_video(
             
             duration = float(stdout.strip())
         except subprocess.CalledProcessError:
+            cleanup_temp_path(temp_dir)  # Immediate cleanup on ffprobe failure
             raise HTTPException(status_code=400, detail="Could not determine video duration")
         except subprocess.TimeoutExpired:
             process.kill()
+            cleanup_temp_path(temp_dir)  # Immediate cleanup on timeout
             raise HTTPException(status_code=400, detail="FFprobe timed out while reading video duration")
         
         # Validate end time
@@ -251,6 +268,8 @@ async def trim_video(
                 raise subprocess.CalledProcessError(process.returncode, cmd, stdout, stderr)
                 
         except subprocess.CalledProcessError as e:
+            cleanup_temp_path(temp_dir)  # Immediate cleanup on FFmpeg failure
+            logger.error(f"FFmpeg trim failed: {e.stderr}")
             raise HTTPException(
                 status_code=500, 
                 detail=f"FFmpeg failed: {e.stderr}"
@@ -258,6 +277,8 @@ async def trim_video(
         except subprocess.TimeoutExpired:
             process.kill()
             stdout, stderr = process.communicate()
+            cleanup_temp_path(temp_dir)  # Immediate cleanup on timeout
+            logger.error(f"FFmpeg timed out while trimming video")
             raise HTTPException(
                 status_code=500,
                 detail="FFmpeg timed out while trimming video"
@@ -265,17 +286,21 @@ async def trim_video(
         
         # Check if output file exists
         if not os.path.exists(output_path):
+            cleanup_temp_path(temp_dir)  # Immediate cleanup on missing output
             raise HTTPException(status_code=500, detail="Failed to create output file")
+        
+        # Schedule cleanup AFTER FileResponse finishes streaming
+        background_tasks.add_task(cleanup_temp_path, temp_dir)
         
         # Return the file
         return FileResponse(
             output_path,
             media_type="video/mp4",
-            filename="trimmed.mp4",
-            background=lambda: shutil.rmtree(temp_dir, ignore_errors=True)
+            filename="trimmed.mp4"
         )
         
     except Exception as e:
-        # Clean up on error
-        shutil.rmtree(temp_dir, ignore_errors=True)
+        # Defensive cleanup on any other exception
+        cleanup_temp_path(temp_dir)
+        logger.exception(f"Unexpected error during trim for {temp_dir}")
         raise HTTPException(status_code=500, detail=str(e))

@@ -1,18 +1,22 @@
 import tempfile
 import subprocess
+import logging
 from pathlib import Path
 from typing import Optional
-from fastapi import APIRouter, File, Form, UploadFile, HTTPException
+from fastapi import APIRouter, BackgroundTasks, File, Form, UploadFile, HTTPException
 from fastapi.responses import FileResponse
 from app.utils.persona_overlay import PersonaOverlayGenerator
 from app.utils import get_audio_duration
 from app.utils.media import extract_audio_from_media
 from app.utils.easing import slide_up_from_bottom
+from app.utils.file_utils import cleanup_temp_path
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 @router.post("/persona/render")
 async def render_persona(
+    background_tasks: BackgroundTasks,
     image: UploadFile = File(...),
     audio: UploadFile = File(...),
     name: Optional[str] = Form(""),
@@ -178,7 +182,8 @@ async def render_persona(
         except subprocess.TimeoutExpired:
             process.kill()
             stdout, stderr = process.communicate()
-            print(f"FFmpeg timed out. Last output: {stderr[-500:]}")
+            cleanup_temp_path(temp_dir)  # Immediate cleanup on timeout
+            logger.error(f"FFmpeg timed out for {temp_dir}. Last output: {stderr[-500:]}")
             raise HTTPException(
                 status_code=500,
                 detail="FFmpeg processing timed out after 60 seconds"
@@ -187,6 +192,8 @@ async def render_persona(
         if result.returncode != 0:
             print(f"FFmpeg stderr: {result.stderr}")
             print(f"FFmpeg stdout: {result.stdout}")
+            cleanup_temp_path(temp_dir)  # Immediate cleanup on FFmpeg failure
+            logger.error(f"FFmpeg failed for {temp_dir}: {result.stderr}")
             raise HTTPException(
                 status_code=500, 
                 detail=f"Video processing failed: {result.stderr}"
@@ -194,7 +201,11 @@ async def render_persona(
         
         # Verify output file was created
         if not output_path.exists():
+            cleanup_temp_path(temp_dir)  # Immediate cleanup on missing output
             raise HTTPException(status_code=500, detail="Output video file was not created")
+        
+        # Schedule cleanup AFTER FileResponse finishes streaming
+        background_tasks.add_task(cleanup_temp_path, temp_dir)
         
         return FileResponse(
             output_path,
@@ -205,10 +216,10 @@ async def render_persona(
     except HTTPException:
         raise
     except Exception as e:
+        # Defensive cleanup on any other exception
+        cleanup_temp_path(temp_dir)
+        logger.exception(f"Unexpected error during persona render for {temp_dir}")
         raise HTTPException(status_code=500, detail=f"Failed to render persona: {str(e)}")
-    finally:
-        # Cleanup temporary files (but keep them briefly for file download)
-        pass
 
 
 

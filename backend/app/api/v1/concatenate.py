@@ -1,12 +1,15 @@
 import tempfile
 import subprocess
+import logging
 from pathlib import Path
 from typing import List, Dict, Any, Optional
-from fastapi import APIRouter, HTTPException, UploadFile, File, Form
+from fastapi import APIRouter, BackgroundTasks, HTTPException, UploadFile, File, Form
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
+from app.utils.file_utils import cleanup_temp_path
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 @router.get("/concatenate/test")
 async def test_concatenate_endpoint():
@@ -25,7 +28,7 @@ class ConcatenateRequest(BaseModel):
     final_filename: str = "presentation-final.mp4"
 
 @router.post("/concatenate")
-async def concatenate_videos(request: ConcatenateRequest):
+async def concatenate_videos(background_tasks: BackgroundTasks, request: ConcatenateRequest):
     """
     Concatenate multiple video segments into a single final video.
     
@@ -119,7 +122,8 @@ async def concatenate_videos(request: ConcatenateRequest):
         except subprocess.TimeoutExpired:
             process.kill()
             stdout, stderr = process.communicate()
-            print(f"FFmpeg timed out. Last output: {stderr[-500:]}")
+            cleanup_temp_path(temp_dir)  # Immediate cleanup on timeout
+            logger.error(f"FFmpeg concatenation timed out for {temp_dir}. Last output: {stderr[-500:]}")
             raise HTTPException(
                 status_code=500,
                 detail="FFmpeg concatenation timed out after 120 seconds"
@@ -128,15 +132,21 @@ async def concatenate_videos(request: ConcatenateRequest):
         if result.returncode != 0:
             print(f"FFmpeg stderr: {result.stderr}")
             print(f"FFmpeg stdout: {result.stdout}")
+            cleanup_temp_path(temp_dir)  # Immediate cleanup on FFmpeg failure
+            logger.error(f"FFmpeg concatenation failed for {temp_dir}: {result.stderr}")
             raise HTTPException(
                 status_code=500,
                 detail=f"Video concatenation failed: {result.stderr}"
             )
         
         if not output_path.exists():
+            cleanup_temp_path(temp_dir)  # Immediate cleanup on missing output
             raise HTTPException(status_code=500, detail="Output video file was not created")
         
         print(f"Successfully concatenated {len(segment_paths)} videos into {output_path}")
+        
+        # Schedule cleanup AFTER FileResponse finishes streaming
+        background_tasks.add_task(cleanup_temp_path, temp_dir)
         
         return FileResponse(
             path=output_path,
@@ -147,14 +157,15 @@ async def concatenate_videos(request: ConcatenateRequest):
     except subprocess.CalledProcessError as e:
         raise HTTPException(status_code=500, detail=f"FFmpeg command failed: {e.stderr}")
     except Exception as e:
+        # Defensive cleanup on any other exception
+        cleanup_temp_path(temp_dir)
+        logger.exception(f"Unexpected error during concatenation for {temp_dir}")
         raise HTTPException(status_code=500, detail=f"Failed to concatenate videos: {str(e)}")
-    finally:
-        # Cleanup handled by OS when temp directory is garbage collected
-        pass
 
 
 @router.post("/concatenate-multipart")
 async def concatenate_videos_multipart(
+    background_tasks: BackgroundTasks,
     segment_0: Optional[UploadFile] = File(None),
     segment_1: Optional[UploadFile] = File(None),
     segment_2: Optional[UploadFile] = File(None),
@@ -273,7 +284,8 @@ async def concatenate_videos_multipart(
         except subprocess.TimeoutExpired:
             process.kill()
             stdout, stderr = process.communicate()
-            print(f"FFmpeg timed out. Last output: {stderr[-500:]}")
+            cleanup_temp_path(temp_dir)  # Immediate cleanup on timeout
+            logger.error(f"FFmpeg concatenation timed out for {temp_dir}. Last output: {stderr[-500:]}")
             raise HTTPException(
                 status_code=500,
                 detail="FFmpeg concatenation timed out after 120 seconds"
@@ -281,15 +293,21 @@ async def concatenate_videos_multipart(
         
         if result.returncode != 0:
             print(f"FFmpeg stderr: {result.stderr}")
+            cleanup_temp_path(temp_dir)  # Immediate cleanup on FFmpeg failure
+            logger.error(f"FFmpeg concatenation failed for {temp_dir}: {result.stderr}")
             raise HTTPException(
                 status_code=500,
                 detail=f"Video concatenation failed: {result.stderr}"
             )
         
         if not output_path.exists():
+            cleanup_temp_path(temp_dir)  # Immediate cleanup on missing output
             raise HTTPException(status_code=500, detail="Output video was not created")
         
         print(f"Successfully concatenated {len(segment_paths)} videos into {output_filename}")
+        
+        # Schedule cleanup AFTER FileResponse finishes streaming
+        background_tasks.add_task(cleanup_temp_path, temp_dir)
         
         return FileResponse(
             path=output_path,
@@ -300,7 +318,7 @@ async def concatenate_videos_multipart(
     except subprocess.CalledProcessError as e:
         raise HTTPException(status_code=500, detail=f"FFmpeg failed: {str(e)}")
     except Exception as e:
+        # Defensive cleanup on any other exception
+        cleanup_temp_path(temp_dir)
+        logger.exception(f"Unexpected error during concatenation-multipart for {temp_dir}")
         raise HTTPException(status_code=500, detail=f"Concatenation failed: {str(e)}")
-    finally:
-        # Cleanup handled by temporary directory cleanup
-        pass

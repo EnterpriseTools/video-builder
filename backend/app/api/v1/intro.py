@@ -4,14 +4,17 @@ import subprocess
 import shutil
 from pathlib import Path
 from typing import Optional
-from fastapi import APIRouter, UploadFile, File, Form, HTTPException
+import logging
+from fastapi import APIRouter, BackgroundTasks, UploadFile, File, Form, HTTPException
 from fastapi.responses import FileResponse
 import aiofiles
 from app.utils.overlay_generator import IntroOverlayGenerator
 from app.utils import get_video_duration
 from app.utils.easing import slide_up_from_bottom
+from app.utils.file_utils import cleanup_temp_path
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 def escape_text_for_ffmpeg(text: str) -> str:
     """Properly escape text for FFmpeg drawtext filter."""
@@ -23,6 +26,7 @@ def escape_text_for_ffmpeg(text: str) -> str:
 
 @router.post("/intro/render")
 async def render_intro_video(
+    background_tasks: BackgroundTasks,
     video: UploadFile = File(...),
     team: Optional[str] = Form(""),
     full_name: Optional[str] = Form(""), 
@@ -164,17 +168,23 @@ async def render_intro_video(
         except subprocess.TimeoutExpired:
             process.kill()  # Kill the process if it times out
             stdout, stderr = process.communicate()  # Get any output before killing
-            print(f"DEBUG: FFmpeg timed out. Last output: {stderr[-500:]}")  # Print last 500 chars
+            cleanup_temp_path(temp_dir)  # Immediate cleanup on timeout
+            logger.error(f"FFmpeg timed out for {temp_dir}. Last output: {stderr[-500:]}")
             raise HTTPException(
                 status_code=500,
                 detail="FFmpeg processing timed out after 30 seconds - video file may be corrupted or FFmpeg is hanging"
             )
         
         if result.returncode != 0:
+            cleanup_temp_path(temp_dir)  # Immediate cleanup on FFmpeg failure
+            logger.error(f"FFmpeg failed for {temp_dir}: {result.stderr}")
             raise HTTPException(
                 status_code=500,
                 detail=f"Video processing failed: {result.stderr}"
             )
+        
+        # Schedule cleanup AFTER FileResponse finishes streaming
+        background_tasks.add_task(cleanup_temp_path, temp_dir)
         
         # Return the rendered video
         return FileResponse(
@@ -184,19 +194,10 @@ async def render_intro_video(
         )
         
     except Exception as e:
-        # Clean up temp directory on error
-        if temp_dir.exists():
-            shutil.rmtree(temp_dir)
-        # Also clean up overlay PNG if it was created
-        if overlay_png_path and overlay_png_path != str(temp_dir / "overlay.png"):
-            overlay_generator.cleanup_temp_file(overlay_png_path)
+        # Defensive cleanup on any other exception
+        cleanup_temp_path(temp_dir)
+        logger.exception(f"Unexpected error during intro render for {temp_dir}")
         if isinstance(e, HTTPException):
             raise e
         raise HTTPException(status_code=500, detail=str(e))
-    
-    finally:
-        # Note: We don't clean up temp_dir here because FileResponse needs the file
-        # The OS will clean up temp files eventually
-        # Overlay PNG cleanup is handled in the except block if needed
-        pass
 
