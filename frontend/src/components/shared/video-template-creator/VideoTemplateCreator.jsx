@@ -445,45 +445,41 @@ export default function VideoTemplateCreator({ config, savedData, onDataChange }
           )}
         </div>
 
-        {/* Right Column - Preview */}
-        <div className="template-preview-column">
-          <div className="preview-section">
-            <div className="preview-header">
-              <h2>Preview:</h2>
-            </div>
-            <div className="preview-content">
-              {/* Show preview for intro/demo templates only in right column if no video (shouldn't happen) */}
-              {/* For other templates, show preview when requirements are met */}
-              {config.id === 'intro' || config.id === 'demo' ? (
-                <div className="preview-placeholder">
-                  <div className="placeholder-content">
-                    {files.video?.file ? 'See video player below for preview with overlay' : 'Upload video to see preview'}
+        {/* Right Column - Preview (not shown for intro/demo templates) */}
+        {config.id !== 'intro' && config.id !== 'demo' && (
+          <div className="template-preview-column">
+            <div className="preview-section">
+              <div className="preview-header">
+                <h2>Preview:</h2>
+              </div>
+              <div className="preview-content">
+                {/* Show preview for other templates when requirements are met */}
+                {(config.id === 'announcement' && files.image?.file) || hasRequiredFiles ? (
+                  <TemplatePreview
+                    config={config}
+                    textData={textData}
+                    files={files}
+                    showPreview={showPreview}
+                    onClose={closePreview}
+                    audioDuration={files.audio?.duration || files.video?.duration || 0}
+                    hideOverlay={config.id === 'persona' ? hideOverlay : undefined}
+                    showImage={config.id === 'how-it-works' ? showImage : undefined}
+                  />
+                ) : (
+                  <div className="preview-placeholder">
+                    <div className="placeholder-content">
+                      {config.id === 'announcement' ? 'Upload image to see preview' : (!hasRequiredFiles ? 'Upload files to see preview' : 'Enter details to see preview')}
+                    </div>
                   </div>
-                </div>
-              ) : (config.id === 'announcement' && files.image?.file) || hasRequiredFiles ? (
-                <TemplatePreview
-                  config={config}
-                  textData={textData}
-                  files={files}
-                  showPreview={showPreview}
-                  onClose={closePreview}
-                  audioDuration={files.audio?.duration || files.video?.duration || 0}
-                  hideOverlay={config.id === 'persona' ? hideOverlay : undefined}
-                  showImage={config.id === 'how-it-works' ? showImage : undefined}
-                />
-              ) : (
-                <div className="preview-placeholder">
-                  <div className="placeholder-content">
-                    {config.id === 'announcement' ? 'Upload image to see preview' : (!hasRequiredFiles ? 'Upload files to see preview' : 'Enter details to see preview')}
-                  </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
+        )}
 
-          {/* Inline Video Player for intro and demo templates */}
-          {(config.id === 'intro' || config.id === 'demo') && files.video?.file && files.video?.preview && (
-            <div className="inline-video-player">
+        {/* Inline Video Player for intro and demo templates */}
+        {(config.id === 'intro' || config.id === 'demo') && files.video?.file && files.video?.preview && (
+          <div className="inline-video-player">
               <div className="video-player-container">
                 <video
                   ref={videoPlayerRef}
