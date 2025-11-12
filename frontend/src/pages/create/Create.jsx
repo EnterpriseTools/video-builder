@@ -2,6 +2,7 @@ import { useState, useEffect, lazy, Suspense } from 'react';
 import VideoTemplateCreator from '@/components/shared/video-template-creator';
 import { getTemplateConfig } from '@/lib/templateConfigs';
 import OverlayPreviewSection from '@/components/shared/overlay-preview-section';
+import ConfirmationDialog from '@/components/shared/confirmation-dialog';
 import { API_BASE_URL } from '@/lib/config';
 import Trim from '@/pages/trim/Trim';
 import './Create.scss';
@@ -695,22 +696,15 @@ export default function Create() {
           </div>
           
           {/* Confirmation Dialog */}
-          {showConfirmDialog && (
-            <div className="confirmation-overlay" onClick={(e) => e.stopPropagation()}>
-              <div className="confirmation-dialog">
-                <h3>Unsaved Changes</h3>
-                <p>You have unsaved changes. What would you like to do?</p>
-                <div className="confirmation-actions"> 
-                  <button className="btn-cancel" onClick={handleCancelClose}>
-                    Cancel
-                  </button>
-                  <button className="btn-discard" onClick={handleConfirmDiscard}>
-                    Discard Changes
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
+          <ConfirmationDialog
+            isVisible={showConfirmDialog}
+            title="Unsaved Changes"
+            message="You have unsaved changes. What would you like to do?"
+            cancelText="Cancel"
+            discardText="Discard"
+            onCancel={handleCancelClose}
+            onDiscard={handleConfirmDiscard}
+          />
         </div>
       )}
     </div>

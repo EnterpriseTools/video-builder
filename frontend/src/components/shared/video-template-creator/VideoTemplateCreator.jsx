@@ -551,7 +551,7 @@ export default function VideoTemplateCreator({ config, savedData, onDataChange }
             size="medium"
             onClick={config.onDelete}
           >
-            Delete
+            Cancel
           </Button>
             
           <Button
