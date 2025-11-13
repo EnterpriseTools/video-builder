@@ -348,6 +348,13 @@
     }
   }
 }
+.inline-video-player {
+  position: relative;
+  
+  .video-player-container {
+    position: relative;
+  }
+}
 
 .upload-dropzone {
   text-align: center;

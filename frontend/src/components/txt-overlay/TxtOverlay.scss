@@ -1,9 +1,8 @@
 .txt-overlay {
   position: absolute;
-  bottom: 48px;
-  left: 48px;
+  bottom: 64px;
+  left: 32px;
   z-index: 10;
-  // Ensure the overlay is always visible with proper layering
   pointer-events: none;
 
   .txt-card {
@@ -14,7 +13,6 @@
     -webkit-backdrop-filter: blur(24px); // Safari support
     border-radius: 28px !important;
     padding: 20px 24px;
-    // box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), 0 2px 8px rgba(0, 0, 0, 0.3) !important;
     max-width: 400px;
     gap: 20px;
     // Force hardware acceleration for better rendering
@@ -37,7 +35,6 @@
   .txt-logo {
     width: 28px !important;
     height: 28px !important;
-    // Ensure SVG is properly colored white
     filter: brightness(0) invert(1) !important;
     // Fallback color for SVG
     color: #ffffff !important;

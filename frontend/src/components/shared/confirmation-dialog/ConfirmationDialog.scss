@@ -15,20 +15,23 @@
 }
 
 .confirmation-dialog {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
   background: #1a1a1a;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid #2c2b2b;
   border-radius: 16px;
   padding: 2rem;
-  max-width: 450px;
-  width: 90%;
+  max-width: 400px;
+  width: 100%;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
   animation: slideUp 0.3s ease;
 
   h3 {
-    font-size: 1.5rem;
+    font-size: 2rem;
     font-weight: 600;
     color: white;
-    margin: 0 0 1rem 0;
   }
 
   p {

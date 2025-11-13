@@ -298,7 +298,7 @@ export default function TrimControls({
         <div className="trim-header-content">
           <div>
             <h4>Trim Video/Audio</h4>
-            <p>Drag the handles or enter times to trim your media</p>
+            <p>Drag the handles to trim your clip to the desired length</p>
           </div>
           {audioFile && (
             <button 
