@@ -255,7 +255,7 @@ export function useVideoTemplate(config) {
       formData.append('start', fileData.trimStart.toString());
       formData.append('end', fileData.trimEnd.toString());
 
-      const response = await fetch(`${API_BASE_URL}/api/trim`, {
+      const response = await fetch(`${API_BASE_URL}/trim`, {
         method: 'POST',
         body: formData
       });

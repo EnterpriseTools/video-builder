@@ -129,7 +129,7 @@ export function useVideoTrim() {
       formData.append('start', startTime);
       formData.append('end', endTime);
 
-      const response = await fetch(`${API_BASE_URL}/api/trim`, {
+      const response = await fetch(`${API_BASE_URL}/trim`, {
         method: 'POST',
         body: formData
       });
@@ -276,7 +276,7 @@ export function useVideoTrim() {
         const formData = new FormData();
         formData.append('video', videoFile);
         
-        const response = await fetch(`${API_BASE_URL}/api/trim/preview`, {
+        const response = await fetch(`${API_BASE_URL}/trim/preview`, {
           method: 'POST',
           body: formData
         });

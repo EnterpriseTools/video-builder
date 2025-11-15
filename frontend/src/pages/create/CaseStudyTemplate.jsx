@@ -377,7 +377,7 @@ export default function CaseStudyTemplate() {
                 trimFormData.append('start', fileData.trimStart.toString());
                 trimFormData.append('end', fileData.trimEnd.toString());
                 
-                const trimResponse = await fetch(`${API_BASE_URL}/api/trim`, {
+                const trimResponse = await fetch(`${API_BASE_URL}/trim`, {
                   method: 'POST',
                   body: trimFormData
                 });
@@ -505,7 +505,7 @@ export default function CaseStudyTemplate() {
         }
       }
       
-      const concatenateResponse = await fetch(`${API_BASE_URL}/api/concatenate-multipart`, {
+      const concatenateResponse = await fetch(`${API_BASE_URL}/concatenate-multipart`, {
         method: 'POST',
         body: concatenateFormData,
       });
