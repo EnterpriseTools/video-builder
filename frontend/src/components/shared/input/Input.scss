@@ -3,15 +3,6 @@
    ============================================================================= */
 
 .input-container {
-  margin-bottom: var(--space-300);
-  
-  &--small {
-    margin-bottom: var(--space-200);
-  }
-  
-  &--large {
-    margin-bottom: var(--space-400);
-  }
   
   &--error {
     .input-field {
@@ -68,8 +59,12 @@
   }
   
   &--medium {
-    padding: var(--space-200) var(--space-300);
-    font-size: var(--font-size-300);
+    padding: 12px 16px;
+    font-size: 14px;
+
+    @media (max-width: 768px) {
+      font-size: 1rem;
+    }
   }
   
   &--large {

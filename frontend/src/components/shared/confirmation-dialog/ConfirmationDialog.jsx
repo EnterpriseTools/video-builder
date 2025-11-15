@@ -1,9 +1,5 @@
 import './ConfirmationDialog.scss';
 
-/**
- * Reusable Confirmation Dialog Component
- * Shows a modal dialog for confirming actions like discarding unsaved changes
- */
 export default function ConfirmationDialog({
   isVisible = false,
   title = 'Unsaved Changes',

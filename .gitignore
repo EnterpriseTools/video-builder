@@ -110,7 +110,8 @@ frontend/public/Examples/
 # ===========================
 # Documentation (LLM Context)
 # ===========================
-TECHNICAL_DOCUMENTATION.md
+*.md
+!README.md
 
 # ===========================
 # System / OS

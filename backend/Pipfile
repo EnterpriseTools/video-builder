@@ -11,8 +11,11 @@ python-dotenv = "*"
 python-multipart = "*"
 aiofiles = "*"
 pillow = "*"
+httpx = "*"
+openai = "*"
 
 [dev-packages]
+pytest = "*"
 
 [requires]
 python_version = "3.13"

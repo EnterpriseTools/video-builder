@@ -5,104 +5,81 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(4px);
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 10001; // Above modal overlay
-  animation: fadeIn 0.2s ease;
+  z-index: 2000;
+  backdrop-filter: blur(3px);
 }
 
 .confirmation-dialog {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
-  text-align: center;
+  justify-content: center;
   background: #1a1a1a;
-  border: 1px solid #2c2b2b;
-  border-radius: 16px;
+  border: 2px solid #1a070b;
+  border-radius: 12px;
   padding: 2rem;
-  max-width: 400px;
-  width: 100%;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-  animation: slideUp 0.3s ease;
+  max-width: 350px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
+  animation: dialogSlideIn 0.2s ease-out;
 
   h3 {
-    font-size: 2rem;
-    font-weight: 600;
-    color: white;
+    margin: 0 0 .5rem 0;
+    font-size: 1.75rem;
+    color: #f31243;
   }
 
   p {
-    font-size: 1rem;
-    color: rgba(255, 255, 255, 0.7);
     margin: 0 0 2rem 0;
-    line-height: 1.5;
-  }
-}
-
-.confirmation-actions {
-  display: flex;
-  gap: 1rem;
-  justify-content: flex-end;
-
-  button {
-    padding: 0.75rem 1.5rem;
-    border-radius: 8px;
-    font-size: 0.95rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    border: none;
-
-    &:hover {
-      transform: translateY(-1px);
-    }
-
-    &:active {
-      transform: translateY(0);
-    }
+    color: rgba(255, 255, 255, 0.8);
+    line-height: 1.25;
   }
 
-  .btn-cancel {
-    background: rgba(255, 255, 255, 0.1);
-    color: white;
-    border: 1px solid rgba(255, 255, 255, 0.2);
+  .confirmation-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
 
-    &:hover {
-      background: rgba(255, 255, 255, 0.15);
-      border-color: rgba(255, 255, 255, 0.3);
-    }
-  }
+    button {
+      padding: 0.75rem 1.25rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
 
-  .btn-discard {
-    background: #ef4444;
-    color: white;
+      &.btn-discard {
+        background: #f31243;
+        color: white;
 
-    &:hover {
-      background: #dc2626;
+        &:hover {
+          background: #f6204e;
+        }
+      }
+
+      &.btn-cancel {
+        background: #3b3b3b;
+        color: white;
+
+        &:hover {
+          background: #4b4b4b;
+        }
+      }
     }
   }
 }
 
-@keyframes fadeIn {
+@keyframes dialogSlideIn {
   from {
     opacity: 0;
+    transform: scale(0.9);
   }
   to {
     opacity: 1;
+    transform: scale(1);
   }
 }
-
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-

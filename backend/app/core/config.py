@@ -10,6 +10,9 @@ class Settings(BaseSettings):
     # CORS: comma-separated string, e.g. "http://localhost:5173,http://localhost:3000"
     CORS_ORIGINS: str = "http://localhost:5173"
 
+    # OpenAI API Key
+    OPENAI_API_KEY: str = ""
+
     # Feature flags (keep minimal template by default)
     FEATURE_OPENAI: bool = False
 

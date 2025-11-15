@@ -2,17 +2,36 @@ import tempfile
 import subprocess
 import logging
 from pathlib import Path
-from typing import Optional
+from typing import Optional, List, Dict
 from fastapi import APIRouter, BackgroundTasks, File, Form, UploadFile, HTTPException
 from fastapi.responses import FileResponse
+from pydantic import BaseModel
 from app.utils.persona_overlay import PersonaOverlayGenerator
 from app.utils import get_audio_duration
 from app.utils.media import extract_audio_from_media
 from app.utils.easing import slide_up_from_bottom
 from app.utils.file_utils import cleanup_temp_path
+from app.utils.openai_client import chat_with_gpt4, generate_persona_image
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
+
+
+# Pydantic models for AI endpoints
+class ChatRequest(BaseModel):
+    messages: List[Dict[str, str]]
+
+
+class ChatResponse(BaseModel):
+    response: str
+
+
+class ImageGenerationRequest(BaseModel):
+    description: str
+
+
+class ImageGenerationResponse(BaseModel):
+    image_url: str
 
 @router.post("/persona/render")
 async def render_persona(
@@ -81,12 +100,12 @@ async def render_persona(
                 
                 # Verify overlay was created and is not empty
                 if not overlay_path or not Path(overlay_path).exists() or Path(overlay_path).stat().st_size == 0:
-                    print(f"Warning: Overlay generation failed or empty file. Continuing without overlay.")
+                    logger.warning("Overlay generation failed or empty file. Continuing without overlay.")
                     has_overlay = False
                     overlay_path = None
                     
             except Exception as e:
-                print(f"Warning: Overlay generation failed: {e}. Continuing without overlay.")
+                logger.warning(f"Overlay generation failed: {e}. Continuing without overlay.")
                 has_overlay = False
                 overlay_path = None
         
@@ -155,7 +174,7 @@ async def render_persona(
             ]
         
         # Execute FFmpeg command
-        print(f"Running FFmpeg command: {' '.join(cmd)}")
+        logger.info(f"Running FFmpeg command with duration={audio_duration}s")
         
         # Use Popen to avoid subprocess deadlock on large outputs
         try:
@@ -190,13 +209,11 @@ async def render_persona(
             )
         
         if result.returncode != 0:
-            print(f"FFmpeg stderr: {result.stderr}")
-            print(f"FFmpeg stdout: {result.stdout}")
+            logger.error(f"FFmpeg failed: {result.stderr[:500]}")
             cleanup_temp_path(temp_dir)  # Immediate cleanup on FFmpeg failure
-            logger.error(f"FFmpeg failed for {temp_dir}: {result.stderr}")
             raise HTTPException(
                 status_code=500, 
-                detail=f"Video processing failed: {result.stderr}"
+                detail=f"Video processing failed"
             )
         
         # Verify output file was created
@@ -221,5 +238,36 @@ async def render_persona(
         logger.exception(f"Unexpected error during persona render for {temp_dir}")
         raise HTTPException(status_code=500, detail=f"Failed to render persona: {str(e)}")
 
+
+@router.post("/persona/chat", response_model=ChatResponse)
+async def persona_chat(request: ChatRequest):
+    """
+    Chat with GPT-4 to ask clarifying questions about the persona image.
+    Used for conversational image generation.
+    """
+    try:
+        response = await chat_with_gpt4(request.messages)
+        return ChatResponse(response=response)
+    except ValueError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    except Exception as e:
+        logger.exception("Error in persona chat")
+        raise HTTPException(status_code=500, detail=f"Chat failed: {str(e)}")
+
+
+@router.post("/persona/generate-image", response_model=ImageGenerationResponse)
+async def generate_persona_image_endpoint(request: ImageGenerationRequest):
+    """
+    Generate a persona image using DALL-E 3 based on user description.
+    Returns a URL to the generated image.
+    """
+    try:
+        image_url = await generate_persona_image(request.description)
+        return ImageGenerationResponse(image_url=image_url)
+    except ValueError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    except Exception as e:
+        logger.exception("Error generating persona image")
+        raise HTTPException(status_code=500, detail=f"Image generation failed: {str(e)}")
 
 

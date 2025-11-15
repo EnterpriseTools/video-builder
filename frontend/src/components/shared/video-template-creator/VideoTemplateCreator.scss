@@ -85,6 +85,7 @@
       display: flex;
       align-items: center;
       gap: 0.75rem;
+      padding-bottom: 0.75rem;
       transition: background-color 0.2s ease;
 
       .step-number {
@@ -107,6 +108,12 @@
         color: white;
         margin: 0;
         flex: 1;
+      }
+      h3 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: white;
+        margin: 0;
       }
 
       // Tooltip container
@@ -331,6 +338,7 @@
   .text-fields {
     display: flex;
     flex-direction: column;
+    gap: 1.25rem;
   }
 
   .overlay-hidden-message {
@@ -678,5 +686,27 @@
   font-size: 0.9rem;
 }
 
-// Legacy styles removed - component now uses modal-specific styling above
-
+// Manual upload link styling
+.manual-upload-link {
+  
+  .link-button {
+    background: none;
+    border: none;
+    color: #589afc;
+    font-size: 0.875rem;
+    cursor: pointer;
+    text-decoration: none;
+    transition: color 0.2s ease;
+    padding: 0.5rem 1rem;
+    
+    &:hover {
+      color: #5899fb;
+      text-decoration: underline;
+    }
+    
+    &:focus {
+      outline: none;
+      color: #4791FF;
+    }
+  }
+}
