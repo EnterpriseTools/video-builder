@@ -83,15 +83,35 @@ export function useVideoTemplate(config) {
 
   const hasRequiredFiles = useCallback(() => {
     return config.files
-      .filter(fileConfig => fileConfig.required)
+      .filter(fileConfig => {
+        // Filter by required flag
+        if (!fileConfig.required) return false;
+        
+        // If template supports modes, also filter by current mode
+        if (config.supportsModeToggle && config.templateMode && fileConfig.modes) {
+          return fileConfig.modes.includes(config.templateMode);
+        }
+        
+        return true;
+      })
       .every(fileConfig => files[fileConfig.id].file);
-  }, [config.files, files]);
+  }, [config.files, config.supportsModeToggle, config.templateMode, files]);
 
   const hasRequiredTextFields = useCallback(() => {
     return config.textFields
-      .filter(field => field.required)
+      .filter(field => {
+        // Filter by required flag
+        if (!field.required) return false;
+        
+        // If template supports modes, also filter by current mode
+        if (config.supportsModeToggle && config.templateMode && field.modes) {
+          return field.modes.includes(config.templateMode);
+        }
+        
+        return true;
+      })
       .every(field => textData[field.id] && textData[field.id].trim());
-  }, [config.textFields, textData]);
+  }, [config.textFields, config.supportsModeToggle, config.templateMode, textData]);
 
   const canRender = useCallback(() => {
     return hasRequiredFiles() && hasRequiredTextFields();
@@ -281,16 +301,36 @@ export function useVideoTemplate(config) {
 
   // Render video
   const renderVideo = useCallback(async () => {
-    // Validate required files
+    // Validate required files - filter by mode if applicable
     const missingFiles = config.files
-      .filter(fileConfig => fileConfig.required)
+      .filter(fileConfig => {
+        // Filter by required flag
+        if (!fileConfig.required) return false;
+        
+        // If template supports modes, also filter by current mode
+        if (config.supportsModeToggle && config.templateMode && fileConfig.modes) {
+          return fileConfig.modes.includes(config.templateMode);
+        }
+        
+        return true;
+      })
       .filter(fileConfig => !files[fileConfig.id].file);
 
     // Validate required text fields (skip validation if hideOverlay is true for persona template)
     const shouldValidateTextFields = !(config.id === 'persona' && config.hideOverlay === true);
     const missingTextFields = shouldValidateTextFields 
       ? config.textFields
-          .filter(field => field.required)
+          .filter(field => {
+            // Filter by required flag
+            if (!field.required) return false;
+            
+            // If template supports modes, also filter by current mode
+            if (config.supportsModeToggle && config.templateMode && field.modes) {
+              return field.modes.includes(config.templateMode);
+            }
+            
+            return true;
+          })
           .filter(field => !textData[field.id] || !textData[field.id].trim())
       : [];
 

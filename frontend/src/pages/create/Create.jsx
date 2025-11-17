@@ -416,6 +416,11 @@ export default function Create() {
           formData.append(key, value || '');
         });
         
+        // Add mode parameter for templates that support it (like how-it-works)
+        if (template.config.templateMode) {
+          formData.append('mode', template.config.templateMode);
+        }
+        
         // Get template config and call the API
         const templateConfig = getTemplateConfig(template.id);
         const response = await fetch(templateConfig.api.render, {

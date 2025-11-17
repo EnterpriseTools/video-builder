@@ -282,6 +282,41 @@
         }
       }
 
+      // Mode toggle for templates with multiple modes (tab-style)
+      .mode-toggle {
+        display: flex;
+        gap: 0;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 8px;
+        padding: 4px;
+        margin-bottom: 1rem;
+        
+        .mode-toggle-button {
+          flex: 1;
+          padding: 0.5rem 1rem;
+          background: transparent;
+          border: none;
+          color: rgba(255, 255, 255, 0.6);
+          font-size: 0.875rem;
+          font-weight: 500;
+          border-radius: 6px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          white-space: nowrap;
+          
+          &:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: rgba(255, 255, 255, 0.8);
+          }
+          
+          &.active {
+            background: #FEC62E;
+            color: #19181D;
+            font-weight: 600;
+          }
+        }
+      }
+
       // Optional label styling
       .optional-label {
         font-size: 0.875rem;

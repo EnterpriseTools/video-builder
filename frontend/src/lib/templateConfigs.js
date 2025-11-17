@@ -161,6 +161,20 @@ export const TEMPLATE_CONFIGS = {
     name: 'Problem Video Creator',
     description: 'Create simple tutorial videos with title and description overlays',
     
+    // Mode toggle support
+    supportsModeToggle: true,
+    modes: {
+      audioImage: {
+        id: 'audioImage',
+        label: 'Audio + Image',
+        default: true
+      },
+      video: {
+        id: 'video',
+        label: 'Upload Video'
+      }
+    },
+    
     // Section headers for new layout
     sectionHeaders: {
       files: 'Upload audio:',
@@ -173,6 +187,7 @@ export const TEMPLATE_CONFIGS = {
       text: 'Add tutorial title and description that will appear as overlays. Perfect for explaining processes or features step-by-step.'
     },
     
+    // Files configuration for audio+image mode
     files: [
       {
         id: 'audio',
@@ -181,7 +196,8 @@ export const TEMPLATE_CONFIGS = {
         type: 'media',
         accept: 'audio/*,video/*,.mp3,.wav,.aifc,.mov,.mp4',
         required: true,
-        uploadText: 'Click to upload audio or video file'
+        uploadText: 'Click to upload audio or video file',
+        modes: ['audioImage'] // Only show in audio+image mode
       },
       {
         id: 'image',
@@ -190,7 +206,18 @@ export const TEMPLATE_CONFIGS = {
         type: 'image',
         accept: 'image/*',
         required: false,
-        uploadText: 'Click to upload image (optional)'
+        uploadText: 'Click to upload image (optional)',
+        modes: ['audioImage'] // Only show in audio+image mode
+      },
+      {
+        id: 'video',
+        label: 'Video',
+        description: 'Upload video file',
+        type: 'video',
+        accept: 'video/*,.mp4,.mov',
+        required: true,
+        uploadText: 'Click to upload video (.mp4 or .mov)',
+        modes: ['video'] // Only show in video mode
       }
     ],
     
@@ -200,13 +227,15 @@ export const TEMPLATE_CONFIGS = {
         label: 'Title',
         placeholder: 'Enter tutorial title',
         required: false,
-        defaultValue: 'The Problem'
+        defaultValue: 'The Problem',
+        modes: ['audioImage'] // Only show in audio+image mode
       },
       {
         id: 'description',
         label: 'Description',
         placeholder: 'Enter tutorial description (optional)',
-        required: false
+        required: false,
+        modes: ['audioImage'] // Only show in audio+image mode
       }
     ],
     

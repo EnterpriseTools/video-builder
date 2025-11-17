@@ -18,53 +18,78 @@ logger = logging.getLogger(__name__)
 @router.post("/how-it-works/render")
 async def render_how_it_works(
     background_tasks: BackgroundTasks,
-    audio: UploadFile = File(...),
+    audio: Optional[UploadFile] = File(None),
+    video: Optional[UploadFile] = File(None),
     image: Optional[UploadFile] = File(None),
     title: Optional[str] = Form(""),
     description: Optional[str] = Form(""),
-    duration: Optional[str] = Form("0")
+    duration: Optional[str] = Form("0"),
+    mode: Optional[str] = Form("audioImage")  # 'audioImage' or 'video'
 ):
-    """Render how it works video from audio and text overlay only"""
+    """Render how it works video - supports both audio+image mode and video mode"""
     
-    # Accept both audio and video files (we'll extract audio from video)
-    if not audio.content_type or (not audio.content_type.startswith('audio/') and not audio.content_type.startswith('video/')):
-        # Also check file extension for formats that might not have proper MIME type
-        media_extensions = ['.mp3', '.wav', '.aifc', '.aiff', '.m4a', '.mov', '.mp4']
-        if not any(audio.filename.lower().endswith(ext) for ext in media_extensions):
-            raise HTTPException(status_code=400, detail="Invalid audio or video file")
+    # Determine which mode we're in
+    is_video_mode = mode == "video" or (video and not audio)
+    
+    # Validate inputs based on mode
+    if is_video_mode:
+        if not video:
+            raise HTTPException(status_code=400, detail="Video file required for video mode")
+        # In video mode, we use the video as-is (extract audio for syncing)
+        media_file = video
+        mode_name = "video"
+    else:
+        if not audio:
+            raise HTTPException(status_code=400, detail="Audio file required for audio+image mode")
+        # Accept both audio and video files (we'll extract audio from video)
+        if not audio.content_type or (not audio.content_type.startswith('audio/') and not audio.content_type.startswith('video/')):
+            # Also check file extension for formats that might not have proper MIME type
+            media_extensions = ['.mp3', '.wav', '.aifc', '.aiff', '.m4a', '.mov', '.mp4']
+            if not any(audio.filename.lower().endswith(ext) for ext in media_extensions):
+                raise HTTPException(status_code=400, detail="Invalid audio or video file")
+        media_file = audio
+        mode_name = "audioImage"
     
     # Create temporary directory for processing
     temp_dir = Path(tempfile.mkdtemp(prefix="how_it_works_"))
     
     try:
-        # Save uploaded audio file
-        media_path = temp_dir / f"media{Path(audio.filename).suffix}"
+        # Save uploaded media file
+        media_path = temp_dir / f"media{Path(media_file.filename).suffix}"
         
-        # Write uploaded audio file
+        # Write uploaded media file
         with open(media_path, "wb") as f:
-            content = await audio.read()
+            content = await media_file.read()
             f.write(content)
         
-        # Save optional image file if provided
+        # For video mode, we'll use the video directly
+        # For audio+image mode, we extract audio
+        if is_video_mode:
+            # Video mode: use video as-is, extract audio for syncing
+            video_path = media_path
+            audio_path = await extract_audio_from_media(media_path, temp_dir)
+        else:
+            # Audio+image mode: extract audio, will create video from scratch
+            video_path = None
+            audio_path = await extract_audio_from_media(media_path, temp_dir)
+        
+        # Save optional image file if provided (only used in audio+image mode)
         image_path = None
-        if image and image.filename:
+        if image and image.filename and not is_video_mode:
             image_path = temp_dir / f"image{Path(image.filename).suffix}"
             with open(image_path, "wb") as f:
                 image_content = await image.read()
                 f.write(image_content)
-            print(f"Image uploaded: {image_path} ({image_path.stat().st_size} bytes)")
-        
-        # Extract audio if it's a video file, otherwise use as-is
-        audio_path = await extract_audio_from_media(media_path, temp_dir)
+            logger.info(f"Image uploaded: {image_path} ({image_path.stat().st_size} bytes)")
         
         # Get audio duration if not provided
         audio_duration = float(duration) if duration and float(duration) > 0 else None
         if not audio_duration:
             audio_duration = get_audio_duration(audio_path)
         
-        # Generate text overlay PNG if we have text
+        # Generate text overlay PNG only in audio+image mode (if we have text)
         overlay_path = None
-        has_overlay = bool(title or description)
+        has_overlay = bool(title or description) and not is_video_mode
         
         if has_overlay:
             try:
@@ -90,6 +115,83 @@ async def render_how_it_works(
         # Create output video
         output_path = temp_dir / f"how-it-works-{title or 'video'}.mp4"
         
+        # Handle video mode differently - just use the video as-is with trimming
+        if is_video_mode:
+            # Video mode: simple passthrough with duration trimming
+            cmd = [
+                "ffmpeg", "-y", "-loglevel", "error",
+                "-i", str(video_path),
+                "-i", str(audio_path),
+                "-map", "0:v",  # Video from first input
+                "-map", "1:a",  # Audio from second input (extracted audio)
+                "-c:v", "libx264",
+                "-preset", "fast",
+                "-crf", "23",
+                "-c:a", "aac",
+                "-b:a", "192k",
+                "-ar", "48000",
+                "-ac", "2",
+                "-shortest",
+                "-t", str(audio_duration),
+                "-pix_fmt", "yuv420p",
+                str(output_path)
+            ]
+            
+            # Execute FFmpeg command for video mode
+            logger.info(f"Running FFmpeg (video mode) with duration={audio_duration}s")
+            
+            try:
+                process = subprocess.Popen(
+                    cmd,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True,
+                    cwd=temp_dir
+                )
+                
+                stdout, stderr = process.communicate(timeout=60)
+                
+                class Result:
+                    def __init__(self, returncode, stdout, stderr):
+                        self.returncode = returncode
+                        self.stdout = stdout
+                        self.stderr = stderr
+                
+                result = Result(process.returncode, stdout, stderr)
+                
+            except subprocess.TimeoutExpired:
+                process.kill()
+                stdout, stderr = process.communicate()
+                cleanup_temp_path(temp_dir)
+                logger.error(f"FFmpeg timed out for {temp_dir}. Last output: {stderr[-500:]}")
+                raise HTTPException(
+                    status_code=500,
+                    detail="FFmpeg processing timed out after 60 seconds"
+                )
+            
+            if result.returncode != 0:
+                logger.error(f"FFmpeg failed: {result.stderr[:500]}")
+                cleanup_temp_path(temp_dir)
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"Video processing failed"
+                )
+            
+            # Verify output file was created
+            if not output_path.exists():
+                cleanup_temp_path(temp_dir)
+                raise HTTPException(status_code=500, detail="Output video file was not created")
+            
+            # Schedule cleanup and return
+            background_tasks.add_task(cleanup_temp_path, temp_dir)
+            
+            return FileResponse(
+                output_path,
+                media_type="video/mp4",
+                filename=f"how-it-works-video.mp4"
+            )
+        
+        # Audio+Image mode: continue with overlay generation
         # Download Wave.png and highlight.png from Vercel CDN to temp directory
         # movie filter requires local files, not URLs
         wave_url = "https://video-builder-nu.vercel.app/Wave.png"

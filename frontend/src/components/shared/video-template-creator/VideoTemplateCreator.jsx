@@ -46,14 +46,24 @@ export default function VideoTemplateCreator({ config, savedData, onDataChange }
     return savedData?.showImage ?? false;
   });
 
+  // Mode state for how-it-works template (audioImage vs video)
+  const [templateMode, setTemplateMode] = useState(() => {
+    // Check if this template supports modes
+    if (!config.supportsModeToggle) return null;
+    // Restore saved state or default to the default mode
+    const defaultMode = Object.values(config.modes).find(m => m.default)?.id || 'audioImage';
+    return savedData?.templateMode ?? defaultMode;
+  });
+
   // Track if there are unsaved changes
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
-  // Create a config with hideOverlay and showImage included for the hook
+  // Create a config with hideOverlay, showImage, and templateMode included for the hook
   const configWithOverlay = {
     ...config,
     hideOverlay: config.id === 'persona' ? hideOverlay : undefined,
-    showImage: config.id === 'how-it-works' ? showImage : undefined
+    showImage: config.id === 'how-it-works' ? showImage : undefined,
+    templateMode: config.supportsModeToggle ? templateMode : undefined
   };
 
   // Ref for video player (for intro and demo templates)
@@ -102,7 +112,7 @@ export default function VideoTemplateCreator({ config, savedData, onDataChange }
   useEffect(() => {
     // Mark as having unsaved changes when any data changes
     setHasUnsavedChanges(true);
-  }, [textData, files, hideOverlay, showImage]);
+  }, [textData, files, hideOverlay, showImage, templateMode]);
 
   // Persist hideOverlay state when it changes
   useEffect(() => {
@@ -119,6 +129,14 @@ export default function VideoTemplateCreator({ config, savedData, onDataChange }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showImage, config.id]);
+
+  // Persist templateMode state when it changes
+  useEffect(() => {
+    if (config.supportsModeToggle && onDataChange) {
+      onDataChange({ ...savedData, templateMode });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [templateMode, config.supportsModeToggle]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -336,11 +354,43 @@ export default function VideoTemplateCreator({ config, savedData, onDataChange }
     }
   };
 
+  // Handle mode toggle for templates that support it
+  const handleModeToggle = (newMode) => {
+    if (!config.supportsModeToggle) return;
+    
+    setTemplateMode(newMode);
+    
+    // Clear all files when switching modes
+    Object.keys(files).forEach(fileId => {
+      if (files[fileId]?.file) {
+        handleClearFile(fileId);
+      }
+    });
+    
+    // Mark as having unsaved changes
+    setHasUnsavedChanges(true);
+  };
+
   return (
     <div className="video-template-modal">
       <div className="template-layout">
         {/* Left Column - Configuration */}
         <div className="template-config-column">
+          {/* Mode Toggle for templates that support it - at top level */}
+          {config.supportsModeToggle && (
+            <div className="mode-toggle">
+              {Object.entries(config.modes).map(([key, mode]) => (
+                <button
+                  key={key}
+                  className={`mode-toggle-button ${templateMode === mode.id ? 'active' : ''}`}
+                  onClick={() => handleModeToggle(mode.id)}
+                >
+                  {mode.label}
+                </button>
+              ))}
+            </div>
+          )}
+
           {/* PERSONA TEMPLATE: Step 1 - Audio Upload Only */}
           {config.id === 'persona' && (
             <div className="config-section">
@@ -437,12 +487,17 @@ export default function VideoTemplateCreator({ config, savedData, onDataChange }
                   </div>
                 )}
               </div>
+              
               <div className="section-content">
                 {config.files
                   .filter(fileConfig => {
-                    // For how-it-works template, exclude image file from step 1
+                    // For how-it-works template, exclude image file from step 1 (it's in step 3)
                     if (config.id === 'how-it-works' && fileConfig.id === 'image') {
                       return false;
+                    }
+                    // Filter files based on current mode
+                    if (config.supportsModeToggle && fileConfig.modes) {
+                      return fileConfig.modes.includes(templateMode);
                     }
                     return true;
                   })
@@ -454,7 +509,7 @@ export default function VideoTemplateCreator({ config, savedData, onDataChange }
           )}
 
           {/* Text Fields Section */}
-          {config.textFields.length > 0 && (
+          {config.textFields.length > 0 && !(config.supportsModeToggle && templateMode === 'video') && (
             <div className="config-section">
               <div className="section-header">
                 <div className="step-number">{config.id === 'persona' ? '3' : '2'}</div>
@@ -491,21 +546,30 @@ export default function VideoTemplateCreator({ config, savedData, onDataChange }
               </div>
               <div className="section-content">
                 {/* Only show text fields if hideOverlay is false (for persona template) or if not persona template */}
+                {/* Also filter by mode if modes are supported */}
                 {(!hideOverlay || config.id !== 'persona') && (
                   <div className="text-fields">
-                    {config.textFields.map(fieldConfig => (
-                      <Input
-                        key={fieldConfig.id}
-                        label={fieldConfig.label}
-                        value={textData[fieldConfig.id] || ''}
-                        onChange={(e) => handleTextChange(fieldConfig.id, e.target.value)}
-                        placeholder={fieldConfig.placeholder}
-                        required={fieldConfig.required}
-                        multiline={fieldConfig.multiline}
-                        rows={fieldConfig.rows}
-                        size="small"
-                      />
-                    ))}
+                    {config.textFields
+                      .filter(fieldConfig => {
+                        // Filter text fields based on current mode
+                        if (config.supportsModeToggle && fieldConfig.modes) {
+                          return fieldConfig.modes.includes(templateMode);
+                        }
+                        return true;
+                      })
+                      .map(fieldConfig => (
+                        <Input
+                          key={fieldConfig.id}
+                          label={fieldConfig.label}
+                          value={textData[fieldConfig.id] || ''}
+                          onChange={(e) => handleTextChange(fieldConfig.id, e.target.value)}
+                          placeholder={fieldConfig.placeholder}
+                          required={fieldConfig.required}
+                          multiline={fieldConfig.multiline}
+                          rows={fieldConfig.rows}
+                          size="small"
+                        />
+                      ))}
                   </div>
                 )}
                 
@@ -519,8 +583,8 @@ export default function VideoTemplateCreator({ config, savedData, onDataChange }
             </div>
           )}
 
-          {/* Step 3: Optional Image Section (for how-it-works template only) */}
-          {config.id === 'how-it-works' && (
+          {/* Step 3: Optional Image Section (for how-it-works template only in audioImage mode) */}
+          {config.id === 'how-it-works' && templateMode === 'audioImage' && (
             <div className="config-section">
               <div className="section-header">
                 <div className="step-number">3</div>
@@ -559,8 +623,8 @@ export default function VideoTemplateCreator({ config, savedData, onDataChange }
           )}
         </div>
 
-        {/* Right Column - Preview (not shown for intro/demo templates) */}
-        {config.id !== 'intro' && config.id !== 'demo' && (
+        {/* Right Column - Preview (not shown for intro/demo templates, or how-it-works in video mode) */}
+        {config.id !== 'intro' && config.id !== 'demo' && !(config.id === 'how-it-works' && templateMode === 'video') && (
           <div className="template-preview-column">
             <div className="preview-section">
               <div className="preview-header">
@@ -568,7 +632,11 @@ export default function VideoTemplateCreator({ config, savedData, onDataChange }
               </div>
               <div className="preview-content">
                 {/* Show preview when image is uploaded (persona, announcement) or when all required files are present */}
-                {(config.id === 'persona' && files.image?.file) || (config.id === 'announcement' && files.image?.file) || hasRequiredFiles ? (
+                {/* For how-it-works in audioImage mode, show preview if audio is uploaded (even without optional image) */}
+                {(config.id === 'persona' && files.image?.file) || 
+                 (config.id === 'announcement' && files.image?.file) || 
+                 (config.id === 'how-it-works' && templateMode === 'audioImage' && files.audio?.file) ||
+                 hasRequiredFiles ? (
                   <TemplatePreview
                     config={config}
                     textData={textData}
@@ -582,7 +650,10 @@ export default function VideoTemplateCreator({ config, savedData, onDataChange }
                 ) : (
                   <div className="preview-placeholder">
                     <div className="placeholder-content">
-                      {config.id === 'persona' ? 'Upload or generate image to see preview' : (config.id === 'announcement' ? 'Upload image to see preview' : (!hasRequiredFiles ? 'Upload files to see preview' : 'Enter details to see preview'))}
+                      {config.id === 'persona' ? 'Upload or generate image to see preview' : 
+                       (config.id === 'announcement' ? 'Upload image to see preview' : 
+                       (config.id === 'how-it-works' && templateMode === 'audioImage' ? 'Upload audio to see preview' :
+                       (!hasRequiredFiles ? 'Upload files to see preview' : 'Enter details to see preview')))}
                     </div>
                   </div>
                 )}
@@ -618,8 +689,9 @@ export default function VideoTemplateCreator({ config, savedData, onDataChange }
           </div>
         )}
 
-        {/* Inline Video Player for intro and demo templates */}
-        {(config.id === 'intro' || config.id === 'demo') && files.video?.file && files.video?.preview && (
+        {/* Inline Video Player for intro, demo, and how-it-works in video mode */}
+        {(((config.id === 'intro' || config.id === 'demo') && files.video?.file && files.video?.preview) || 
+         (config.id === 'how-it-works' && templateMode === 'video' && files.video?.file && files.video?.preview)) && (
           <div className="inline-video-player">
               <div className="video-player-container">
                 <video
@@ -649,7 +721,7 @@ export default function VideoTemplateCreator({ config, savedData, onDataChange }
                 )}
               </div>
 
-              {/* Trim Controls for intro/demo templates */}
+              {/* Trim Controls for intro/demo/how-it-works video mode */}
               {Object.entries(files).map(([fileId, fileData]) => {
                 // Only show trim controls for files with duration (video or audio)
                 if (!fileData.file || fileData.duration <= 0) return null;
