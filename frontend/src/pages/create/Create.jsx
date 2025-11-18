@@ -461,6 +461,12 @@ export default function Create() {
       const announcementTemplate = readyTemplates.find(t => t.id === 'announcement');
       const finalFilename = announcementTemplate?.config?.textData?.title || 'presentation-final';
       
+      // Extract team name for watermark (Intro "team" field, fallback to Closing "teamName" field)
+      const introTemplate = readyTemplates.find(t => t.id === 'intro');
+      const closingTemplate = readyTemplates.find(t => t.id === 'closing');
+      const teamName = introTemplate?.config?.textData?.team || closingTemplate?.config?.textData?.teamName || '';
+      console.log(`Watermark team name: "${teamName}" (from ${introTemplate?.config?.textData?.team ? 'intro' : closingTemplate?.config?.textData?.teamName ? 'closing' : 'none'})`);
+      
       setRenderingProgress(`Combining ${renderedVideos.length} videos into final presentation...`);
       console.log(`Step 2: Concatenating ${renderedVideos.length} videos into "${finalFilename}.mp4"...`);
       
@@ -499,6 +505,7 @@ export default function Create() {
       }
       
       concatenateFormData.append('final_filename', finalFilename);
+      concatenateFormData.append('team_name', teamName); // Add team name for watermark
       
       // Debug: Log what we're sending
       console.log('FormData contents:');

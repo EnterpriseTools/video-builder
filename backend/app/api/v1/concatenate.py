@@ -7,6 +7,7 @@ from fastapi import APIRouter, BackgroundTasks, HTTPException, UploadFile, File,
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from app.utils.file_utils import cleanup_temp_path
+from app.utils.watermark_overlay import apply_watermark_to_video
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -178,14 +179,16 @@ async def concatenate_videos_multipart(
     order_3: str = Form("3"),
     order_4: str = Form("4"),
     order_5: str = Form("5"),
-    final_filename: str = Form("presentation-final")
+    final_filename: str = Form("presentation-final"),
+    team_name: str = Form("")  # Team name for watermark
 ):
     """
     Concatenate videos using multipart form data.
     Accepts up to 6 video segments (matching the 6 templates).
+    Applies Axon body camera watermark to final video.
     """
     
-    print(f"DEBUG: Concatenation request received. final_filename: {final_filename}")
+    print(f"DEBUG: Concatenation request received. final_filename: {final_filename}, team_name: {team_name}")
     print(f"DEBUG: Orders: {[order_0, order_1, order_2, order_3, order_4, order_5]}")
     
     # Collect all uploaded segments
@@ -305,6 +308,27 @@ async def concatenate_videos_multipart(
             raise HTTPException(status_code=500, detail="Output video was not created")
         
         print(f"Successfully concatenated {len(segment_paths)} videos into {output_filename}")
+        
+        # Apply watermark to the concatenated video
+        try:
+            watermarked_filename = f"{Path(output_filename).stem}_watermarked.mp4"
+            watermarked_path = temp_dir / watermarked_filename
+            
+            apply_watermark_to_video(
+                input_video_path=output_path,
+                output_video_path=watermarked_path,
+                team_name=team_name
+            )
+            
+            if not watermarked_path.exists():
+                logger.warning("Watermark application failed, returning original video")
+                watermarked_path = output_path
+            else:
+                output_path = watermarked_path
+                
+        except Exception as e:
+            logger.error(f"Watermark application error: {str(e)}")
+            # Continue with original video if watermark fails
         
         # Schedule cleanup AFTER FileResponse finishes streaming
         background_tasks.add_task(cleanup_temp_path, temp_dir)

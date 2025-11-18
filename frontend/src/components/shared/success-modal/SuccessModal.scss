@@ -26,6 +26,39 @@
     transform: scale(0.8);
     opacity: 0;
     animation: celebrationPop 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards 0.1s;
+    position: relative;
+
+    .modal-close-x {
+      position: absolute;
+      top: 1.25rem;
+      right: 1.25rem;
+      width: 36px;
+      height: 36px;
+      border: none;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      color: rgba(255, 255, 255, 0.6);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      z-index: 1;
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: rgba(255, 255, 255, 0.9);
+      }
+
+      &:active {
+        transform: scale(0.95);
+      }
+
+      svg {
+        width: 20px;
+        height: 20px;
+      }
+    }
 
     .success-modal-content {
       display: flex;
@@ -70,30 +103,6 @@
           width: 100%;
           display: block;
           max-height: 300px;
-        }
-      }
-
-      .btn-close-success {
-        padding: 0.875rem 2.5rem;
-        border-radius: 10px;
-        font-size: 1rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        border: none;
-        background: #19ed27;
-        color: white;
-        box-shadow: 0 4px 12px rgba(25, 237, 39, 0.3);
-        animation: slideUp 0.4s ease-out 0.7s backwards;
-
-        &:hover {
-          background: #15d122;
-          transform: translateY(-2px);
-          box-shadow: 0 6px 16px rgba(25, 237, 39, 0.4);
-        }
-
-        &:active {
-          transform: translateY(0);
         }
       }
     }
@@ -183,11 +192,6 @@
           .preview-video {
             max-height: 200px;
           }
-        }
-
-        .btn-close-success {
-          padding: 0.75rem 2rem;
-          font-size: 0.95rem;
         }
       }
     }

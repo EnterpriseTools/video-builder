@@ -1,0 +1,109 @@
+.axon-watermark-overlay {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  max-width: 300px;
+  z-index: 1000;
+  transition: all 0.3s ease;
+  pointer-events: none;
+  
+  .watermark-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(0, 0, 0, 0.4);
+    padding: 8px 12px;
+    border-radius: 8px;
+    backdrop-filter: blur(4px);
+    
+  }
+
+  .watermark-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-family: 'Courier New', Courier, monospace;
+    color: #ffffff;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+    letter-spacing: 0.5px;
+    overflow: hidden;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .watermark-timestamp {
+    font-weight: 400;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .watermark-device {
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .watermark-logo {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    
+    img {
+      display: block;
+      width: auto;
+      filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.5));
+    }
+  }
+
+  // Size variants
+  &.small {
+    .watermark-content {
+      padding: 6px 10px;
+      gap: 10px;
+    }
+    
+    .watermark-text {
+      font-size: 10px;
+      gap: 1px;
+    }
+    
+    .watermark-logo img {
+      height: 24px;
+    }
+  }
+
+  &.medium {
+    .watermark-content {
+      padding: 8px 12px;
+      gap: 12px;
+    }
+    
+    .watermark-text {
+      font-size: 12px;
+      gap: 2px;
+    }
+    
+    .watermark-logo img {
+      height: 32px;
+    }
+  }
+
+  &.large {
+    .watermark-content {
+      padding: 10px 14px;
+      gap: 14px;
+    }
+    
+    .watermark-text {
+      font-size: 14px;
+      gap: 3px;
+    }
+    
+    .watermark-logo img {
+      height: 40px;
+    }
+  }
+}
+

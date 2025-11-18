@@ -70,6 +70,14 @@ All templates are accessed through the Video Builder modal interface. Each templ
 - Support for multiple video formats
 - API Endpoint: `/api/trim`
 
+### 🏷️ **Axon Watermark** (`/axon-watermark`)
+- Professional watermark configuration interface
+- Automatically applied to all rendered videos
+- Top-right positioning (non-user-editable)
+- Configurable opacity, size, and logo type
+- Live preview of watermark appearance
+- Note: Configuration UI only - backend integration pending
+
 ## 🚀 Quick Start
 
 ### Prerequisites
@@ -121,6 +129,11 @@ The application has three main routes:
 3. **Video Trimming** (`/trim`)
    - Standalone video trimming tool
    - Upload, trim, and download videos
+
+4. **Axon Watermark** (`/axon-watermark`)
+   - Watermark configuration interface
+   - Live preview of watermark settings
+   - Admin/developer tool for configuring automatic watermark
 
 ### Creating Videos
 
