@@ -94,9 +94,8 @@ def apply_watermark_to_video(
     if logo_path is None or not logo_path.exists():
         # Look in standard locations
         possible_logo_paths = [
-            Path(__file__).parent.parent.parent.parent / "frontend" / "public" / "axon-delta-yellow.png",  # Development
-            Path(__file__).parent.parent / "assets" / "axon-delta-yellow.png",  # Backend assets
-            Path("/app/assets/axon-delta-yellow.png"),  # Docker path
+            Path(__file__).parent.parent / "assets" / "axon-delta-yellow.png",  # Backend assets (production)
+            Path(__file__).resolve().parents[3] / "frontend" / "public" / "axon-delta-yellow.png",  # Development fallback
         ]
         
         logo_path = None

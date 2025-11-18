@@ -88,8 +88,8 @@ class IntroOverlayGenerator:
             )
             
             # Load and paste the actual Axon logo image
-            # Path should go up 3 levels: utils -> app -> backend -> project root
-            logo_img_path = Path(__file__).resolve().parents[3] / "frontend" / "public" / "logoAxonStyled.png"
+            # Path points to backend/app/assets/ (works in both dev and production)
+            logo_img_path = Path(__file__).parent.parent / "assets" / "logoAxonStyled.png"
             if logo_img_path.exists():
                 try:
                     logo_img = Image.open(logo_img_path).convert('RGBA')
