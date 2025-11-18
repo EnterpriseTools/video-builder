@@ -1,5 +1,6 @@
 import tempfile
 import datetime
+import logging
 from pathlib import Path
 from typing import Optional
 from PIL import Image, ImageDraw, ImageFont
@@ -14,6 +15,8 @@ from .styles import (
     ClosingStyles,
     get_font, get_logo_path
 )
+
+logger = logging.getLogger(__name__)
 
 class ClosingOverlayGenerator:
     """
@@ -181,7 +184,7 @@ class ClosingOverlayGenerator:
             
             # Save the image
             img.save(output_path, 'PNG')
-            print(f"Closing overlay generated: {output_path}")
+            logger.info(f"Closing overlay generated: {output_path}")
             return output_path
             
         except ImportError:

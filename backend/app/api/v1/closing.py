@@ -71,12 +71,12 @@ async def render_closing(
                 
                 # Verify overlay was created and is not empty
                 if not overlay_path or not Path(overlay_path).exists() or Path(overlay_path).stat().st_size == 0:
-                    print(f"Warning: Overlay generation failed or empty file. Continuing without overlay.")
+                    logger.warning("Overlay generation failed or empty file. Continuing without overlay.")
                     has_overlay = False
                     overlay_path = None
                     
             except Exception as e:
-                print(f"Warning: Overlay generation failed: {e}. Continuing without overlay.")
+                logger.warning(f"Overlay generation failed: {e}. Continuing without overlay.")
                 has_overlay = False
                 overlay_path = None
         
@@ -171,7 +171,7 @@ async def render_closing(
             ]
         
         # Execute FFmpeg command
-        print(f"Running FFmpeg command: {' '.join(cmd)}")
+        logger.info(f"Running FFmpeg command with duration={audio_duration}s")
         
         # Use Popen to avoid subprocess deadlock on large outputs
         try:
@@ -206,8 +206,7 @@ async def render_closing(
             )
         
         if result.returncode != 0:
-            print(f"FFmpeg stderr: {result.stderr}")
-            print(f"FFmpeg stdout: {result.stdout}")
+            logger.error(f"FFmpeg failed: {result.stderr[:500]}")
             cleanup_temp_path(temp_dir)  # Immediate cleanup on FFmpeg failure
             logger.error(f"FFmpeg failed for {temp_dir}: {result.stderr}")
             raise HTTPException(

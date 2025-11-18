@@ -347,8 +347,24 @@ def get_font(font_path: str, size: int):
 
 
 def get_logo_path():
-    """Get the path to the Axon logo"""
+    """Get the path to the Axon logo - works for both local dev and Docker"""
     from pathlib import Path
+    
+    # Try Docker path first (most common in production)
     # In Docker: styles.py is at /app/app/utils/styles.py
-    # Go up 3 levels to /app/, then to frontend/public/logoAxon.png
-    return Path(__file__).parent.parent.parent / "frontend" / "public" / "logoAxon.png"
+    # Logo is at /app/frontend/public/logoAxon.png
+    docker_path = Path(__file__).parent.parent.parent / "frontend" / "public" / "logoAxon.png"
+    
+    if docker_path.exists():
+        return docker_path
+    
+    # Fall back to local development path
+    # In local: styles.py is at /path/to/project/backend/app/utils/styles.py
+    # Logo is at /path/to/project/frontend/public/logoAxon.png
+    local_path = Path(__file__).parent.parent.parent.parent / "frontend" / "public" / "logoAxon.png"
+    
+    if local_path.exists():
+        return local_path
+    
+    # If neither exists, return the Docker path and let the error handler deal with it
+    return docker_path
