@@ -19,19 +19,22 @@ CANVAS_HEIGHT = 1080
 # ==============================================================================
 
 # Font paths
-# For SF Pro Rounded, we need to include the font files in the repository
-# SF Pro Rounded is available in multiple weights. For overlays, we'll use:
-# - SF-Pro-Rounded-Regular.otf for regular text
-# - SF-Pro-Rounded-Semibold.otf for emphasis
-# - SF-Pro-Text-Bold.otf for titles (using Text Bold as Rounded Bold equivalent)
-SF_PRO_ROUNDED_REGULAR = "/app/fonts/SF-Pro-Rounded-Regular.otf"
-SF_PRO_ROUNDED_SEMIBOLD = "/app/fonts/SF-Pro-Rounded-Semibold.otf"
-SF_PRO_ROUNDED_BOLD = "/app/fonts/SF-Pro-Text-Bold.otf"  # Using Text Bold
+# SF Pro Rounded fonts - stored in backend/app/fonts/
+# These paths work for both local development and production deployment
+import os
+from pathlib import Path
 
-# Fallback fonts for local development and if SF Pro not available
+# Get the base path for fonts (relative to this file)
+FONT_BASE_PATH = Path(__file__).parent.parent / "fonts"
+
+SF_PRO_ROUNDED_REGULAR = str(FONT_BASE_PATH / "SF-Pro-Rounded-Regular.otf")
+SF_PRO_ROUNDED_SEMIBOLD = str(FONT_BASE_PATH / "SF-Pro-Rounded-Semibold.otf")
+SF_PRO_ROUNDED_BOLD = str(FONT_BASE_PATH / "SF-Pro-Rounded-Bold.otf")
+
+# Fallback fonts for if SF Pro not available
 PRIMARY_FONT_PATH = SF_PRO_ROUNDED_SEMIBOLD
-FALLBACK_FONT_PATH = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"  # Linux fallback
-FALLBACK_FONT_PATH_2 = "/System/Library/Fonts/Helvetica.ttc"  # macOS fallback
+FALLBACK_FONT_PATH_MACOS = "/System/Library/Fonts/Helvetica.ttc"  # macOS (try first on Mac)
+FALLBACK_FONT_PATH_LINUX = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"  # Linux fallback
 
 # Font sizes (in pixels)
 FONT_SIZE_EXTRA_LARGE = 80    # Main titles
@@ -304,45 +307,38 @@ class HowItWorksStyles:
 # ==============================================================================
 
 def get_font(font_path: str, size: int):
-    """Helper function to load fonts with fallback"""
+    """Helper function to load fonts with fallback (minimal logging)"""
     from PIL import ImageFont
     import os
+    import platform
     
-    # Try primary font
+    # Detect if we're on macOS
+    is_macos = platform.system() == 'Darwin'
+    
+    # Try primary font (SF Pro) - silently fail if not found
     if os.path.exists(font_path):
         try:
-            font = ImageFont.truetype(font_path, size)
-            print(f"DEBUG: Loaded font from {font_path} at {size}px")
-            return font
-        except Exception as e:
-            print(f"WARNING: Failed to load font from {font_path}: {e}")
-    else:
-        print(f"WARNING: Font not found at {font_path}")
+            return ImageFont.truetype(font_path, size)
+        except Exception:
+            pass  # Silent fallback
     
-    # Try first fallback font (Linux)
-    if os.path.exists(FALLBACK_FONT_PATH):
+    # On macOS, prioritize Helvetica
+    if is_macos:
+        if os.path.exists(FALLBACK_FONT_PATH_MACOS):
+            try:
+                return ImageFont.truetype(FALLBACK_FONT_PATH_MACOS, size)
+            except Exception:
+                pass
+    
+    # Try Linux fallback (DejaVu)
+    if os.path.exists(FALLBACK_FONT_PATH_LINUX):
         try:
-            font = ImageFont.truetype(FALLBACK_FONT_PATH, size)
-            print(f"DEBUG: Loaded fallback font from {FALLBACK_FONT_PATH} at {size}px")
-            return font
-        except Exception as e:
-            print(f"WARNING: Failed to load fallback font from {FALLBACK_FONT_PATH}: {e}")
-    else:
-        print(f"WARNING: Fallback font not found at {FALLBACK_FONT_PATH}")
+            return ImageFont.truetype(FALLBACK_FONT_PATH_LINUX, size)
+        except Exception:
+            pass
     
-    # Try second fallback font (macOS)
-    if os.path.exists(FALLBACK_FONT_PATH_2):
-        try:
-            font = ImageFont.truetype(FALLBACK_FONT_PATH_2, size)
-            print(f"DEBUG: Loaded second fallback font from {FALLBACK_FONT_PATH_2} at {size}px")
-            return font
-        except Exception as e:
-            print(f"WARNING: Failed to load second fallback font from {FALLBACK_FONT_PATH_2}: {e}")
-    else:
-        print(f"WARNING: Second fallback font not found at {FALLBACK_FONT_PATH_2}")
-    
-    # Last resort - but this will cause small text!
-    print(f"ERROR: No TrueType fonts available! Falling back to default bitmap font (will be tiny)")
+    # Last resort: use Pillow's default font
+    print(f"WARNING: No suitable fonts found, using default font at {size}px")
     return ImageFont.load_default()
 
 
