@@ -1,0 +1,97 @@
+@use "@/styles/index" as *;
+
+.phr-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end; // Align to bottom
+  padding: 0; // Remove padding to touch the bottom
+  z-index: 100;
+  pointer-events: none; // Allow clicks through the footer except on the logo
+}
+
+.phr-footer__content {
+  position: relative;
+  pointer-events: auto; // Re-enable pointer events for the content
+  cursor: pointer;
+}
+
+.phr-footer__logo {
+  display: block;
+  height: 56px; // Increased from 48px
+  width: auto;
+  opacity: 1;
+  transform: translateY(8px); // Lower by 8px on default
+  transition: transform 0.2s ease;
+  
+  .phr-footer__content:hover & {
+    transform: translateY(4px); // Slide up 4px on hover
+  }
+}
+
+.phr-footer__tooltip {
+  position: absolute;
+  bottom: calc(100% + 8px); // Position 8px above the content
+  left: 50%;
+  transform: translateX(-50%) translateY(-12px); // Start higher up, centered horizontally
+  padding: var(--space-150) var(--space-200);
+  background: #101010;
+  border: 1px solid #2A2A2A;
+  border-radius: var(--radius-100);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  font-size: var(--font-size-200);
+  color: var(--color-fg);
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s ease;
+  pointer-events: auto;
+  
+  .phr-footer__content:hover & {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0); // Slide down to final position, stay centered
+  }
+  
+  // Tooltip arrow
+  &::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 6px solid var(--color-surface-elevated);
+  }
+}
+
+.phr-footer__link {
+  color: #FEC62E;
+  text-decoration: none;
+  font-weight: var(--font-weight-semibold);
+  transition: color 0.2s ease;
+  
+  &:hover {
+    color: #FEC62E;
+    text-decoration: underline;
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .phr-footer__logo {
+    height: 48px; // Increased from 40px to match desktop scaling
+  }
+  
+  .phr-footer__tooltip {
+    font-size: var(--font-size-100);
+    padding: var(--space-100) var(--space-150);
+  }
+}
+

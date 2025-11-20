@@ -3,7 +3,7 @@ Axon Watermark Overlay Utility
 
 This module provides functionality to apply Axon body camera-style watermarks
 to rendered videos. The watermark includes:
-- Real-time timestamp with timezone
+- Date with dynamic timecode that counts up from 00:00:00 as video plays
 - Device identification (AXON + team name)
 - Axon logo
 
@@ -31,20 +31,20 @@ def escape_text_for_ffmpeg(text: str) -> str:
                .replace("]", "\\]"))
 
 
-def get_watermark_timestamp() -> str:
+def get_watermark_date() -> str:
     """
-    Get formatted timestamp for watermark.
+    Get formatted date for watermark (without time).
     
-    Format: YYYY-MM-DD HH:MM:SS
-    Example: 2025-11-18 14:32:15
+    Format: YYYY-MM-DD
+    Example: 2025-11-18
     
     Returns:
-        Formatted timestamp string
+        Formatted date string
     """
     now = datetime.now()
-    # Format: 2025-11-18 14:32:15
-    timestamp = now.strftime('%Y-%m-%d %H:%M:%S')
-    return timestamp
+    # Format: 2025-11-18
+    date = now.strftime('%Y-%m-%d')
+    return date
 
 
 def apply_watermark_to_video(
@@ -57,7 +57,7 @@ def apply_watermark_to_video(
     Apply Axon body camera-style watermark to a video.
     
     The watermark includes:
-    - Row 1: Timestamp (YYYY-MM-DD HH:MM:SS ±ZZZZ)
+    - Row 1: Date + Dynamic Timecode (YYYY-MM-DD HH:MM:SS counting up from 00:00:00)
     - Row 2: AXON [TEAM_NAME] (or just "AXON" if team_name is empty)
     - Logo: Axon triangle on the right side
     
@@ -75,8 +75,8 @@ def apply_watermark_to_video(
         FileNotFoundError: If logo file is not found
     """
     
-    # Get current timestamp for watermark
-    timestamp = get_watermark_timestamp()
+    # Get current date for watermark (time will be dynamic timecode)
+    date = get_watermark_date()
     
     # Build device info text
     if team_name and team_name.strip():
@@ -84,11 +84,11 @@ def apply_watermark_to_video(
     else:
         device_text = "AXON"
     
-    # Escape text for FFmpeg
-    timestamp_escaped = escape_text_for_ffmpeg(timestamp)
+    # Escape date for FFmpeg (only the static part)
+    date_escaped = escape_text_for_ffmpeg(date)
     device_text_escaped = escape_text_for_ffmpeg(device_text)
     
-    logger.info(f"Applying watermark with timestamp: {timestamp}, device: {device_text}")
+    logger.info(f"Applying watermark with date: {date}, device: {device_text}")
     
     # Determine logo path
     if logo_path is None or not logo_path.exists():
@@ -128,12 +128,16 @@ def apply_watermark_to_video(
     # Calculate positions (top-right corner with padding)
     # Watermark: white text with text shadow, no background box
     
-    # Text position (top-right corner)
-    text_x = "main_w-324"  # 324px from right edge
+    # Text position (top-right corner, moved 20px left from previous position)
+    text_x = "main_w-344"  # 344px from right edge (moved left by 20px)
     text_y = "36"  # 36px from top
     
-    # Timestamp text (row 1) - white text with 50% opacity shadow for readability
-    timestamp_filter = f"drawtext=fontfile='{font_file}':text='{timestamp_escaped}':fontcolor=white:fontsize=18:x={text_x}:y={text_y}:shadowcolor=black@0.5:shadowx=1:shadowy=1"
+    # Timestamp text (row 1) - date + dynamic timecode that counts up from 00:00:00
+    # Using FFmpeg's gmtime with pts to display current video timestamp in HH:MM:SS format
+    # The timecode will count up as the video plays (00:00:00, 00:00:01, 00:00:02, etc.)
+    # Reduced spacing between date and timecode for tighter layout
+    timestamp_text = f"{date_escaped}%{{gmtime\\:0\\:%H\\\\\\:%M\\\\\\:%S}}"
+    timestamp_filter = f"drawtext=fontfile='{font_file}':text='{timestamp_text}':fontcolor=white:fontsize=18:x={text_x}:y={text_y}:shadowcolor=black@0.5:shadowx=1:shadowy=1"
     
     # Device info text (row 2) - white text with 50% opacity shadow for readability
     device_y = "60"  # text_y + 24px row spacing (increased for 18px font)
@@ -190,7 +194,7 @@ def apply_watermark_to_video(
             str(output_video_path)
         ]
     
-    logger.info(f"Applying watermark with timestamp: {timestamp}, device: {device_text}")
+    logger.info(f"Applying watermark with date: {date} + dynamic timecode, device: {device_text}")
     logger.debug(f"FFmpeg command: {' '.join(cmd)}")
     
     # Execute FFmpeg command
