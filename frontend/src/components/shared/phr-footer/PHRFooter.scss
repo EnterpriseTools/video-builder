@@ -7,36 +7,36 @@
   right: 0;
   display: flex;
   justify-content: center;
-  align-items: flex-end; // Align to bottom
-  padding: 0; // Remove padding to touch the bottom
+  align-items: flex-end; 
+  padding: 0; 
   z-index: 100;
-  pointer-events: none; // Allow clicks through the footer except on the logo
+  pointer-events: none; 
 }
 
 .phr-footer__content {
   position: relative;
-  pointer-events: auto; // Re-enable pointer events for the content
+  pointer-events: auto; 
   cursor: pointer;
 }
 
 .phr-footer__logo {
   display: block;
-  height: 56px; // Increased from 48px
+  height: 56px; 
   width: auto;
   opacity: 1;
-  transform: translateY(8px); // Lower by 8px on default
+  transform: translateY(8px); 
   transition: transform 0.2s ease;
   
   .phr-footer__content:hover & {
-    transform: translateY(4px); // Slide up 4px on hover
+    transform: translateY(4px); 
   }
 }
 
 .phr-footer__tooltip {
   position: absolute;
-  bottom: calc(100% + 8px); // Position 8px above the content
+  bottom: calc(100% + 8px); 
   left: 50%;
-  transform: translateX(-50%) translateY(-12px); // Start higher up, centered horizontally
+  transform: translateX(-50%) translateY(-12px);
   padding: var(--space-150) var(--space-200);
   background: #101010;
   border: 1px solid #2A2A2A;
@@ -53,7 +53,7 @@
   .phr-footer__content:hover & {
     opacity: 1;
     visibility: visible;
-    transform: translateX(-50%) translateY(0); // Slide down to final position, stay centered
+    transform: translateX(-50%) translateY(0); 
   }
   
   // Tooltip arrow
@@ -86,7 +86,7 @@
 // Responsive adjustments
 @media (max-width: 768px) {
   .phr-footer__logo {
-    height: 48px; // Increased from 40px to match desktop scaling
+    height: 48px; 
   }
   
   .phr-footer__tooltip {
