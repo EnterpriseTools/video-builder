@@ -70,6 +70,16 @@ All templates are accessed through the Video Builder modal interface. Each templ
 - Support for multiple video formats
 - API Endpoint: `/api/trim`
 
+### 🔗 **Slack Integration**
+- **Share to Slack**: Share generated videos directly to your Slack channel
+- **One-Click Sharing**: From the success dialog after video generation
+- **Secure Backend Upload**: Files uploaded via secure backend API
+- **Loading States**: Beautiful animations and feedback during upload
+- **Error Handling**: Automatic error detection and user feedback
+- **Configuration**: Environment variable based setup
+- **Feature Flag**: Can be enabled/disabled via `FEATURE_SLACK`
+- **Setup Guide**: See [SLACK_INTEGRATION_SETUP.md](./SLACK_INTEGRATION_SETUP.md)
+
 ### 🏷️ **Axon Watermark** (`/axon-watermark`)
 - Professional watermark configuration interface
 - Automatically applied to all rendered videos
@@ -353,8 +363,17 @@ Create `backend/.env`:
 ENV=development
 PORT=8000
 CORS_ORIGINS=http://localhost:5173
+
+# Feature Flags
 FEATURE_OPENAI=false
+FEATURE_SLACK=false
+
+# Slack Integration (optional - requires FEATURE_SLACK=true)
+SLACK_BOT_TOKEN=xoxb-your-bot-token-here
+SLACK_CHANNEL_ID=C01234ABC5D
 ```
+
+See [SLACK_INTEGRATION_SETUP.md](./SLACK_INTEGRATION_SETUP.md) for complete Slack configuration instructions.
 
 #### API Proxy
 The frontend automatically proxies `/api/*` requests to `http://localhost:8000`
@@ -470,6 +489,15 @@ POST /api/concatenate-multipart  # Concatenate videos (multipart form data)
 
 The `/concatenate-multipart` endpoint is used by the Video Builder to stitch together all configured template videos into a single final presentation.
 
+### **Slack API**
+```bash
+POST /api/share-to-slack
+# Form data: file (video blob), filename (optional), initial_comment (optional)
+# Returns: {"success": true, "message": "Video shared to Slack successfully!", "file_info": {...}}
+```
+
+The Slack endpoint uploads generated videos to a configured Slack channel. Requires `FEATURE_SLACK=true` and proper configuration. See [SLACK_INTEGRATION_SETUP.md](./SLACK_INTEGRATION_SETUP.md).
+
 ### **Health Check**
 ```bash
 GET /api/health
@@ -573,6 +601,16 @@ This application is deployed using a modern, scalable cloud architecture with au
 |----------|---------|-------------|
 | `ENV` | `development` | Environment name |
 | `PORT` | Auto-set by Railway | Port number (automatically configured) |
+| `FEATURE_SLACK` | `false` | Enable Slack integration |
+| `SLACK_BOT_TOKEN` | - | Slack Bot User OAuth Token (starts with `xoxb-`) |
+| `SLACK_CHANNEL_ID` | - | Slack channel ID for video uploads |
+
+**Slack Configuration:**
+To enable Slack integration in production:
+1. Create a Slack App and get your Bot Token
+2. Get your Channel ID from Slack
+3. Set the environment variables in Railway
+4. See [SLACK_INTEGRATION_SETUP.md](./SLACK_INTEGRATION_SETUP.md) for detailed instructions
 
 ### Configuration Files
 

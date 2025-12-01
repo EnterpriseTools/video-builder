@@ -13,6 +13,10 @@ class Settings(BaseSettings):
     # OpenAI API Key
     OPENAI_API_KEY: str = ""
 
+    # Slack Integration
+    SLACK_BOT_TOKEN: str = ""
+    SLACK_CHANNEL_ID: str = ""
+
     # Feature flags (keep minimal template by default)
     FEATURE_OPENAI: bool = False
 

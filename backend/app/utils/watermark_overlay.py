@@ -133,10 +133,10 @@ def apply_watermark_to_video(
     text_y = "36"  # 36px from top
     
     # Timestamp text (row 1) - date + dynamic timecode that counts up from 00:00:00
-    # Using FFmpeg's gmtime with pts to display current video timestamp in HH:MM:SS format
+    # Using FFmpeg's pts helper (with zero offset) formatted via gmtime to display the current video timestamp
     # The timecode will count up as the video plays (00:00:00, 00:00:01, 00:00:02, etc.)
     # Reduced spacing between date and timecode for tighter layout
-    timestamp_text = f"{date_escaped}%{{gmtime\\:0\\:%H\\\\\\:%M\\\\\\:%S}}"
+    timestamp_text = f"{date_escaped} %{{pts\\:gmtime\\:0\\:%H\\\\\\:%M\\\\\\:%S}}"
     timestamp_filter = f"drawtext=fontfile='{font_file}':text='{timestamp_text}':fontcolor=white:fontsize=18:x={text_x}:y={text_y}:shadowcolor=black@0.5:shadowx=1:shadowy=1"
     
     # Device info text (row 2) - white text with 50% opacity shadow for readability

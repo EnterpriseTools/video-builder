@@ -8,6 +8,7 @@ from .persona import router as persona_router
 from .closing import router as closing_router
 from .demo import router as demo_router
 from .concatenate import router as concatenate_router
+from .slack import router as slack_router
 from ...core.config import settings
 
 api_router = APIRouter()
@@ -27,3 +28,7 @@ api_router.include_router(concatenate_router, tags=["concatenate"])
 if settings.FEATURE_OPENAI:
     from .openai_chat import router as openai_router  # type: ignore
     api_router.include_router(openai_router, tags=["openai"])
+
+# Auto-enable Slack if credentials are configured
+if settings.SLACK_BOT_TOKEN and settings.SLACK_CHANNEL_ID:
+    api_router.include_router(slack_router, tags=["slack"])

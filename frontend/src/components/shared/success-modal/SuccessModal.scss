@@ -127,6 +127,22 @@
         svg {
           width: 20px;
           height: 20px;
+          flex-shrink: 0;
+        }
+
+        .spinner {
+          animation: spin 1s linear infinite;
+        }
+
+        // Success state
+        &.success {
+          background: linear-gradient(135deg, #19ed27 0%, #15c91f 100%);
+          box-shadow: 0 4px 12px rgba(25, 237, 39, 0.4);
+          
+          &:hover {
+            background: linear-gradient(135deg, #1fff31 0%, #19ed27 100%);
+            box-shadow: 0 6px 20px rgba(25, 237, 39, 0.5);
+          }
         }
 
         // Tooltip
@@ -193,23 +209,41 @@
         }
 
         &:disabled {
-          opacity: 0.5;
+          opacity: 0.6;
           cursor: not-allowed;
           transform: none;
           box-shadow: 0 4px 12px rgba(97, 31, 105, 0.3);
 
-          // Show tooltip even when disabled
           &:hover {
-            &::before,
-            &::after {
-              opacity: 1;
-              visibility: visible;
-            }
-
-            &::before {
-              transform: translateX(-50%) translateY(0);
-            }
+            transform: none;
+            background: linear-gradient(135deg, #611f69 0%, #4a154b 100%);
+            box-shadow: 0 4px 12px rgba(97, 31, 105, 0.3);
           }
+        }
+      }
+
+      .share-error {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1rem;
+        background: rgba(255, 77, 77, 0.1);
+        border: 1px solid rgba(255, 77, 77, 0.3);
+        border-radius: 8px;
+        color: #ff6b6b;
+        font-size: 0.875rem;
+        animation: slideUp 0.3s ease-out;
+        width: 100%;
+
+        svg {
+          width: 16px;
+          height: 16px;
+          flex-shrink: 0;
+        }
+
+        span {
+          flex: 1;
+          line-height: 1.4;
         }
       }
     }
@@ -274,6 +308,15 @@
   to {
     transform: translateY(0);
     opacity: 1;
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
   }
 }
 
