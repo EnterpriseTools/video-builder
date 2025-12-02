@@ -14,13 +14,29 @@ The primary Axon watermark is positioned in the top-right corner of the video.
 import subprocess
 from pathlib import Path
 from datetime import datetime
-from typing import Optional, Tuple
+from typing import Optional, Tuple, List
 import logging
 import json
 
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
+
+
+def build_enable_expression(intervals: List[Tuple[float, float]]) -> Optional[str]:
+    """
+    Build an ffmpeg enable expression that activates during provided intervals.
+    """
+    clauses = []
+    for start, end in intervals:
+        if start is None or end is None:
+            continue
+        start = max(0.0, float(start))
+        end = max(start, float(end))
+        if end <= start:
+            continue
+        clauses.append(f"between(t,{start:.3f},{end:.3f})")
+    return "+".join(clauses) if clauses else None
 
 
 def get_media_dimensions(media_path: Path) -> Tuple[int, int]:
@@ -84,7 +100,8 @@ def apply_watermark_to_video(
     input_video_path: Path,
     output_video_path: Path,
     team_name: str = "",
-    logo_path: Optional[Path] = None
+    logo_path: Optional[Path] = None,
+    qr_overlay_intervals: Optional[List[Tuple[float, float]]] = None,
 ) -> Path:
     """
     Apply Axon body camera-style watermark to a video.
@@ -100,6 +117,9 @@ def apply_watermark_to_video(
         output_video_path: Path where watermarked video will be saved
         team_name: Team name for device info (empty string for just "AXON")
         logo_path: Path to Axon logo image (optional, will look in standard location)
+        qr_overlay_intervals: Optional list of (start, end) times in seconds where the QR banner should be visible.
+                              If None, the banner (when enabled) is visible throughout the video. If an empty list is
+                              provided, the QR overlay is skipped.
     
     Returns:
         Path to the watermarked output video
@@ -146,7 +166,11 @@ def apply_watermark_to_video(
     qr_banner_path: Optional[Path] = None
     qr_target_width: Optional[int] = None
     qr_target_height: Optional[int] = None
-    if settings.FEATURE_QR_BANNER:
+    qr_enable_expr: Optional[str] = None
+    qr_overlay_active = settings.FEATURE_QR_BANNER and (
+        qr_overlay_intervals is None or len(qr_overlay_intervals) > 0
+    )
+    if qr_overlay_active:
         possible_qr_paths = [
             Path(__file__).parent.parent / "assets" / "QRCodeBanner.png",
             Path(__file__).resolve().parents[3] / "frontend" / "public" / "QRCodeBanner.png",
@@ -167,14 +191,17 @@ def apply_watermark_to_video(
         qr_target_width = max(1, min(qr_target_width, qr_original_width))
         qr_aspect_ratio = qr_original_height / qr_original_width if qr_original_width else 1
         qr_target_height = max(1, int(round(qr_target_width * qr_aspect_ratio)))
+        if qr_overlay_intervals:
+            qr_enable_expr = build_enable_expression(qr_overlay_intervals)
         logger.info(
-            "QR banner scaling computed: video_width=%s target_width=%s target_height=%s",
+            "QR banner scaling computed: video_width=%s target_width=%s target_height=%s enable=%s",
             video_width,
             qr_target_width,
             qr_target_height,
+            qr_enable_expr,
         )
     else:
-        logger.info("QR banner overlay disabled via FEATURE_QR_BANNER flag")
+        logger.info("QR banner overlay disabled via feature flag or no intervals provided")
     
     # Build FFmpeg filter complex for watermark
     # The watermark consists of:
@@ -243,9 +270,11 @@ def apply_watermark_to_video(
         filter_segments.append(
             f"[{qr_input_index}:v]scale={qr_target_width}:{qr_target_height}[qr_banner]"
         )
-        filter_segments.append(
-            f"[{current_label}][qr_banner]overlay=main_w-w-16:main_h-h-16[vqr]"
-        )
+        overlay_filter = f"[{current_label}][qr_banner]overlay=main_w-w-16:main_h-h-16"
+        if qr_enable_expr:
+            overlay_filter += f":enable='{qr_enable_expr}'"
+        overlay_filter += "[vqr]"
+        filter_segments.append(overlay_filter)
         current_label = "vqr"
         input_index += 1
     

@@ -7,6 +7,7 @@ from fastapi import APIRouter, BackgroundTasks, HTTPException, UploadFile, File,
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from app.utils.file_utils import cleanup_temp_path
+from app.utils.media import get_video_duration
 from app.utils.watermark_overlay import apply_watermark_to_video
 
 router = APIRouter()
@@ -52,6 +53,7 @@ async def concatenate_videos(background_tasks: BackgroundTasks, request: Concate
         
         # Save all video segments to temporary files
         segment_paths = []
+        segment_metadata = []
         concat_list_path = temp_dir / "concat_list.txt"
         
         with open(concat_list_path, 'w') as concat_file:
@@ -75,6 +77,19 @@ async def concatenate_videos(background_tasks: BackgroundTasks, request: Concate
                 segment_paths.append(segment_path)
                 # Add to FFmpeg concat list
                 concat_file.write(f"file '{segment_path}'\n")
+                
+                # Record metadata for duration tracking
+                duration = None
+                try:
+                    duration = get_video_duration(segment_path)
+                    logger.debug(f"Segment order {segment['order']} duration: {duration:.3f}s")
+                except Exception as exc:
+                    logger.warning(f"Failed to read duration for segment {segment_path}: {exc}")
+                segment_metadata.append({
+                    "order": segment['order'],
+                    "path": segment_path,
+                    "duration": duration
+                })
         
         if not segment_paths:
             raise HTTPException(status_code=400, detail="No valid video segments found")
@@ -221,6 +236,7 @@ async def concatenate_videos_multipart(
     try:
         # Save segments and create concat list
         segment_paths = []
+        segment_metadata = []
         concat_list_path = temp_dir / "concat_list.txt"
         
         with open(concat_list_path, 'w') as concat_file:
@@ -235,6 +251,18 @@ async def concatenate_videos_multipart(
                 
                 segment_paths.append(segment_path)
                 concat_file.write(f"file '{segment_path}'\n")
+                
+                duration = None
+                try:
+                    duration = get_video_duration(segment_path)
+                    logger.debug(f"[multipart] Segment order {segment['order']} duration: {duration:.3f}s")
+                except Exception as exc:
+                    logger.warning(f"[multipart] Failed to read duration for segment {segment_path}: {exc}")
+                segment_metadata.append({
+                    "order": segment['order'],
+                    "path": segment_path,
+                    "duration": duration
+                })
         
         # Create output path
         output_filename = final_filename
@@ -309,6 +337,37 @@ async def concatenate_videos_multipart(
         
         print(f"Successfully concatenated {len(segment_paths)} videos into {output_filename}")
         
+        # Calculate QR overlay intervals (intro start, closing end)
+        qr_intervals = []
+        total_segment_duration = sum(
+            meta["duration"] for meta in segment_metadata if meta["duration"] is not None
+        )
+        final_video_duration = None
+        try:
+            final_video_duration = get_video_duration(output_path)
+        except Exception as exc:
+            logger.warning(f"Unable to read final video duration for QR overlay: {exc}")
+            if total_segment_duration:
+                final_video_duration = total_segment_duration
+        
+        def find_duration(order: int) -> Optional[float]:
+            for meta in segment_metadata:
+                if meta["order"] == order and meta["duration"]:
+                    return meta["duration"]
+            return None
+        
+        intro_duration = find_duration(1)
+        closing_duration = find_duration(6)
+        
+        if intro_duration:
+            qr_intervals.append((0.0, intro_duration))
+        
+        if closing_duration and final_video_duration:
+            closing_start = max(0.0, final_video_duration - closing_duration)
+            qr_intervals.append((closing_start, final_video_duration))
+        
+        logger.info(f"QR overlay intervals calculated: {qr_intervals}")
+        
         # Apply watermark to the concatenated video
         try:
             watermarked_filename = f"{Path(output_filename).stem}_watermarked.mp4"
@@ -317,7 +376,8 @@ async def concatenate_videos_multipart(
             apply_watermark_to_video(
                 input_video_path=output_path,
                 output_video_path=watermarked_path,
-                team_name=team_name
+                team_name=team_name,
+                qr_overlay_intervals=qr_intervals
             )
             
             if not watermarked_path.exists():
