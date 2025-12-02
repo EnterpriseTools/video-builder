@@ -16,7 +16,7 @@ export default function PHRFooter() {
           className="phr-footer__logo"
         />
         <div className="phr-footer__tooltip">
-          Reach out to our{' '}
+          Join our{' '}
           <a 
             href="https://axon.enterprise.slack.com/archives/C09LQE3AYK0" 
             target="_blank" 
