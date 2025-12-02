@@ -565,6 +565,11 @@ export default function CaseStudyTemplate() {
       <div className="highlight-global"></div>
       <div className="video-builder-container">
 
+        <div className="mobile-only">
+          <p>Best experienced on <strong>desktop.</strong></p>
+          <p>Mobile coming soon.</p> 
+        </div>
+
         <div className="video-builder-section-title ">
           <div className="logo-container">
             <img src="/TakeOneLogo.png" alt="Axon TakeOne Logo" />

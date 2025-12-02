@@ -20,7 +20,7 @@ const router = createBrowserRouter([
   {
     element: <Layout />,
     children: [
-      { path: '/', element: <Create /> },
+      { path: '/', element: <FreeFormTemplate /> },
       { path: '/create', element: <Create /> },
       { path: '/case-study-template', element: <CaseStudyTemplate /> },
       { path: '/free-form-template', element: <FreeFormTemplate /> },

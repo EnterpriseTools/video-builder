@@ -309,7 +309,7 @@ Each template is completely self-contained at the implementation level:
 
 ### **Color Palette**
 - **Primary**: `#646cff` (Brand Blue)
-- **Background**: `#0f1120` (Dark Navy)
+- **Background**: `#0a0a0a` (Dark Grey)
 - **Foreground**: `#e6e8ff` (Light Blue)
 - **Success**: `#10b981` (Green)
 - **Error**: `#ef4444` (Red)

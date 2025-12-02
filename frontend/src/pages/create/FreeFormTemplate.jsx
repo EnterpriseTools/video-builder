@@ -706,8 +706,12 @@ export default function FreeFormTemplate() {
       <div className="highlight-global"></div>
       <div className="video-builder-container">
 
+        <div className="mobile-only">
+          <p>Best experienced on <strong>desktop.</strong></p>
+          <p>Mobile coming soon.</p> 
+        </div>
+
         <div className="video-builder-section-title">
-        <h2>Free-Form Case Study</h2>
           <div className="logo-container">
             <img src="/TakeOneLogo.png" alt="Axon TakeOne Logo" />
             <div className="video-builder-title">
