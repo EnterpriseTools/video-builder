@@ -11,6 +11,7 @@ from app.utils import get_audio_duration
 from app.utils.media import extract_audio_from_media
 from app.utils.easing import slide_up_from_bottom
 from app.utils.file_utils import cleanup_temp_path
+from app.utils.watermark_overlay import apply_qr_banner_overlay
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -218,6 +219,17 @@ async def render_closing(
         if not output_path.exists():
             cleanup_temp_path(temp_dir)  # Immediate cleanup on missing output
             raise HTTPException(status_code=500, detail="Output video file was not created")
+        
+        # Apply QR banner overlay
+        qr_output_path = temp_dir / f"{output_path.stem}_qr.mp4"
+        try:
+            apply_qr_banner_overlay(output_path, qr_output_path)
+            if qr_output_path.exists():
+                output_path = qr_output_path
+        except FileNotFoundError:
+            logger.warning("QR banner file not found; closing video will omit QR overlay.")
+        except Exception as qr_exc:
+            logger.warning(f"QR banner overlay failed for closing render: {qr_exc}")
         
         # Schedule cleanup AFTER FileResponse finishes streaming
         background_tasks.add_task(cleanup_temp_path, temp_dir)

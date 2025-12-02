@@ -6,7 +6,6 @@ to rendered videos. The watermark includes:
 - Date with dynamic timecode that counts up from 00:00:00 as video plays
 - Device identification (AXON + team name)
 - Axon logo
-- QR code banner overlay anchored to the bottom-right corner (feature flag controlled)
 
 The primary Axon watermark is positioned in the top-right corner of the video.
 """
@@ -14,27 +13,11 @@ The primary Axon watermark is positioned in the top-right corner of the video.
 import subprocess
 from pathlib import Path
 from datetime import datetime
-from typing import Optional, Tuple, List
+from typing import Optional, Tuple
 import logging
 import json
 
 logger = logging.getLogger(__name__)
-
-
-def build_enable_expression(intervals: List[Tuple[float, float]]) -> Optional[str]:
-    """
-    Build an ffmpeg enable expression that activates during provided intervals.
-    """
-    clauses = []
-    for start, end in intervals:
-        if start is None or end is None:
-            continue
-        start = max(0.0, float(start))
-        end = max(start, float(end))
-        if end <= start:
-            continue
-        clauses.append(f"between(t,{start:.3f},{end:.3f})")
-    return "+".join(clauses) if clauses else None
 
 
 def get_media_dimensions(media_path: Path) -> Tuple[int, int]:
@@ -99,7 +82,6 @@ def apply_watermark_to_video(
     output_video_path: Path,
     team_name: str = "",
     logo_path: Optional[Path] = None,
-    qr_overlay_intervals: Optional[List[Tuple[float, float]]] = None,
 ) -> Path:
     """
     Apply Axon body camera-style watermark to a video.
@@ -108,23 +90,19 @@ def apply_watermark_to_video(
     - Row 1: Date + Dynamic Timecode (YYYY-MM-DD HH:MM:SS counting up from 00:00:00)
     - Row 2: AXON [TEAM_NAME] (or just "AXON" if team_name is empty)
     - Logo: Axon triangle on the right side
-    - QR code banner PNG anchored to the bottom-right (scaled relative to video width, controlled via feature flag)
     
     Args:
         input_video_path: Path to input video file
         output_video_path: Path where watermarked video will be saved
         team_name: Team name for device info (empty string for just "AXON")
         logo_path: Path to Axon logo image (optional, will look in standard location)
-        qr_overlay_intervals: Optional list of (start, end) times in seconds where the QR banner should be visible.
-                              If None, the banner (when enabled) is visible throughout the video. If an empty list is
-                              provided, the QR overlay is skipped.
     
     Returns:
         Path to the watermarked output video
         
     Raises:
         subprocess.CalledProcessError: If FFmpeg command fails
-        FileNotFoundError: If logo is not found or the QR banner is required but missing
+        FileNotFoundError: If logo is not found
     """
     
     # Get current date for watermark (time will be dynamic timecode)
@@ -161,52 +139,13 @@ def apply_watermark_to_video(
         if logo_path is None:
             logger.warning("Logo file not found in any location, watermark will be text-only")
 
-    qr_banner_path: Optional[Path] = None
-    qr_target_width: Optional[int] = None
-    qr_target_height: Optional[int] = None
-    qr_enable_expr: Optional[str] = None
-    qr_overlay_active = qr_overlay_intervals is None or len(qr_overlay_intervals) > 0
-    if qr_overlay_active:
-        possible_qr_paths = [
-            Path(__file__).parent.parent / "assets" / "QRCodeBanner.png",
-            Path(__file__).resolve().parents[3] / "frontend" / "public" / "QRCodeBanner.png",
-        ]
-        for path in possible_qr_paths:
-            if path.exists():
-                qr_banner_path = path
-                logger.info(f"Found QR code banner at: {qr_banner_path}")
-                break
-        if qr_banner_path is None:
-            raise FileNotFoundError("QRCodeBanner.png not found in backend assets or frontend/public")
-
-        # Determine target scaling for QR banner (maintain aspect ratio, ~380px @ 1920w video)
-        video_width, _ = get_media_dimensions(input_video_path)
-        qr_original_width, qr_original_height = get_media_dimensions(qr_banner_path)
-        qr_design_ratio = 380 / 1920  # Desired width relative to 1080p video
-        qr_target_width = int(round(video_width * qr_design_ratio))
-        qr_target_width = max(1, min(qr_target_width, qr_original_width))
-        qr_aspect_ratio = qr_original_height / qr_original_width if qr_original_width else 1
-        qr_target_height = max(1, int(round(qr_target_width * qr_aspect_ratio)))
-        if qr_overlay_intervals:
-            qr_enable_expr = build_enable_expression(qr_overlay_intervals)
-        logger.info(
-            "QR banner scaling computed: video_width=%s target_width=%s target_height=%s enable=%s",
-            video_width,
-            qr_target_width,
-            qr_target_height,
-            qr_enable_expr,
-        )
-        print(f"[watermark] QR enable expression: {qr_enable_expr}")
-    else:
-        logger.info("QR banner overlay skipped because no intervals were provided")
-    
     # Build FFmpeg filter complex for watermark
     # The watermark consists of:
     # 1. Semi-transparent dark background box
     # 2. Timestamp text (row 1)
     # 3. Device info text (row 2)
     # 4. Logo image (if available)
-    # 5. QR code banner anchored bottom-right
+    # 5. Optional Axon logo anchored with text cluster
     
     # Font settings for body camera style (monospace, bold)
     font_file = "/System/Library/Fonts/Courier.dfont"  # macOS Courier
@@ -255,21 +194,6 @@ def apply_watermark_to_video(
         current_label = "vlogo"
         input_index += 1
     
-    # Optional QR banner overlay (bottom-right, scaled to maintain aspect ratio)
-    if qr_banner_path and qr_target_width and qr_target_height:
-        qr_input_index = input_index
-        ffmpeg_inputs.extend(["-i", str(qr_banner_path)])
-        filter_segments.append(
-            f"[{qr_input_index}:v]scale={qr_target_width}:{qr_target_height}[qr_banner]"
-        )
-        overlay_filter = f"[{current_label}][qr_banner]overlay=main_w-w-16:main_h-h-16"
-        if qr_enable_expr:
-            overlay_filter += f":enable='{qr_enable_expr}'"
-        overlay_filter += "[vqr]"
-        filter_segments.append(overlay_filter)
-        current_label = "vqr"
-        input_index += 1
-    
     filter_complex = ";".join(filter_segments)
     
     cmd = [
@@ -315,4 +239,89 @@ def apply_watermark_to_video(
         stdout, stderr = process.communicate()
         logger.error(f"FFmpeg watermark timed out: {stderr}")
         raise RuntimeError("Watermark application timed out after 180 seconds")
+
+
+def apply_qr_banner_overlay(
+    input_video_path: Path,
+    output_video_path: Path,
+) -> Path:
+    """
+    Apply the QR code banner overlay to a video.
+    
+    This is a lightweight helper used by template-specific renders (Intro/Closing)
+    so the banner is baked into those clips before concatenation.
+    """
+    possible_qr_paths = [
+        Path(__file__).parent.parent / "assets" / "QRCodeBanner.png",
+        Path(__file__).resolve().parents[3] / "frontend" / "public" / "QRCodeBanner.png",
+    ]
+    qr_banner_path = None
+    for path in possible_qr_paths:
+        if path.exists():
+            qr_banner_path = path
+            logger.info(f"Found QR code banner at: {qr_banner_path}")
+            break
+    if qr_banner_path is None:
+        raise FileNotFoundError("QRCodeBanner.png not found in backend assets or frontend/public")
+    
+    video_width, _ = get_media_dimensions(input_video_path)
+    qr_original_width, qr_original_height = get_media_dimensions(qr_banner_path)
+    qr_design_ratio = 380 / 1920  # Desired width relative to 1080p video
+    qr_target_width = int(round(video_width * qr_design_ratio))
+    qr_target_width = max(1, min(qr_target_width, qr_original_width))
+    qr_aspect_ratio = qr_original_height / qr_original_width if qr_original_width else 1
+    qr_target_height = max(1, int(round(qr_target_width * qr_aspect_ratio)))
+    
+    filter_complex = (
+        f"[1:v]scale={qr_target_width}:{qr_target_height}[qr];"
+        f"[0:v][qr]overlay=main_w-w-16:main_h-h-16[v]"
+    )
+    
+    cmd = [
+        "ffmpeg", "-y", "-loglevel", "error",
+        "-i", str(input_video_path),
+        "-i", str(qr_banner_path),
+        "-filter_complex", filter_complex,
+        "-map", "[v]",
+        "-map", "0:a?",
+        "-c:v", "libx264",
+        "-preset", "fast",
+        "-crf", "23",
+        "-c:a", "copy",
+        "-pix_fmt", "yuv420p",
+        "-movflags", "+faststart",
+        str(output_video_path)
+    ]
+    
+    logger.info(
+        "Applying QR banner overlay: video_width=%s target_width=%s target_height=%s",
+        video_width,
+        qr_target_width,
+        qr_target_height,
+    )
+    logger.debug(f"FFmpeg QR command: {' '.join(cmd)}")
+    
+    try:
+        process = subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True
+        )
+        
+        stdout, stderr = process.communicate(timeout=180)
+        if process.returncode != 0:
+            logger.error(f"FFmpeg QR overlay failed: {stderr}")
+            raise subprocess.CalledProcessError(
+                process.returncode, cmd, output=stdout, stderr=stderr
+            )
+        
+        logger.info(f"Successfully applied QR banner overlay: {output_video_path}")
+        return output_video_path
+    
+    except subprocess.TimeoutExpired:
+        process.kill()
+        stdout, stderr = process.communicate()
+        logger.error(f"FFmpeg QR overlay timed out: {stderr}")
+        raise RuntimeError("QR banner overlay timed out after 180 seconds")
 
