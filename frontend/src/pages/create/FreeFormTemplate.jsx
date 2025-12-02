@@ -544,6 +544,15 @@ export default function FreeFormTemplate() {
       setRenderingProgress('Rendering individual template videos...');
       const renderedVideos = [];
 
+      const templateOrderMap = {
+        'intro': 1,
+        'how-it-works': 2,
+        'announcement': 3,
+        'persona': 4,
+        'demo': 5,
+        'closing': 6
+      };
+
       for (let i = 0; i < readyTemplates.length; i++) {
         const template = readyTemplates[i];
         setRenderingProgress(`Rendering ${template.name}...`);
@@ -628,7 +637,7 @@ export default function FreeFormTemplate() {
         const videoBytes = await videoBlob.arrayBuffer();
 
         renderedVideos.push({
-          order: i, // Use actual order in the templates array
+          order: templateOrderMap[template.id],
           videoData: videoBytes,
           templateName: template.name,
           templateId: template.id
@@ -644,12 +653,20 @@ export default function FreeFormTemplate() {
       // Step 3: Send videos to concatenation endpoint
       const concatenateFormData = new FormData();
 
-      // Add videos to FormData in the order they appear in the templates array
-      for (let i = 0; i < renderedVideos.length; i++) {
-        const video = renderedVideos[i];
-        const videoBlob = new Blob([video.videoData], { type: 'video/mp4' });
-        concatenateFormData.append(`segment_${i}`, videoBlob, `segment_${i}.mp4`);
-        concatenateFormData.append(`order_${i}`, i.toString());
+      // Add videos to FormData using canonical template order slots (1-6)
+      const videoSlotMap = {};
+      renderedVideos.forEach(video => {
+        videoSlotMap[video.order] = video;
+      });
+      for (let slot = 0; slot < 6; slot++) {
+        const templateOrder = slot + 1;
+        const video = videoSlotMap[templateOrder];
+        if (video) {
+          const videoBlob = new Blob([video.videoData], { type: 'video/mp4' });
+          concatenateFormData.append(`segment_${slot}`, videoBlob, `segment_${slot}.mp4`);
+          concatenateFormData.append(`order_${slot}`, video.order.toString());
+          concatenateFormData.append(`template_id_${slot}`, video.templateId || '');
+        }
       }
 
       concatenateFormData.append('final_filename', finalFilename);

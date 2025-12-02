@@ -87,6 +87,7 @@ async def concatenate_videos(background_tasks: BackgroundTasks, request: Concate
                     logger.warning(f"Failed to read duration for segment {segment_path}: {exc}")
                 segment_metadata.append({
                     "order": segment['order'],
+                    "template_id": segment.get("template_id", ""),
                     "path": segment_path,
                     "duration": duration
                 })
@@ -194,6 +195,12 @@ async def concatenate_videos_multipart(
     order_3: str = Form("3"),
     order_4: str = Form("4"),
     order_5: str = Form("5"),
+    template_id_0: str = Form(""),
+    template_id_1: str = Form(""),
+    template_id_2: str = Form(""),
+    template_id_3: str = Form(""),
+    template_id_4: str = Form(""),
+    template_id_5: str = Form(""),
     final_filename: str = Form("presentation-final"),
     team_name: str = Form("")  # Team name for watermark
 ):
@@ -210,6 +217,7 @@ async def concatenate_videos_multipart(
     segments = []
     segment_files = [segment_0, segment_1, segment_2, segment_3, segment_4, segment_5]
     orders = [order_0, order_1, order_2, order_3, order_4, order_5]
+    template_ids = [template_id_0, template_id_1, template_id_2, template_id_3, template_id_4, template_id_5]
     
     for i, (segment_file, order) in enumerate(zip(segment_files, orders)):
         if segment_file and segment_file.filename:
@@ -217,7 +225,8 @@ async def concatenate_videos_multipart(
             segments.append({
                 'file': segment_file,
                 'order': int(order),
-                'index': i
+                'index': i,
+                'template_id': template_ids[i] if i < len(template_ids) else ""
             })
         else:
             print(f"DEBUG: Segment {i} is None or has no filename")
@@ -339,8 +348,9 @@ async def concatenate_videos_multipart(
         
         # Calculate QR overlay intervals (intro start, closing end)
         qr_intervals = []
+        sorted_metadata = sorted(segment_metadata, key=lambda m: m["order"])
         total_segment_duration = sum(
-            meta["duration"] for meta in segment_metadata if meta["duration"] is not None
+            meta["duration"] for meta in sorted_metadata if meta["duration"] is not None
         )
         final_video_duration = None
         try:
@@ -350,14 +360,36 @@ async def concatenate_videos_multipart(
             if total_segment_duration:
                 final_video_duration = total_segment_duration
         
-        def find_duration(order: int) -> Optional[float]:
-            for meta in segment_metadata:
-                if meta["order"] == order and meta["duration"]:
-                    return meta["duration"]
+        def select_intro_meta() -> Optional[Dict[str, Any]]:
+            for meta in sorted_metadata:
+                if meta.get("template_id") == "intro":
+                    return meta
+            if sorted_metadata:
+                candidate = sorted_metadata[0]
+                if candidate.get("template_id") in ("", "intro"):
+                    return candidate
             return None
         
-        intro_duration = find_duration(1)
-        closing_duration = find_duration(6)
+        def select_closing_meta() -> Optional[Dict[str, Any]]:
+            for meta in reversed(sorted_metadata):
+                if meta.get("template_id") == "closing":
+                    return meta
+            if sorted_metadata:
+                candidate = sorted_metadata[-1]
+                if candidate.get("template_id") in ("", "closing"):
+                    return candidate
+            return None
+        
+        intro_meta = select_intro_meta()
+        closing_meta = select_closing_meta()
+        
+        intro_duration = intro_meta.get("duration") if intro_meta else None
+        if intro_meta and not intro_duration and final_video_duration and len(sorted_metadata) == 1:
+            intro_duration = final_video_duration
+        
+        closing_duration = closing_meta.get("duration") if closing_meta else None
+        if closing_meta and not closing_duration and final_video_duration and len(sorted_metadata) == 1:
+            closing_duration = final_video_duration
         
         if intro_duration:
             qr_intervals.append((0.0, intro_duration))
@@ -366,7 +398,14 @@ async def concatenate_videos_multipart(
             closing_start = max(0.0, final_video_duration - closing_duration)
             qr_intervals.append((closing_start, final_video_duration))
         
+        if not qr_intervals and final_video_duration:
+            logger.info(
+                "QR overlay intervals missing explicit intro/closing segments; defaulting to full duration"
+            )
+            qr_intervals.append((0.0, final_video_duration))
+        
         logger.info(f"QR overlay intervals calculated: {qr_intervals}")
+        print(f"[concatenate] QR overlay intervals: {qr_intervals}")
         
         # Apply watermark to the concatenated video
         try:

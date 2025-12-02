@@ -196,6 +196,7 @@ def apply_watermark_to_video(
             qr_target_height,
             qr_enable_expr,
         )
+        print(f"[watermark] QR enable expression: {qr_enable_expr}")
     else:
         logger.info("QR banner overlay skipped because no intervals were provided")
     

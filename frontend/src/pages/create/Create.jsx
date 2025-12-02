@@ -498,6 +498,7 @@ export default function Create() {
           const videoBlob = new Blob([video.videoData], { type: 'video/mp4' });
           concatenateFormData.append(`segment_${i}`, videoBlob, `segment_${i}.mp4`);
           concatenateFormData.append(`order_${i}`, video.order.toString());
+          concatenateFormData.append(`template_id_${i}`, video.templateId || '');
           console.log(`Adding video ${video.templateName} to segment_${i} with order ${video.order}`);
         } else {
           console.log(`No video found for template order ${templateOrder}, skipping segment_${i}`);
