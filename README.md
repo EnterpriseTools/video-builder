@@ -86,7 +86,6 @@ All templates are accessed through the Video Builder modal interface. Each templ
 - Top-right positioning (non-user-editable)
 - Configurable opacity, size, and logo type
 - Includes branded QR-code banner pinned to the bottom-right of Intro + Closing segments
-- Toggle QR banner via backend `.env` flag `FEATURE_QR_BANNER=true|false`
 - Live preview of watermark appearance
 - Note: Configuration UI only - backend integration pending
 

@@ -18,8 +18,6 @@ from typing import Optional, Tuple, List
 import logging
 import json
 
-from app.core.config import settings
-
 logger = logging.getLogger(__name__)
 
 
@@ -167,9 +165,7 @@ def apply_watermark_to_video(
     qr_target_width: Optional[int] = None
     qr_target_height: Optional[int] = None
     qr_enable_expr: Optional[str] = None
-    qr_overlay_active = settings.FEATURE_QR_BANNER and (
-        qr_overlay_intervals is None or len(qr_overlay_intervals) > 0
-    )
+    qr_overlay_active = qr_overlay_intervals is None or len(qr_overlay_intervals) > 0
     if qr_overlay_active:
         possible_qr_paths = [
             Path(__file__).parent.parent / "assets" / "QRCodeBanner.png",
@@ -201,7 +197,7 @@ def apply_watermark_to_video(
             qr_enable_expr,
         )
     else:
-        logger.info("QR banner overlay disabled via feature flag or no intervals provided")
+        logger.info("QR banner overlay skipped because no intervals were provided")
     
     # Build FFmpeg filter complex for watermark
     # The watermark consists of:
@@ -259,12 +255,7 @@ def apply_watermark_to_video(
         input_index += 1
     
     # Optional QR banner overlay (bottom-right, scaled to maintain aspect ratio)
-    if (
-        settings.FEATURE_QR_BANNER
-        and qr_banner_path
-        and qr_target_width
-        and qr_target_height
-    ):
+    if qr_banner_path and qr_target_width and qr_target_height:
         qr_input_index = input_index
         ffmpeg_inputs.extend(["-i", str(qr_banner_path)])
         filter_segments.append(

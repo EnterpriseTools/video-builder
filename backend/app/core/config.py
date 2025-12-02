@@ -19,7 +19,6 @@ class Settings(BaseSettings):
 
     # Feature flags (keep minimal template by default)
     FEATURE_OPENAI: bool = False
-    FEATURE_QR_BANNER: bool = True
 
     # Load variables from backend/.env
     model_config = SettingsConfigDict(
