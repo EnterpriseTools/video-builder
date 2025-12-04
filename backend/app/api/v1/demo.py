@@ -70,6 +70,14 @@ async def render_demo(
             str(output_path)
         ]
         
+        # Allow longer FFmpeg runs for large demo uploads (e.g., 4K screen recordings).
+        # Encoding generally takes longer than realtime, so give a buffer that scales
+        # with the uploaded video's duration while keeping sane upper/lower bounds.
+        min_timeout = 90  # Seconds
+        max_timeout = 600  # Cap to prevent runaway jobs
+        duration_based_timeout = int((video_duration or 60) * 3) + 30
+        processing_timeout = max(min_timeout, min(max_timeout, duration_based_timeout))
+        
         # Execute FFmpeg command
         print(f"Running FFmpeg command: {' '.join(cmd)}")
         
@@ -84,7 +92,7 @@ async def render_demo(
             )
             
             # Wait for completion with timeout
-            stdout, stderr = process.communicate(timeout=60)
+            stdout, stderr = process.communicate(timeout=processing_timeout)
             
             # Create result object similar to subprocess.run
             class Result:
@@ -102,7 +110,7 @@ async def render_demo(
             logger.error(f"FFmpeg timed out for {temp_dir}. Last output: {stderr[-500:]}")
             raise HTTPException(
                 status_code=500,
-                detail="FFmpeg processing timed out after 60 seconds"
+                detail=f"FFmpeg processing timed out after {processing_timeout} seconds"
             )
         
         if result.returncode != 0:
