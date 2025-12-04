@@ -25,7 +25,8 @@ async def render_closing(
     subtitle: Optional[str] = Form(""),
     email: Optional[str] = Form(""),
     teamName: Optional[str] = Form(""),
-    duration: Optional[str] = Form("0")
+    duration: Optional[str] = Form("0"),
+    omit_qr: bool = Form(False)
 ):
     """Render closing video from audio and text overlay only"""
     
@@ -220,16 +221,17 @@ async def render_closing(
             cleanup_temp_path(temp_dir)  # Immediate cleanup on missing output
             raise HTTPException(status_code=500, detail="Output video file was not created")
         
-        # Apply QR banner overlay
-        qr_output_path = temp_dir / f"{output_path.stem}_qr.mp4"
-        try:
-            apply_qr_banner_overlay(output_path, qr_output_path)
-            if qr_output_path.exists():
-                output_path = qr_output_path
-        except FileNotFoundError:
-            logger.warning("QR banner file not found; closing video will omit QR overlay.")
-        except Exception as qr_exc:
-            logger.warning(f"QR banner overlay failed for closing render: {qr_exc}")
+        # Apply QR banner overlay unless flagged to omit
+        if not omit_qr:
+            qr_output_path = temp_dir / f"{output_path.stem}_qr.mp4"
+            try:
+                apply_qr_banner_overlay(output_path, qr_output_path)
+                if qr_output_path.exists():
+                    output_path = qr_output_path
+            except FileNotFoundError:
+                logger.warning("QR banner file not found; closing video will omit QR overlay.")
+            except Exception as qr_exc:
+                logger.warning(f"QR banner overlay failed for closing render: {qr_exc}")
         
         # Schedule cleanup AFTER FileResponse finishes streaming
         background_tasks.add_task(cleanup_temp_path, temp_dir)

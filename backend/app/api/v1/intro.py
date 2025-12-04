@@ -31,7 +31,8 @@ async def render_intro_video(
     video: UploadFile = File(...),
     team: Optional[str] = Form(""),
     full_name: Optional[str] = Form(""), 
-    role: Optional[str] = Form("")
+    role: Optional[str] = Form(""),
+    omit_qr: bool = Form(False)
 ):
     """
     Render an introduction video with animated text overlay.
@@ -184,16 +185,17 @@ async def render_intro_video(
                 detail=f"Video processing failed: {result.stderr}"
             )
         
-        # Apply QR banner overlay
-        qr_output_path = temp_dir / f"{output_path.stem}_qr.mp4"
-        try:
-            apply_qr_banner_overlay(output_path, qr_output_path)
-            if qr_output_path.exists():
-                shutil.move(qr_output_path, output_path)
-        except FileNotFoundError:
-            logger.warning("QR banner file not found; intro video will omit QR overlay.")
-        except Exception as qr_exc:
-            logger.warning(f"QR banner overlay failed for intro render: {qr_exc}")
+        # Apply QR banner overlay unless flagged to omit
+        if not omit_qr:
+            qr_output_path = temp_dir / f"{output_path.stem}_qr.mp4"
+            try:
+                apply_qr_banner_overlay(output_path, qr_output_path)
+                if qr_output_path.exists():
+                    shutil.move(qr_output_path, output_path)
+            except FileNotFoundError:
+                logger.warning("QR banner file not found; intro video will omit QR overlay.")
+            except Exception as qr_exc:
+                logger.warning(f"QR banner overlay failed for intro render: {qr_exc}")
         
         # Schedule cleanup AFTER FileResponse finishes streaming
         background_tasks.add_task(cleanup_temp_path, temp_dir)

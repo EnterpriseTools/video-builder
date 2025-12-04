@@ -122,6 +122,15 @@
   }
 }
 
+.cs-team-builder {
+  .video-builder-title {
+    svg {
+      height: 8rem !important;
+      width: auto;
+    }
+  }
+}
+
 .template-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
