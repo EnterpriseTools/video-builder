@@ -53,21 +53,31 @@ export function useVideoTrim() {
     return 0;
   }, []);
 
+  const ingestFile = useCallback((file) => {
+    if (!file) return;
+
+    if (videoUrl) {
+      URL.revokeObjectURL(videoUrl);
+    }
+
+    setVideoFile(file);
+    const url = URL.createObjectURL(file);
+    setVideoUrl(url);
+    setDuration(0);
+    setStartTime(0);
+    setEndTime(0);
+    setCurrentTime(0);
+    setManualTimeOpen(false);
+    setError('');
+  }, [videoUrl]);
+
   // File upload handler
   const handleFileUpload = useCallback((event) => {
     const file = event.target.files[0];
     if (file) {
-      // Clean up previous video URL if exists
-      if (videoUrl) {
-        URL.revokeObjectURL(videoUrl);
-      }
-      
-      setVideoFile(file);
-      const url = URL.createObjectURL(file);
-      setVideoUrl(url);
-      setError('');
+      ingestFile(file);
     }
-  }, [videoUrl]);
+  }, [ingestFile]);
 
   // Clear video file
   const handleClearFile = useCallback(() => {
@@ -372,6 +382,7 @@ export function useVideoTrim() {
     // Handlers
     handleFileUpload,
     handleClearFile,
+    ingestExternalFile: ingestFile,
     handleStartTimecodeChange,
     handleEndTimecodeChange,
     handlePreviewRange,

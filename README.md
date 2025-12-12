@@ -2,364 +2,156 @@
 
 **Record your case. We'll file the evidence.**
 
-A professional video creation platform built with React and FastAPI for generating high-quality video presentations with customizable templates, overlays, and animations. Designed for creating structured, multi-section presentation videos using a modal-based workflow.
+Axon TakeOne is a modal-first video creation platform that guides you through six purpose-built templates, renders cinematic overlays with FastAPI + FFmpeg, and delivers a single polished video that is ready for review, sharing, and archival.
 
-## 🌟 Features
+## 📚 Contents 
 
-### 🎬 **Video Builder** (`/create`)
-The centerpiece of the application - a unified modal-based video creation workflow:
-- **Modal-Based Configuration**: All 6 templates are configured within a single page through modal dialogs
-- **Timeline Grid View**: Visual card-based interface showing all templates in sequence
-- **Progressive Creation**: Click template cards to configure each section individually with live previews
-- **Ready State Tracking**: Visual indicators show configured templates with preview thumbnails and checkmarks
-- **Template Order**: Introduction → Feature (Announcement) → Context (How It Works) → Who it's for (Persona) → Demo → Closing
-- **Final Rendering**: Combines all configured templates into a single cohesive presentation video
-- **Automatic Concatenation**: Renders each template section and stitches them together using FFmpeg
-- **Smart Naming**: Final video automatically named using the title from your Announcement template
-- **Web Optimization**: Final output is optimized for web playback with H.264 codec, 1920x1080 resolution, 30fps
+1. [About the Platform](#about-the-platform)
+2. [Feature Highlights](#feature-highlights)
+3. [Template & Workflow Guide](#template--workflow-guide)
+4. [Audio Recording Route](#audio-recording-route)
+5. [Getting Started](#getting-started)
+6. [Configuration & Environment](#configuration--environment)
+7. [Deployment Snapshot](#deployment-snapshot)
+8. [AI Persona Generator Quick Start](#ai-persona-generator-quick-start)
+9. [Slack Integration Overview](#slack-integration-overview)
+10. [Audio Enhancement Quick Start](#audio-enhancement-quick-start)
+11. [Production Readiness & Monitoring](#production-readiness--monitoring)
+12. [Testing, Assets & Maintenance](#testing-assets--maintenance)
+13. [Troubleshooting](#troubleshooting)
+14. [Contributing](#contributing)
+15. [Additional Documentation](#additional-documentation)
 
-### 📋 **Video Templates**
+---
 
-All templates are accessed through the Video Builder modal interface. Each template has its own backend API endpoint and overlay generator.
+## About the Platform
 
-#### **Introduction Template**
-- **Purpose**: Professional intro videos with team member information
-- **Inputs**: Video file + Team name, full name, role
-- **Features**: Animated text overlay with slide-in/slide-out animations
-- **API Endpoint**: `/api/intro/render`
-- **Config**: `templateConfigs.js` - intro
+- **Unified Builder** – `/create` houses all six templates inside a timeline grid. Clicking any card opens the `VideoTemplateCreator` modal where you can upload media, edit metadata, preview overlays, and flag readiness for final rendering.
+- **Video Trimming** – `/trim` provides precise FFmpeg-backed trimming (stream copy or re-encode) with waveform visualization, drag handles, and manual timecode entry.
+- **Axon Watermark Lab** – `/axon-watermark` is an internal admin UI for watermark presets. Configured watermarks and QR bands will be baked into Intro and Closing renders.
+- **Backend Foundation** – FastAPI orchestrates template endpoints, trimming, concatenation, Slack uploads, and temporary file lifecycle management. Every render runs inside an isolated temp directory and is cleaned deterministically after download.
 
-#### **Announcement Template** (Feature)
-- **Purpose**: Feature announcements with image and text
-- **Inputs**: Featured image + audio file + title & description
-- **Features**: Split-screen layout (image right, text left), animated elements
-- **API Endpoint**: `/api/announcement/render`
-- **Config**: `templateConfigs.js` - announcement
+---
 
-#### **How It Works Template** (Problem)
-- **Purpose**: Tutorial and explanation videos
-- **Inputs**: Audio file + title & description (no image required)
-- **Features**: Centered text layout with background elements
-- **API Endpoint**: `/api/how-it-works/render`
-- **Config**: `templateConfigs.js` - how-it-works
+## Feature Highlights
 
-#### **Persona Template** (Who it's for)
-- **Purpose**: Professional profile introductions
-- **Inputs**: Profile image + audio file + name, title, industry description
-- **Features**: Three-tier text hierarchy with elegant animations
-- **API Endpoint**: `/api/persona/render`
-- **Config**: `templateConfigs.js` - persona
+### Template Catalog
 
-#### **Demo Template**
-- **Purpose**: Screen recording demonstrations  
-- **Inputs**: Video file only (.mp4 or .mov)
-- **Features**: Video-only processing with web optimization
-- **API Endpoint**: `/api/demo/render`
-- **Config**: `templateConfigs.js` - demo
+| Order | Template | Purpose | Inputs |
+| --- | --- | --- | --- |
+| 1 | Introduction | Team + talent introductions with animated text stack | Video + team name, full name, role |
+| 2 | Announcement (Feature) | Split layout with supporting image and narration | Image + audio + title & description |
+| 3 | How It Works (Problem) | Storyboard-style explanation with optional imagery | Audio + title & description (+ optional image) |
+| 4 | Persona (Who it's for) | Persona storytelling with AI/Manual imagery & overlay toggle | Audio + image (AI or upload) + persona fields |
+| 5 | Demo | Raw screen recording or footage, optimized for playback | Video only |
+| 6 | Closing | Warm outro with team info, CTA, and contact details | Audio + closing copy + team metadata |
 
-#### **Closing Template**
-- **Purpose**: Professional conclusion videos
-- **Inputs**: Audio file + closing message, team details, contact info
-- **Features**: Warm color scheme optimized for conclusions
-- **API Endpoint**: `/api/closing/render`
-- **Config**: `templateConfigs.js` - closing
+### Additional Capabilities
 
-### ✂️ **Video Trimming Tool** (`/trim`)
-- Precise video trimming with FFmpeg
-- Stream copy or re-encode options
-- Support for multiple video formats
-- API Endpoint: `/api/trim`
+- **AI-Powered Persona Imagery** – GPT‑4 handles clarifying questions while DALL·E 3 (1792×1024) generates persona imagery directly inside Step 2 of the Persona template. Manual uploads remain available as a fallback.
+- **Share to Slack** – After final rendering, the success modal exposes a Slack-branded action that uploads the MP4 to your workspace via `POST /api/share-to-slack`, honoring `FEATURE_SLACK` and environment configuration.
+- **Studio-Grade Audio Enhance** – The `/audio-recording` route now includes an **Enhance** button that sends takes through AssemblyAI, FFmpeg `arnndn` + `loudnorm`, and filler-word trimming so exported clips are leveled, de-noised, and ready for Trim or any template.
+- **Fast Trim & Retry** – Any media uploaded through `VideoTemplateCreator` can be trimmed before rendering. Trim intent is persisted per template and re-applied on re-open.
+- **Deterministic Temp Cleanup** – All render, trim, and concatenation endpoints attach `BackgroundTasks` that delete their temp directories once `FileResponse` streaming completes, with proactive cleanup for every failure path.
+- **Smart Naming & Status Tracking** – Final downloads adopt the Announcement title automatically, while the Create grid shows thumbnails + checkmarks for every template that has been configured.
 
-### 🔗 **Slack Integration**
-- **Share to Slack**: Share generated videos directly to your Slack channel
-- **One-Click Sharing**: From the success dialog after video generation
-- **Secure Backend Upload**: Files uploaded via secure backend API
-- **Loading States**: Beautiful animations and feedback during upload
-- **Error Handling**: Automatic error detection and user feedback
-- **Configuration**: Environment variable based setup
-- **Feature Flag**: Can be enabled/disabled via `FEATURE_SLACK`
-- **Setup Guide**: See [SLACK_INTEGRATION_SETUP.md](./SLACK_INTEGRATION_SETUP.md)
+---
 
-### 🏷️ **Axon Watermark** (`/axon-watermark`)
-- Professional watermark configuration interface
-- Automatically applied to all rendered videos
-- Top-right positioning (non-user-editable)
-- Configurable opacity, size, and logo type
-- Includes branded QR-code banner baked into the Intro and Closing template renders
-- Live preview of watermark appearance
-- Note: Configuration UI only - backend integration pending
+## Template & Workflow Guide
 
-## 🚀 Quick Start
+### Video Builder in Practice
+
+1. Visit `/create` and review the six-card grid (Introduction → Closing).
+2. Select any template card to open the modal.
+3. Upload media, trim as needed, and fill in text inputs. Live previews update instantly.
+4. Click **Done** to mark a template as ready (thumbnail + checkmark appear). You can re-open at any time to tweak data.
+5. Repeat for the remaining templates. All six must be configured before final rendering unlocks.
+6. Click **Create Final Presentation**. Each template renders sequentially, storing blobs in memory.
+7. `/api/concatenate-multipart` stitches the rendered segments according to their order metadata and streams the final MP4 back to the browser.
+
+### Persona Template Experience
+
+The Persona flow now mirrors a three-step story-centric layout:
+
+```
+┌────────────── WHO IT'S FOR ───────────────┬────────────── Live Preview ───────────────┐
+│ 1️⃣ Upload Audio                          │ Updates as each step is completed         │
+│ 2️⃣ Generate Persona Image                │                                            │
+│    • AI Image Generator (default)         │                                            │
+│    • or upload your own image            │                                            │
+│ 3️⃣ Add Persona Details                   │                                            │
+│    • Name • Title • Industry             │                                            │
+└────────────────────────────────────────────┴────────────────────────────────────────────┘
+```
+
+**AI Path:** describe your persona → GPT‑4 asks up to 3 clarifying questions → click **Generate Image** → review, download, regenerate, or start over → apply to preview.  
+**Manual Path:** toggle "upload your own image" → drop a file → preview updates immediately.  
+**User Journey Snapshot:** upload narration → craft persona via AI or manual upload → add text overlays → save → render with your newly generated persona imagery.
+
+### Slack Share Flow
+
+1. Generate your video as usual.  
+2. In the success dialog, click **Share to Slack** (button is hidden unless `FEATURE_SLACK=true`).  
+3. Button transitions through idle → spinner (**Sharing...**) → success (**Shared to Slack!**).  
+4. Backend streams the MP4 to Slack using your bot token and posts into the configured channel.  
+5. Video + message appear in Slack with your custom comment. Retry states surface inline errors if something fails.
+
+### Video Trimming Route (`/trim`)
+
+- Upload any .mp4 or .mov asset.  
+- Scrub and drag handles across the waveform timeline.  
+- Toggle stream copy vs re-encode for precision.  
+- Preview trims, download immediately, or feed into the builder.
+
+---
+
+## Audio Recording Route
+
+- **Path**: Visit `/audio-recording` to launch the standalone microphone capture experience powered by the reusable `AudioRecorder` component. The UI mirrors our in-template plan so we can validate UX, codecs, and trim hand-offs before embedding it everywhere.
+- **Recording Flow**: Request mic access, monitor the live waveform + timer, stop to preview, then re-record, download, or save. The component emits a `File` + metadata payload that behaves exactly like a user-uploaded audio file.
+- **Trim Hand-off**: Choosing **Open in Trim Tool** navigates to `/trim` with the recording pre-loaded, so you can immediately tighten the clip using the existing timeline/FFmpeg workflow. Export the trimmed file and drop it into any template today.
+- **Formats & Compatibility**: Clips are saved as `audio/webm` (Opus) for broad browser + FFmpeg support. The backend trim endpoint already accepts the format, and HTML5 playback works seamlessly in Chrome/Edge with graceful fallbacks for unsupported browsers.
+- **Future Integration**: Once battle-tested, the same component will sit alongside every “Upload Audio” dropzone so creators can toggle between uploading and recording without leaving the template modal.
+- **Enhance Button**: A new **Enhance** CTA sits next to **Save Recording**. It uploads the take to `POST /api/audio/enhance`, waits for AssemblyAI to flag disfluencies + long pauses, runs FFmpeg RNNoise/loudnorm filters, removes filler ranges, and returns a polished WebM. The UX blocks Save while enhancement is running so users don’t advance with a partially processed clip.
+
+---
+
+## Getting Started
 
 ### Prerequisites
-- **Node.js**: ≥20.19.0 or ≥22.12.0 (specified in package.json engines)
-- **Python**: 3.13+ (3.13.7 specified in Pipfile)
-- **FFmpeg**: Required for video processing and concatenation
-- **pipenv**: Python dependency management (`pip install pipenv`)
 
-### Installation
+- **Node.js** ≥ 20.19.0 (or ≥ 22.12.0)
+- **Python** 3.13+
+- **FFmpeg** available on PATH (`brew install ffmpeg` on macOS)
+- **pipenv** for backend dependencies (`pip install pipenv`)
 
-1. **Install Dependencies**
-   ```bash
-   # Install all dependencies (frontend + backend)
-   npm install
-   cd frontend && npm install
-   cd ../backend && pipenv install
-   ```
+### Installation & Local Development
 
-2. **Start Development Servers**
-   ```bash
-   # Start both servers concurrently
-   npm run dev
-
-   # OR start individually:
-   # Frontend (Vite dev server)
-   npm run dev:fe
-   # Backend (FastAPI with uvicorn)  
-   npm run dev:be
-   ```
-
-3. **Access the Application**
-   - **Frontend**: http://localhost:5173
-   - **Backend API**: http://localhost:8000
-   - **API Documentation**: http://localhost:8000/docs
-
-### Available Routes
-
-The application has three main routes:
-
-1. **Home** (`/`)
-   - Landing page with navigation to main features
-   - Health check status display
-
-2. **Video Builder** (`/create`)
-   - Modal-based video creation workflow
-   - 6-template grid interface
-   - Final video concatenation and download
-
-3. **Video Trimming** (`/trim`)
-   - Standalone video trimming tool
-   - Upload, trim, and download videos
-
-4. **Axon Watermark** (`/axon-watermark`)
-   - Watermark configuration interface
-   - Live preview of watermark settings
-   - Admin/developer tool for configuring automatic watermark
-
-### Creating Videos
-
-#### **Video Builder** (`/create`)
-The main workflow for creating presentation videos:
-1. Navigate to `/create` to see the 6-template grid layout
-2. Click any template card to open its configuration modal
-3. Upload files and fill out form fields in the modal dialog
-4. Click "Done" to save the template configuration (shows preview thumbnail + checkmark)
-5. Repeat for all templates you want to include
-6. Click "Create Final Presentation" to render and concatenate all sections
-7. The final video downloads automatically with the title from your Announcement template
-
-**Note**: All templates must be configured before final rendering is enabled.
-
-**How it works under the hood:**
-1. Each template is configured in the modal and stored in React state
-2. When you click "Create Final Presentation", each template is rendered individually via its API endpoint
-3. The rendered video segments are sent to the `/api/concatenate-multipart` endpoint
-4. FFmpeg concatenates all segments in the correct order (1-6) into a single MP4 file
-5. The final video is optimized and downloaded to your computer
-
-#### **Video Trimming** (`/trim`)
-Standalone tool for trimming existing videos:
-- Upload a video file
-- Set start and end times
-- Choose stream copy (fast) or re-encode options
-- Download the trimmed result
-
-## 🏗️ Architecture
-
-### **Frontend Stack**
-- **Framework**: React 19 with React Router for navigation
-- **Build Tool**: Vite with SWC for fast development and building
-- **Styling**: SCSS with CSS custom properties and design tokens
-- **State Management**: React state with custom hooks (`useVideoTemplate`, `useVideoTrim`)
-- **Components**: Modular component library with shared design system
-- **Template System**: Modal-based configuration using `VideoTemplateCreator` component
-- **Code Splitting**: Lazy loading for overlay components with React Suspense
-
-### **Backend Stack**
-- **Framework**: FastAPI for high-performance async API
-- **Server**: Uvicorn ASGI server with hot reload
-- **Video Processing**: FFmpeg for video manipulation, rendering, and concatenation
-- **Image Processing**: Pillow (PIL) for PNG overlay generation
-- **File Handling**: Multipart upload support with temporary file management
-- **Video Concatenation**: Multi-segment video stitching with FFmpeg concat demuxer
-
-### **Key Libraries & Tools**
-
-#### Frontend Dependencies
-```json
-{
-  "react": "^19.1.1",
-  "react-dom": "^19.1.1",
-  "react-router-dom": "^7.8.2", 
-  "sass": "^1.91.0",
-  "video.js": "^8.23.4",
-  "vite": "^7.1.2"
-}
-```
-
-#### Backend Dependencies
-```python
-# Core framework
-fastapi = "*"
-uvicorn = {extras = ["standard"], version = "*"}
-
-# Image processing
-pillow = "*"
-
-# File handling & configuration
-python-multipart = "*"
-pydantic-settings = "*"
-python-dotenv = "*"
-aiofiles = "*"
-```
-
-**Note**: The backend uses FFmpeg directly via subprocess calls to the system `ffmpeg` binary for video processing, not through a Python wrapper library.
-
-### **Project Structure**
-```
-take-one/
-├── frontend/                  # React frontend application
-│   ├── src/
-│   │   ├── components/       # UI components organized by feature
-│   │   │   ├── shared/       # Reusable components (Button, Input, Spinner, etc.)
-│   │   │   │   ├── video-template-creator/  # Modal template configuration
-│   │   │   │   ├── overlay-preview-section/ # Preview rendering
-│   │   │   │   └── rendering-modal/         # Video rendering UI
-│   │   │   ├── *-overlay/    # Template-specific overlay components (6 templates)
-│   │   │   └── *-preview/    # Template preview components
-│   │   ├── hooks/            # Custom React hooks (useVideoTemplate, useVideoTrim)
-│   │   ├── lib/              # Utilities and configurations
-│   │   │   ├── api.js        # API client
-│   │   │   ├── templateConfigs.js  # Template configurations
-│   │   │   └── templateValidation.js
-│   │   ├── pages/            # Route components (App, Create, Trim)
-│   │   ├── routes/           # Router configuration (Router.jsx)
-│   │   └── styles/           # SCSS design system with tokens
-│   ├── public/               # Static assets (logos, social-card.png)
-│   ├── index.html            # Entry HTML with social meta tags
-│   └── vite.config.ts        # Vite configuration with API proxy
-├── backend/                  # FastAPI backend application
-│   ├── app/
-│   │   ├── api/v1/          # API route handlers (9 routers)
-│   │   │   ├── health.py
-│   │   │   ├── trim.py
-│   │   │   ├── intro.py
-│   │   │   ├── announcement.py
-│   │   │   ├── how_it_works.py
-│   │   │   ├── persona.py
-│   │   │   ├── demo.py
-│   │   │   ├── closing.py
-│   │   │   ├── concatenate.py   # Video stitching
-│   │   │   └── routes.py        # Router aggregation
-│   │   ├── core/            # Configuration and settings
-│   │   │   └── config.py
-│   │   └── utils/           # Video processing utilities
-│   │       ├── media.py
-│   │       ├── overlay_generator.py
-│   │       ├── styles.py
-│   │       └── *_overlay.py     # Template-specific overlays
-│   └── Pipfile              # Python dependencies
-├── package.json             # Root package with dev scripts
-└── README.md                # This file
-```
-
-## 🎨 Design System
-
-### **Component Architecture**
-
-The project uses a unified component system with shared design patterns and a modal-based template configuration system.
-
-#### **VideoTemplateCreator Component** (`/frontend/src/components/shared/video-template-creator/`)
-- **Purpose**: Reusable modal-based template configuration interface
-- **Features**: File uploads, text fields, live preview, video rendering
-- **Configuration**: Driven by `templateConfigs.js` for each template type
-- **Usage**: Used within the Create page modals to configure all 6 templates
-- **Props**: Accepts config object with template-specific settings
-
-#### **Button Component** (`/frontend/src/components/shared/button/`)
-- **Variants**: Primary, Secondary, Tertiary, Destructive, Success, Link
-- **Sizes**: Small, Medium, Large
-- **Features**: Loading states, disabled states, accessibility
-- **Usage**: `<Button variant="primary" size="large" loading={isLoading}>Submit</Button>`
-
-#### **Input Components** (`/frontend/src/components/shared/input/`)
-- **Text Input**: `<Input label="Name" value={name} onChange={setName} />`
-- **File Input**: `<FileInput accept=".mp4,.mov" onChange={handleFile} />`
-- **Variants**: Default, Time (monospace), Code (monospace)
-- **Features**: Error states, validation, drag-and-drop
-
-#### **Template Independence**
-Each template is completely self-contained at the implementation level:
-- **Frontend**: Separate overlay components and styles (no individual pages)
-- **Backend**: Individual API endpoints and overlay generators
-- **Configuration**: Isolated configs in `templateConfigs.js`
-- **No Cross-Contamination**: Changes to one template don't affect others
-- **Shared Infrastructure**: All use `VideoTemplateCreator` for configuration UI
-
-### **Color Palette**
-- **Primary**: `#646cff` (Brand Blue)
-- **Background**: `#0a0a0a` (Dark Grey)
-- **Foreground**: `#e6e8ff` (Light Blue)
-- **Success**: `#10b981` (Green)
-- **Error**: `#ef4444` (Red)
-
-### **Typography**
-- **Font Family**: System UI stack (system-ui, -apple-system, Segoe UI, Roboto, Arial)
-- **Font Sizes**: Token-based system (100-600 scale)
-- **Font Weights**: Normal (400), Medium (500), Semibold (600), Bold (700)
-
-### **Spacing & Layout**
-- **Space Tokens**: `--space-*` variables (50, 100, 150, 200, 300, 400, 600)
-- **Border Radius**: `--radius-*` variables (100, 200)
-- **Responsive Design**: Mobile-first with fluid layouts
-
-### **Branding & Social Media**
-
-The application is branded as **Axon TakeOne** with the tagline "Record your case. We'll file the evidence."
-
-#### **Social Media Integration**
-The `index.html` includes Open Graph and Twitter Card meta tags for rich social media previews:
-- **Title**: "Axon TakeOne : @preed"
-- **Description**: "Record your case. We'll file the evidence."
-- **Social Card**: `/social-card.png` (displayed when sharing links)
-- **Favicon**: `/phr.svg`
-
-When sharing links to the application, social media platforms will automatically display the custom social card image along with the branding.
-
-## 🔧 Development
-
-### **Available Scripts**
 ```bash
-# Development
-npm run dev          # Start both frontend and backend
-npm run dev:fe       # Frontend only (Vite)
-npm run dev:be       # Backend only (FastAPI)
+# From repo root
+npm install              # Installs shared scripts + tooling
+cd frontend && npm install
+cd ../backend && pipenv install
 
-# Frontend specific
-cd frontend
-npm run build        # Production build
-npm run preview      # Preview production build
-npm run lint         # ESLint
-
-# Backend specific  
-cd backend
-pipenv run uvicorn app.main:app --reload  # Manual backend start
+# Start everything via the root package scripts
+cd ..
+npm run dev             # Runs frontend + backend concurrently
+# or run individually
+npm run dev:fe          # Vite dev server (http://localhost:5173)
+npm run dev:be          # FastAPI via uvicorn (http://localhost:8000)
 ```
 
-### **Configuration**
+Access points:
+- Frontend app: <http://localhost:5173>
+- Backend API: <http://localhost:8000>
+- Auto-generated docs: <http://localhost:8000/docs>
 
-#### Environment Variables
-Create `backend/.env`:
+---
+
+## Configuration & Environment
+
+### Backend `.env` Template (`backend/.env`)
+
 ```env
 ENV=development
 PORT=8000
@@ -368,473 +160,195 @@ CORS_ORIGINS=http://localhost:5173
 # Feature Flags
 FEATURE_OPENAI=false
 FEATURE_SLACK=false
+FEATURE_AUDIO_ENHANCE=false
 
-# Slack Integration (optional - requires FEATURE_SLACK=true)
-SLACK_BOT_TOKEN=xoxb-your-bot-token-here
+# Slack Integration
+SLACK_BOT_TOKEN=xoxb-your-bot-token
 SLACK_CHANNEL_ID=C01234ABC5D
+
+# OpenAI (AI Persona Generator)
+OPENAI_API_KEY=sk-your-key
+
+# Audio Enhancement (AssemblyAI)
+ASSEMBLYAI_API_KEY=your-assemblyai-key
+ASSEMBLYAI_BASE_URL=https://api.assemblyai.com/v2
+AUDIO_RNNOISE_MODEL_PATH=app/assets/audio/denoise_general.rnnn
 ```
 
-See [SLACK_INTEGRATION_SETUP.md](./SLACK_INTEGRATION_SETUP.md) for complete Slack configuration instructions.
+### Frontend Environment (Vercel or `.env`)
 
-#### API Proxy
-The frontend automatically proxies `/api/*` requests to `http://localhost:8000`
-
-### **Adding New Templates**
-
-The project follows a strict template independence pattern with modal-based configuration. To add a new template:
-
-1. **Use the Template Generator** (Recommended):
-   ```bash
-   python readMe/scripts/create-template.py template-name "Description"
-   ```
-
-2. **Manual Creation** (Follow these patterns):
-   ```bash
-   # Frontend structure (no pages needed - uses modals)
-   mkdir frontend/src/components/template-name-overlay
-   mkdir frontend/src/components/template-name-preview
-   
-   # Backend structure
-   touch backend/app/api/v1/template_name.py
-   touch backend/app/utils/template_name_overlay.py
-   ```
-
-3. **Template Requirements**:
-   - **Frontend**: 
-     - Overlay component for preview rendering
-     - Configuration entry in `frontend/src/lib/templateConfigs.js`
-     - Styling in component SCSS files using design tokens
-   - **Backend**: 
-     - API endpoints (`/test`, `/generate-overlay-png`, `/render`)
-     - Overlay generator for PNG creation
-     - Template-specific utility in `utils/`
-
-4. **Integration Steps**:
-   - Add template config to `templateConfigs.js` with file/text requirements
-   - Add API router to `backend/app/api/v1/routes.py`
-   - Add template to the 6-template grid in `frontend/src/pages/create/Create.jsx`
-   - Update template order mapping if changing sequence
-
-### **Template Architecture Principles**
-
-#### **Independence First**
-- Each template is completely self-contained at the implementation level
-- No shared template-specific components between templates
-- Separate backend APIs and utilities for each template
-- Independent styling systems per template
-- Isolated configuration in `templateConfigs.js`
-
-#### **Shared Foundation**
-- Reuse common UI components (Button, Input, VideoTemplateCreator, etc.)
-- Share global design tokens and utilities
-- Use consistent API patterns across all templates
-- Follow common error handling and file upload patterns
-- Single modal-based configuration interface for all templates
-
-#### **Modal-Based Workflow**
-- All templates configured through `VideoTemplateCreator` component
-- Configuration driven by `templateConfigs.js` entries
-- No individual template pages - everything in `/create`
-- Template state managed in Create page component
-- Final concatenation of all configured templates
-
-#### **API Patterns**
-```python
-# Standard endpoint structure for each template
-@router.get("/template_name/test")
-@router.post("/template_name/generate-overlay-png")
-@router.post("/template_name/render")
+```env
+VITE_API_BASE_URL=https://your-backend-domain/api
 ```
 
-## 📚 API Reference
+### Asset Requirements
 
-### **Template Endpoints**
+Place the `SF Pro Rounded` fonts in `backend/fonts/` so overlay generators can render consistent typography:
 
-All templates follow the same API pattern:
-
-#### **Test Endpoint**
-```bash
-GET /api/{template_name}/test
-# Returns: {"status": "ok", "message": "Template API is working"}
+```
+backend/fonts/
+├── SF-Pro-Rounded-Regular.ttf
+├── SF-Pro-Rounded-Semibold.ttf
+└── SF-Pro-Rounded-Bold.ttf
 ```
 
-#### **Overlay Generation**
-```bash
-POST /api/{template_name}/generate-overlay-png
-# Form data: template-specific parameters
-# Returns: PNG file download
-```
+The backend automatically falls back to DejaVu Sans → Helvetica if the fonts are missing, but the official look & feel assumes these assets exist.
 
-#### **Video Rendering**
-```bash
-POST /api/{template_name}/render
-# Form data: files + template-specific parameters
-# Returns: MP4 video file download
-```
+For audio enhancement, download an RNNoise model (`denoise_general.rnnn`) from the [official repository](https://github.com/xiph/rnnoise/tree/master/models) and place it under `backend/app/assets/audio/`. Update `AUDIO_RNNOISE_MODEL_PATH` if you store it elsewhere.
 
-### **Trim API**
-```bash
-POST /api/trim/analyze        # Analyze uploaded video
-POST /api/trim/server         # Server-side video trimming
-POST /api/trim/download/{filename}  # Download trimmed video
-```
+---
 
-### **Concatenation API**
-```bash
-GET /api/concatenate/test     # Test endpoint
-POST /api/concatenate         # Concatenate videos (JSON format)
-POST /api/concatenate-multipart  # Concatenate videos (multipart form data)
-# Form data: segment_0 through segment_5, order_0 through order_5, final_filename
-# Returns: Final concatenated MP4 video file
-```
+## Deployment Snapshot
 
-The `/concatenate-multipart` endpoint is used by the Video Builder to stitch together all configured template videos into a single final presentation.
+| Surface | Platform | Command Highlights |
+| --- | --- | --- |
+| Frontend | **Vercel** | `cd frontend && npm install && npm run build` → outputs `frontend/dist` |
+| Backend | **Railway** | `cd backend && pip install pipenv && pipenv install` → `pipenv run uvicorn app.main:app --host 0.0.0.0 --port $PORT` |
 
-### **Slack API**
-```bash
-POST /api/share-to-slack
-# Form data: file (video blob), filename (optional), initial_comment (optional)
-# Returns: {"success": true, "message": "Video shared to Slack successfully!", "file_info": {...}}
-```
+Key environment variables:
 
-The Slack endpoint uploads generated videos to a configured Slack channel. Requires `FEATURE_SLACK=true` and proper configuration. See [SLACK_INTEGRATION_SETUP.md](./SLACK_INTEGRATION_SETUP.md).
+| Platform | Variable | Purpose |
+| --- | --- | --- |
+| Vercel | `VITE_API_BASE_URL` | Points to the Railway backend (`https://video-builder-production.up.railway.app/api`) |
+| Railway | `OPENAI_API_KEY` | Enables GPT‑4/DALL·E 3 persona generation |
+| Railway | `CORS_ORIGINS` | Include `http://localhost:5173` and your Vercel URL |
+| Railway | `ENV` | Typically `production` |
+| Railway | `FEATURE_SLACK`, `SLACK_BOT_TOKEN`, `SLACK_CHANNEL_ID` | Enables Slack uploads |
 
-### **Health Check**
-```bash
-GET /api/health
-# Returns: {"status": "ok", "timestamp": "..."}
-```
+**Deployment flow:** push to `main` → Vercel + Railway auto-deploy → verify Slack + OpenAI env vars → smoke test `/create`, `/trim`, and Slack share.
 
-## 🚀 Production Deployment
+---
 
-### **Frontend Build**
-```bash
-cd frontend
-npm run build
-# Static files generated in frontend/dist/
-```
+## AI Persona Generator Quick Start
 
-### **Backend Deployment**
+1. **Rename your env var** – ensure `backend/.env` uses `OPENAI_API_KEY` (not `OPEN_AI_KEY`).
+2. **Restart backend** – `cd backend && pipenv run uvicorn app.main:app --reload --port 8000`.
+3. **Launch frontend** – `cd frontend && npm run dev`.
+4. **Use the Persona template**:
+   - Step 1: Upload audio narration.
+   - Step 2: Describe your persona and converse with GPT‑4 (three clarifying questions max). Click **Generate Image** to invoke DALL·E 3 at 1792×1024 (HD). Download, regenerate, or reset as needed. Manual upload remains one click away.
+   - Step 3: Fill in Name, Title, and Industry, optionally hide the overlay.
+5. **Render + verify** – ensure the generated image ships with the segment and the final concatenated video.
+
+**Testing checklist:** backend boots cleanly, AI chat returns responses, image generation succeeds, Apply button updates preview, manual upload fallback works, final render completes, and logs capture any OpenAI/network errors.
+
+**Cost snapshot:** GPT‑4 prompts (~$0.01–$0.03 per session) + DALL·E 3 HD (~$0.08/image) → ~$0.10–$0.15 per persona.
+
+Customization pointers live in `backend/app/utils/openai_prompts.py` (conversation tone & image style) and `backend/app/utils/openai_client.py` (resolution, quality).
+
+---
+
+## Slack Integration Overview
+
+- **Endpoints**: `POST /api/share-to-slack` streams files from the backend only (tokens never touch the frontend).
+- **Frontend UX**: Success modal shows a purple Slack button with hover tooltip, spinner-based loading state, green success confirmation, and inline error callouts.
+- **Quick Setup Recap**:
+  1. Create a Slack app → add `files:write` + `chat:write` scopes → install → copy the Bot User OAuth token (`xoxb-...`).
+  2. Fetch the Channel ID (desktop channel details or `conversations.list`).
+  3. Invite the bot to that channel (`/invite @Take One Video Bot`).
+  4. Update `backend/.env` with `FEATURE_SLACK=true`, `SLACK_BOT_TOKEN`, `SLACK_CHANNEL_ID`.
+  5. Restart the backend and test with any rendered video.
+- **Troubleshooting**: `FEATURE_SLACK` disabled → button hidden; `not_in_channel` errors mean the bot was not invited; `invalid_auth` indicates an expired token.
+- **Production**: replicate the env vars inside Railway and redeploy. Detailed, screenshot-rich instructions now live in `Architecture.md`.
+
+---
+
+## Audio Enhancement Quick Start
+
+1. **Create an AssemblyAI account** – visit <https://www.assemblyai.com>, create a project, and copy your API token.
+2. **Download a RNNoise model** – grab `denoise_general.rnnn` from the [official RNNoise repo](https://github.com/xiph/rnnoise/tree/master/models) and place it at `backend/app/assets/audio/denoise_general.rnnn` (or update `AUDIO_RNNOISE_MODEL_PATH`).
+3. **Update `backend/.env`**:
+   - `FEATURE_AUDIO_ENHANCE=true`
+   - `ASSEMBLYAI_API_KEY=<your token>`
+   - (Optional) `ASSEMBLYAI_BASE_URL` if you use a proxy.
+4. **Restart the backend** – `cd backend && pipenv run uvicorn app.main:app --reload --port 8000`.
+5. **Open `/audio-recording`** – record a take, click **Enhance**, and wait for the inline spinner to finish. The summary card will note applied enhancements, and **Open in Trim Tool** continues to work with the polished clip.
+
+The endpoint returns `audio/webm` (Opus) so all existing template renderers, the Trim flow, and final concatenation keep functioning without code changes. Failure cases surface inline error text under the waveform so users can retry or fall back to the original take.
+
+---
+
+## Production Readiness & Monitoring
+
+Highlights pulled from the production checklist, deployment notes, and cleanup design:
+
+- **Frontend hygiene**: No stray `console.log` in AI generator / template creator; Create.jsx intentionally retains a few debug logs for live triage.
+- **Backend logging**: All `print` calls replaced with structured logging. HTTP exceptions carry human-readable details without leaking secrets.
+- **Environment parity**: Vercel uses `VITE_API_BASE_URL`; Railway stores `OPENAI_API_KEY`, `CORS_ORIGINS`, Slack vars, and `ENV=production`.
+- **Dependencies**: Backend Pipfile includes `openai`, `httpx`, and test deps; frontend relies solely on existing libraries (React, Sass, Video.js, Vite).
+- **API coverage**: Persona gained `/api/persona/chat` and `/api/persona/generate-image`. All legacy template endpoints remained untouched and regression tested.
+- **UX polish**: Auto-scrolling conversation threads, tooltips, download/regenerate controls, consistent loading states, and responsive layouts were validated across flows.
+- **Testing**: Persona template edge cases (empty input, network failure, OpenAI timeout) handled gracefully. Demo renders confirm AI images are embedded correctly.
+- **Security**: Secrets stay in env vars, `.env` is ignored, Slack tokens never reach the browser, and CORS restricts origins.
+- **Performance**: AI imagery cached in memory as base64, template renders clean their temp directories, and FFmpeg timeouts guard long-running jobs.
+- **Monitoring**: Watch Railway logs for OpenAI errors, FFmpeg failures, and trim/render timeouts. Vercel analytics track request errors and load times.
+- **Known limits**: DALL·E 3 max resolution 1792×1024, generation latency 10–30 seconds, and cold starts on Railway free tier. Rollback plan: empty `OPENAI_API_KEY` to disable AI, or revert commit to remove UI if necessary.
+
+---
+
+## Testing, Assets & Maintenance
+
+### Backend Tests
+
 ```bash
 cd backend
-pipenv install --deploy
-pipenv run uvicorn app.main:app --host 0.0.0.0 --port 8000
+pipenv run pytest                   # Entire suite
+pipenv run pytest tests/test_openai_prompts.py -v
+pipenv run pytest --cov=app tests/  # Coverage
+# Focused audio enhance coverage
+pipenv run pytest tests/test_audio_enhancer.py -v
 ```
 
-### **Environment Configuration**
-- Set `ENV=production` in backend environment
-- Configure appropriate `CORS_ORIGINS` for production domains
-- Ensure FFmpeg is available in production environment
+Install dev dependencies first: `pipenv install --dev`. Tests favor descriptive naming, docstrings, and single-purpose assertions.
 
-## 🛠️ Troubleshooting
+### Font Assets
 
-### **Common Issues**
+Ensure `SF-Pro-Rounded-*` fonts live under `backend/fonts/` before deploying so Pillow can render overlays with the expected typography. Railway deployments bundle whatever is in version control, so commit the fonts (or document where operators should place them for automated builds).
 
-**Port already in use:**
-```bash
-lsof -i :5173  # or :8000
-kill -9 <PID>
-```
+### Temp File Lifecycle
 
-**FFmpeg not found:**
-- Ensure FFmpeg is installed and available in PATH
-- On macOS: `brew install ffmpeg`
+Every render, trim, and concat endpoint now:
+- Writes inputs and outputs to a template-specific temp directory.
+- Schedules `cleanup_temp_path(temp_dir)` with FastAPI `BackgroundTasks` after streaming the file.
+- Performs immediate cleanup on FFmpeg failures, timeouts, missing outputs, and unexpected exceptions.
+This prevents orphaned directories under `/tmp`, reduces disk pressure, and keeps behavior consistent even if clients disconnect mid-transfer.
 
-**Video upload/processing issues:**
-- Check file permissions and disk space
-- Ensure supported formats (.mov, .mp4)
-- Verify FFmpeg installation
+---
 
-**API 404 errors:**
-- Ensure backend is running on port 8000
-- Check frontend proxy configuration in `vite.config.ts`
+## Troubleshooting
 
-**Template not working:**
-- Check template-specific API endpoints
-- Verify overlay generator is working
-- Test with `/test` endpoint first
+| Symptom | Fix |
+| --- | --- |
+| Port already in use (`5173` or `8000`) | `lsof -i :5173` → kill offending PID. |
+| FFmpeg not found | Install via `brew install ffmpeg` (macOS) or `apt-get install ffmpeg` (Linux/Railway has it pre-installed). |
+| Slack button disabled | Confirm `FEATURE_SLACK=true`, restart backend, hard refresh frontend, and verify bot token/channel ID. |
+| Enhance button disabled / 503 error | Ensure `FEATURE_AUDIO_ENHANCE=true`, `ASSEMBLYAI_API_KEY` is set, and `backend/app/assets/audio/denoise_general.rnnn` exists. Restart the backend after updating env vars. |
+| `invalid_auth` / `not_in_channel` (Slack) | Reinstall Slack app to refresh token and invite the bot to the channel. |
+| `OPENAI_API_KEY not configured` | Update `backend/.env`, restart backend, ensure env var name is correct. |
+| Persona image fails to render | Check backend logs for OpenAI errors, verify network connectivity, retry or fall back to manual upload. |
+| API 404s during local dev | Ensure backend is running on :8000 and that Vite proxy is active (`npm run dev`). |
+| Cold starts on Railway | First request after idle can take 30–60 seconds—wait, then retry. |
 
-## 🚀 Deployment
+---
 
-This application is deployed using a modern, scalable cloud architecture with automatic deployments.
+## Contributing
 
-### Architecture Overview
+- Follow the modal-based template architecture—each template stays self-contained across frontend components, backend routes, and overlay utilities.
+- Prefer shared components (`VideoTemplateCreator`, Button, Inputs, TrimControls, AIImageGenerator) over bespoke UI.
+- Use `templateConfigs.js` for template metadata, file requirements, and preview wiring instead of custom pages.
+- When adding new templates, ensure their render order, API routes, and concatenation hooks are updated consistently.
+- Update this README (and `Architecture.md`) whenever you introduce new features, integrations, or architectural changes.
 
-```
-┌─────────────────┐         ┌──────────────────┐
-│   Vercel        │         │    Railway       │
-│   (Frontend)    │────────▶│    (Backend)     │
-│                 │   API   │                  │
-│  React/Vite App │  Calls  │  FastAPI + FFmpeg│
-└─────────────────┘         └──────────────────┘
-```
+---
 
-### Production URLs
+## Additional Documentation
 
-- **Frontend**: https://video-builder-nu.vercel.app/
-- **Backend**: https://video-builder-production.up.railway.app/
-- **API Health Check**: https://video-builder-production.up.railway.app/
-- **API Documentation**: https://video-builder-production.up.railway.app/api/docs
+See [`Architecture.md`](./Architecture.md) for deep dives into:
+- Detailed technology stack and dependency matrices.
+- Frontend & backend architecture diagrams, component hierarchies, and data flow.
+- API reference for every endpoint (templates, trim, concatenate, Slack, OpenAI).
+- Integration guides with screenshots/diagrams for Slack, OpenAI, and deployment topologies.
+- FFmpeg filter breakdowns, overlay generator internals, and deterministic cleanup strategy.
+- Deployment architecture (Vercel/Railway), environment variable guides, and operational runbooks.
 
-### Environment Variables
-
-#### Frontend (Vercel)
-
-**Required:**
-| Variable | Value | Description |
-|----------|-------|-------------|
-| `VITE_API_BASE_URL` | `https://video-builder-production.up.railway.app/api` | Full URL to Railway backend API |
-
-**Configuration:**
-- Set in: Vercel Dashboard → Project Settings → Environment Variables
-- Apply to: Production, Preview, Development (all 3 environments)
-- **Important**: Must redeploy after adding/changing this variable
-
-#### Backend (Railway)
-
-**Required:**
-| Variable | Value | Description |
-|----------|-------|-------------|
-| `CORS_ORIGINS` | `http://localhost:5173,https://video-builder-nu.vercel.app` | Comma-separated list of allowed origins |
-
-**Optional:**
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `ENV` | `development` | Environment name |
-| `PORT` | Auto-set by Railway | Port number (automatically configured) |
-| `FEATURE_SLACK` | `false` | Enable Slack integration |
-| `SLACK_BOT_TOKEN` | - | Slack Bot User OAuth Token (starts with `xoxb-`) |
-| `SLACK_CHANNEL_ID` | - | Slack channel ID for video uploads |
-
-**Slack Configuration:**
-To enable Slack integration in production:
-1. Create a Slack App and get your Bot Token
-2. Get your Channel ID from Slack
-3. Set the environment variables in Railway
-4. See [SLACK_INTEGRATION_SETUP.md](./SLACK_INTEGRATION_SETUP.md) for detailed instructions
-
-### Configuration Files
-
-#### **`vercel.json`**
-Vercel build and deployment configuration:
-```json
-{
-  "buildCommand": "cd frontend && npm install && npm run build",
-  "outputDirectory": "frontend/dist",
-  "installCommand": "npm install",
-  "framework": null,
-  "devCommand": "cd frontend && npm run dev"
-}
-```
-
-#### **`frontend/src/lib/config.js`** ⭐
-Central API configuration (single source of truth):
-- Exports `API_BASE_URL` used by all API calls
-- Automatically detects development vs production environment
-- Defaults to `/api` in development (proxied by Vite)
-- Uses `VITE_API_BASE_URL` in production
-
-#### **`frontend/vite.config.ts`**
-- Proxy configuration: Routes `/api/*` to `http://localhost:8000` during local development
-- Build configuration: Configures Vite build process
-- SCSS support: Enables SCSS preprocessing
-
-#### **`backend/app/core/config.py`**
-Backend settings and environment variables:
-- Uses Pydantic settings for configuration
-- Reads from `.env` file or environment variables
-- Manages CORS configuration
-
-#### **`backend/app/main.py`**
-FastAPI application entry point:
-- Root health check: `GET /` returns service status
-- API routes: All routes mounted under `/api` prefix
-- CORS middleware: Configured with `CORS_ORIGINS` from settings
-
-### API Base URL Flow
-
-#### Development (Local)
-1. `VITE_API_BASE_URL` is not set
-2. `config.js` defaults to `/api`
-3. Vite proxy routes `/api/*` to `http://localhost:8000`
-4. Works seamlessly without any configuration
-
-#### Production (Vercel)
-1. `VITE_API_BASE_URL` = `https://video-builder-production.up.railway.app/api`
-2. `config.js` uses this value
-3. All API calls go directly to Railway backend
-4. No proxy involved
-
-### Deployment Platforms
-
-#### Vercel (Frontend)
-Automatically:
-- ✅ Detects monorepo structure via `vercel.json`
-- ✅ Builds frontend from `frontend` directory
-- ✅ Deploys to global CDN
-- ✅ Provides preview deployments for PRs
-- ✅ Auto-deploys on git push to main
-
-**Configuration:**
-- Connected to GitHub repository
-- Auto-deployment enabled on main branch
-- Environment variables set in dashboard
-
-#### Railway (Backend)
-Automatically:
-- ✅ Installs FFmpeg (required for video processing)
-- ✅ Sets up Python environment
-- ✅ Configures networking and domains
-- ✅ Manages environment variables
-- ✅ Auto-deploys on git push to main
-
-**Build Command:**
-```bash
-cd backend && pip install pipenv && pipenv install
-```
-
-**Start Command:**
-```bash
-cd backend && pipenv run uvicorn app.main:app --host 0.0.0.0 --port $PORT
-```
-
-### Deployment Checklist
-
-#### Initial Setup
-- [ ] Create Vercel project connected to GitHub
-- [ ] Create Railway project connected to GitHub
-- [ ] Get Railway URL from Railway dashboard
-- [ ] Set `VITE_API_BASE_URL` in Vercel
-- [ ] Set `CORS_ORIGINS` in Railway (include Vercel URL)
-- [ ] Deploy both services
-- [ ] Test production deployment
-
-#### After Code Changes
-- [ ] Commit and push to GitHub (`git push origin main`)
-- [ ] Vercel auto-deploys (watch deployment logs)
-- [ ] Railway auto-deploys (watch deployment logs)
-- [ ] Test the deployed application
-
-#### When Changing URLs
-- [ ] Update `VITE_API_BASE_URL` in Vercel
-- [ ] Update `CORS_ORIGINS` in Railway
-- [ ] Redeploy Vercel (required for env var changes)
-- [ ] Railway auto-redeploys on env var changes
-
-### Deployment Troubleshooting
-
-#### Frontend Issues
-
-**Problem:** API calls return 404
-- **Check**: Verify `VITE_API_BASE_URL` is set in Vercel
-- **Check**: Redeploy Vercel after adding env var
-- **Check**: Network tab shows requests going to Railway URL
-
-**Problem:** CORS errors
-- **Check**: Vercel URL is in Railway's `CORS_ORIGINS`
-- **Check**: No trailing slashes in URLs
-- **Check**: Protocol matches (https://)
-
-**Problem:** Vercel build fails
-- **Check**: `vercel.json` is in root directory
-- **Check**: Frontend dependencies in `frontend/package.json`
-- **Check**: Build command is correct
-- **Solution**: Review Vercel deployment logs for specific errors
-
-#### Backend Issues
-
-**Problem:** FFmpeg not found
-- **Solution**: Railway has FFmpeg built-in, should work automatically
-- **Check**: Railway logs for FFmpeg-related errors
-- **Check**: Service is "Live" in Railway dashboard
-
-**Problem:** Backend won't start
-- **Check**: Start command includes `--host 0.0.0.0`
-- **Check**: `$PORT` variable is used (Railway auto-sets this)
-- **Check**: Python dependencies installed correctly
-- **Check**: Pipfile is in `backend/` directory
-
-**Problem:** Railway build fails
-- **Check**: `Pipfile` is in `backend/` directory
-- **Check**: Python version compatibility (3.13+)
-- **Check**: All dependencies listed in Pipfile
-
-#### API Call Issues
-
-**Problem:** Requests still going to Vercel instead of Railway
-- **Check**: Open DevTools → Console, look for API configuration log
-- **Check**: Should see `API Configuration: { baseUrl: "https://video-builder-production.up.railway.app/api", ... }`
-- **Solution**: If showing `/api`, environment variable isn't applied - redeploy Vercel
-
-**Problem:** Cold start delays (Railway free tier)
-- **Symptom**: First request after idle takes 30-60 seconds
-- **Cause**: Railway free tier spins down after 15 minutes of inactivity
-- **Solution**: This is expected behavior on free tier
-- **Workaround**: Wait for backend to wake up, then subsequent requests are fast
-- **Permanent fix**: Upgrade to Railway paid tier for always-on service
-
-### Performance Considerations
-
-#### Railway Free Tier
-- **Cold starts**: First request after idle takes 30-60 seconds
-- **Sleep after 15 minutes** of inactivity
-- **Solution**: Upgrade to paid tier for always-on service
-
-#### Vercel
-- **CDN deployment**: Fast global delivery
-- **Edge network**: Minimal latency
-- **Preview deployments**: Every PR gets a preview URL
-
-### Security Notes
-
-1. **Never commit `.env` files** - They're in `.gitignore`
-2. **Use environment variables** for sensitive data
-3. **CORS configuration** restricts API access to approved domains
-4. **Environment variables** are set in platform dashboards, not in code
-
-### Maintenance
-
-#### Updating Dependencies
-
-**Frontend:**
-```bash
-cd frontend
-npm update
-npm audit fix
-```
-
-**Backend:**
-```bash
-cd backend
-pipenv update
-pipenv check
-```
-
-#### Monitoring
-
-**Vercel:**
-- Dashboard → Analytics
-- Dashboard → Deployments (view logs)
-
-**Railway:**
-- Dashboard → Metrics
-- Dashboard → Logs (live log streaming)
-
-## 🤝 Contributing
-
-This project follows a modular, modal-based architecture designed for easy extension:
-
-1. **Templates**: Use the template generator script for new video types (configure in `templateConfigs.js`)
-2. **Components**: Add shared components to `frontend/src/components/shared/`
-3. **Styling**: Follow the design token system in `frontend/src/styles/`
-4. **API**: Add new endpoints to `backend/app/api/v1/`
-5. **Integration**: Add template cards to the `/create` page grid
-
-### **Development Guidelines**
-- Follow template independence principles (isolated implementations)
-- Use shared components for consistency (especially `VideoTemplateCreator`)
-- Configure templates in `templateConfigs.js` rather than creating separate pages
-- Test template rendering via the modal workflow
-- Update documentation for new features
-- Follow the established naming conventions
-- All templates should work through the unified Video Builder interface
+That document consolidates every technical deep dive so this README can stay focused on day-to-day usage.

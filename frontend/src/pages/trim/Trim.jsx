@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import Button from '@/components/shared/button';
 import { Input, FileInput } from '@/components/shared/input';
 import RenderingModal from '@/components/shared/rendering-modal';
@@ -6,6 +7,10 @@ import { useVideoTrim } from '@/hooks/useVideoTrim';
 import './Trim.scss';
 
 export default function Trim() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [importNotice, setImportNotice] = useState('');
+
   const {
     // Refs
     videoRef,
@@ -28,6 +33,7 @@ export default function Trim() {
     // Handlers
     handleFileUpload,
     handleClearFile,
+    ingestExternalFile,
     handleStartTimecodeChange,
     handleEndTimecodeChange,
     handlePreviewRange,
@@ -44,6 +50,15 @@ export default function Trim() {
     canExport
   } = useVideoTrim();
 
+  useEffect(() => {
+    const recording = location.state?.recording;
+    if (recording?.file && ingestExternalFile) {
+      ingestExternalFile(recording.file);
+      setImportNotice(`Loaded "${recording.file.name}" from the audio recorder.`);
+      navigate(location.pathname, { replace: true });
+    }
+  }, [ingestExternalFile, location.pathname, location.state, navigate]);
+
   return (
     <div className="trim-page">
       <div className="trim-container">
@@ -51,6 +66,16 @@ export default function Trim() {
           <h1>Video Trim Tool</h1>
           <p>Upload a video and use the timeline below to set start and end times.</p>
           <p className="flag"> This tool is currently a WIP. MP4's and MOV's are supported, but some codecs may not preview correctly.</p>
+
+        {importNotice && (
+          <div className="import-notice">
+            <span role="img" aria-hidden="true">✨</span>
+            <p>{importNotice} You can trim it immediately or export a new take.</p>
+            <Button variant="ghost" size="small" onClick={() => setImportNotice('')}>
+              Dismiss
+            </Button>
+          </div>
+        )}
 
           {/* Step 1: Upload Video */}
           <div className="section">

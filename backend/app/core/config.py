@@ -19,6 +19,14 @@ class Settings(BaseSettings):
 
     # Feature flags (keep minimal template by default)
     FEATURE_OPENAI: bool = False
+    FEATURE_AUDIO_ENHANCE: bool = False
+
+    # Audio enhance provider (AssemblyAI)
+    ASSEMBLYAI_API_KEY: str = ""
+    ASSEMBLYAI_BASE_URL: str = "https://api.assemblyai.com/v2"
+    AUDIO_RNNOISE_MODEL_PATH: str = str(
+        Path(__file__).resolve().parents[2] / "app" / "assets" / "audio" / "denoise_general.rnnn"
+    )
 
     # Load variables from backend/.env
     model_config = SettingsConfigDict(

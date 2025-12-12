@@ -36,6 +36,27 @@
     border-radius: 4px;
     background-color: rgba(230, 20, 20, .1);
   }
+
+  .import-notice {
+    margin: 1rem 0 2rem;
+    padding: 1rem 1.25rem;
+    border-radius: 14px;
+    background: rgba(143, 158, 255, 0.15);
+    border: 1px solid rgba(143, 158, 255, 0.35);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+
+    span {
+      font-size: 1.5rem;
+    }
+
+    p {
+      margin: 0;
+      color: rgba(255, 255, 255, 0.9);
+    }
+  }
 }
 
 // Section Styles - Card-based like Create.scss
