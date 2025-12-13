@@ -13,8 +13,6 @@ aiofiles = "*"
 pillow = "*"
 httpx = "*"
 openai = "*"
-pydub = "*"
-audioop-lts = "*"
 
 [dev-packages]
 pytest = "*"

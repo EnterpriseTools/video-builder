@@ -24,8 +24,7 @@ export default function AudioRecorder({
   maxDurationMs = 5 * 60 * 1000, // 5 minutes
   autoDownload = false,
   allowDownload = true,
-  onRecordingComplete,
-  onEnhance
+  onRecordingComplete
 }) {
   const [recorderState, setRecorderState] = useState(RECORDER_STATES.IDLE);
   const [permissionError, setPermissionError] = useState('');
@@ -33,8 +32,6 @@ export default function AudioRecorder({
   const [recordingUrl, setRecordingUrl] = useState('');
   const [recordingFile, setRecordingFile] = useState(null);
   const [statusMessage, setStatusMessage] = useState('');
-  const [isEnhancing, setIsEnhancing] = useState(false);
-  const [enhanceError, setEnhanceError] = useState('');
 
   const mediaRecorderRef = useRef(null);
   const mediaStreamRef = useRef(null);
@@ -97,7 +94,6 @@ export default function AudioRecorder({
     setRecordingFile(null);
     setPermissionError('');
     setStatusMessage('');
-    setEnhanceError('');
     setRecorderState(RECORDER_STATES.IDLE);
   }, [teardownMedia]);
 
@@ -243,36 +239,6 @@ export default function AudioRecorder({
   const isRecording = recorderState === RECORDER_STATES.RECORDING;
   const canPreview = recorderState === RECORDER_STATES.PREVIEW && recordingUrl;
 
-  const handleEnhance = useCallback(async () => {
-    if (!recordingFile || typeof onEnhance !== 'function' || isEnhancing) return;
-
-    setEnhanceError('');
-    setIsEnhancing(true);
-
-    try {
-      const enhancedPayload = await onEnhance({
-        file: recordingFile,
-        url: recordingUrl,
-        durationMs: elapsedMs
-      });
-
-      if (enhancedPayload?.file && enhancedPayload?.url) {
-        setRecordingFile(enhancedPayload.file);
-        setElapsedMs(enhancedPayload.durationMs ?? elapsedMs);
-        setRecordingUrl(prev => {
-          if (prev && prev !== enhancedPayload.url) {
-            URL.revokeObjectURL(prev);
-          }
-          return enhancedPayload.url;
-        });
-      }
-    } catch (error) {
-      setEnhanceError(error?.message || 'Unable to enhance this recording. Please try again.');
-    } finally {
-      setIsEnhancing(false);
-    }
-  }, [elapsedMs, isEnhancing, onEnhance, recordingFile, recordingUrl]);
-
   return (
     <div className="audio-recorder">
       <div className="audio-recorder__card">
@@ -313,7 +279,6 @@ export default function AudioRecorder({
 
             {permissionError && <p className="error-message">{permissionError}</p>}
             {statusMessage && !permissionError && <p className="status-message">{statusMessage}</p>}
-            {enhanceError && <p className="error-message">{enhanceError}</p>}
           </div>
 
           <div className="recorder-actions">
@@ -336,7 +301,7 @@ export default function AudioRecorder({
                 </audio>
 
                 <div className="button-row">
-                  <Button variant="secondary" onClick={resetRecording} disabled={isEnhancing}>
+                  <Button variant="secondary" onClick={resetRecording}>
                     Record Again
                   </Button>
                   {allowDownload && recordingFile && (
@@ -348,24 +313,13 @@ export default function AudioRecorder({
                         link.download = recordingFile.name;
                         link.click();
                       }}
-                      disabled={isEnhancing}
                     >
                       Download
-                    </Button>
-                  )}
-                  {typeof onEnhance === 'function' && (
-                    <Button
-                      variant="ghost"
-                      onClick={handleEnhance}
-                      disabled={!recordingFile || isEnhancing}
-                    >
-                      {isEnhancing ? 'Enhancing…' : 'Enhance'}
                     </Button>
                   )}
                   {typeof onRecordingComplete === 'function' && (
                     <Button
                       variant="success"
-                      disabled={isEnhancing}
                       onClick={() =>
                         onRecordingComplete({
                           file: recordingFile,

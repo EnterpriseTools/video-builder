@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AudioRecorder from '@/components/shared/audio-recorder';
 import Button from '@/components/shared/button';
-import { enhanceAudioRequest } from '@/services/audioEnhancement';
 import './AudioRecording.scss';
 
 export default function AudioRecording() {
@@ -15,44 +14,13 @@ export default function AudioRecording() {
     const sizeInMb = payload.file.size / (1024 * 1024);
     setLatestRecording({
       ...payload,
-      sizeLabel: `${sizeInMb.toFixed(2)} MB`,
-      enhancements: []
+      sizeLabel: `${sizeInMb.toFixed(2)} MB`
     });
   };
 
   const handleOpenTrim = () => {
     if (!latestRecording) return;
     navigate('/trim', { state: { recording: latestRecording } });
-  };
-
-  const handleEnhanceRecording = async (payload) => {
-    if (!payload?.file) {
-      throw new Error('Please record audio before enhancing.');
-    }
-
-    const response = await enhanceAudioRequest(payload.file);
-    const filename =
-      response.filename || `enhanced-${payload.file.name || 'takeone-audio'}.webm`;
-    const enhancedFile = new File([response.blob], filename, { type: response.contentType });
-    const enhancedUrl = URL.createObjectURL(response.blob);
-
-    const enhancedPayload = {
-      file: enhancedFile,
-      blob: response.blob,
-      url: enhancedUrl,
-      durationMs: response.durationMs ?? payload.durationMs,
-      sizeLabel: `${(enhancedFile.size / (1024 * 1024)).toFixed(2)} MB`,
-      enhancements: response.enhancements
-    };
-
-    setLatestRecording(prev => {
-      if (prev?.url && prev.url !== enhancedUrl) {
-        URL.revokeObjectURL(prev.url);
-      }
-      return enhancedPayload;
-    });
-
-    return enhancedPayload;
   };
 
   return (
@@ -80,7 +48,6 @@ export default function AudioRecording() {
         title="Microphone Recorder"
         description="Click start, speak naturally, then stop and review. Saved clips can immediately flow into Trim or any template’s audio slot."
         onRecordingComplete={handleRecordingComplete}
-        onEnhance={handleEnhanceRecording}
         allowDownload
       />
 
@@ -110,12 +77,6 @@ export default function AudioRecording() {
                 <span>Format</span>
                 <strong>{latestRecording.file?.type || 'audio/webm'}</strong>
               </div>
-              {latestRecording.enhancements?.length > 0 && (
-                <div>
-                  <span>Enhancements</span>
-                  <strong>{latestRecording.enhancements.join(', ')}</strong>
-                </div>
-              )}
             </div>
 
             <div className="summary-actions">

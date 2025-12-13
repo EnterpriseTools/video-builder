@@ -29,12 +29,6 @@ if settings.FEATURE_OPENAI:
     from .openai_chat import router as openai_router  # type: ignore
     api_router.include_router(openai_router, tags=["openai"])
 
-# Audio enhancement is opt-in because it requires AssemblyAI + RNNoise assets
-if settings.FEATURE_AUDIO_ENHANCE:
-    from .audio import router as audio_router  # type: ignore
-
-    api_router.include_router(audio_router, tags=["audio"])
-
 # Auto-enable Slack if credentials are configured
 if settings.SLACK_BOT_TOKEN and settings.SLACK_CHANNEL_ID:
     api_router.include_router(slack_router, tags=["slack"])
