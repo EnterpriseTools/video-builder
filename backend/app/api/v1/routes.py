@@ -10,6 +10,7 @@ from .demo import router as demo_router
 from .concatenate import router as concatenate_router
 from ...core.config import settings
 from .slack import router as slack_router
+from .cs_share import router as cs_share_router
 
 api_router = APIRouter()
 
@@ -23,6 +24,7 @@ api_router.include_router(persona_router, tags=["persona"])
 api_router.include_router(closing_router, tags=["closing"])
 api_router.include_router(demo_router, tags=["demo"])
 api_router.include_router(concatenate_router, tags=["concatenate"])
+api_router.include_router(cs_share_router, tags=["cs-share"])
 
 # Optional routes (add files later when features are enabled)
 if settings.FEATURE_OPENAI:

@@ -10,24 +10,26 @@ Axon TakeOne is a modal-first video creation platform that guides you through si
 2. [Feature Highlights](#feature-highlights)
 3. [Template & Workflow Guide](#template--workflow-guide)
 4. [Audio Recording Route](#audio-recording-route)
-5. [Getting Started](#getting-started)
-6. [Configuration & Environment](#configuration--environment)
-7. [Deployment Snapshot](#deployment-snapshot)
-8. [AI Persona Generator Quick Start](#ai-persona-generator-quick-start)
-9. [Slack Integration Overview](#slack-integration-overview)
-10. [Production Readiness & Monitoring](#production-readiness--monitoring)
-11. [Testing, Assets & Maintenance](#testing-assets--maintenance)
-12. [Troubleshooting](#troubleshooting)
-13. [Contributing](#contributing)
-14. [Additional Documentation](#additional-documentation)
+5. [CS Share Route](#cs-share-route)
+6. [Getting Started](#getting-started)
+7. [Configuration & Environment](#configuration--environment)
+8. [Deployment Snapshot](#deployment-snapshot)
+9. [AI Persona Generator Quick Start](#ai-persona-generator-quick-start)
+10. [Slack Integration Overview](#slack-integration-overview)
+11. [Production Readiness & Monitoring](#production-readiness--monitoring)
+12. [Testing, Assets & Maintenance](#testing-assets--maintenance)
+13. [Troubleshooting](#troubleshooting)
+14. [Contributing](#contributing)
+15. [Additional Documentation](#additional-documentation)
 
 ---
 
 ## About the Platform
 
 - **Unified Builder** – `/create` houses all six templates inside a timeline grid. Clicking any card opens the `VideoTemplateCreator` modal where you can upload media, edit metadata, preview overlays, and flag readiness for final rendering.
-- **Video Trimming** – `/trim` provides precise FFmpeg-backed trimming (stream copy or re-encode) with waveform visualization, drag handles, and manual timecode entry.
-- **Axon Watermark Lab** – `/axon-watermark` is an internal admin UI for watermark presets. Configured watermarks and QR bands will be baked into Intro and Closing renders.
+- **Precision Trimming** – Every upload includes inline trim controls inside `VideoTemplateCreator`, with server-side FFmpeg endpoints handling the final cuts without leaving `/create`.
+- **Smart Win Cropping** – `/cs-share` runs screenshots through GPT‑4o Vision to confirm authentic customer praise, crops away browser chrome, and returns a download-ready highlight.
+- **Axon Watermarking** – Watermark and QR presets live inside the overlay system so Intro and Closing renders automatically ship with the latest branding—no standalone route required.
 - **Backend Foundation** – FastAPI orchestrates template endpoints, trimming, concatenation, Slack uploads, and temporary file lifecycle management. Every render runs inside an isolated temp directory and is cleaned deterministically after download.
 
 ---
@@ -94,22 +96,23 @@ The Persona flow now mirrors a three-step story-centric layout:
 4. Backend streams the MP4 to Slack using your bot token and posts into the configured channel.  
 5. Video + message appear in Slack with your custom comment. Retry states surface inline errors if something fails.
 
-### Video Trimming Route (`/trim`)
-
-- Upload any .mp4 or .mov asset.  
-- Scrub and drag handles across the waveform timeline.  
-- Toggle stream copy vs re-encode for precision.  
-- Preview trims, download immediately, or feed into the builder.
-
----
-
 ## Audio Recording Route
 
 - **Path**: Visit `/audio-recording` to launch the standalone microphone capture experience powered by the reusable `AudioRecorder` component. The UI mirrors our in-template plan so we can validate UX, codecs, and trim hand-offs before embedding it everywhere.
 - **Recording Flow**: Request mic access, monitor the live waveform + timer, stop to preview, then re-record, download, or save. The component emits a `File` + metadata payload that behaves exactly like a user-uploaded audio file.
-- **Trim Hand-off**: Choosing **Open in Trim Tool** navigates to `/trim` with the recording pre-loaded, so you can immediately tighten the clip using the existing timeline/FFmpeg workflow. Export the trimmed file and drop it into any template today.
+- **Builder Hand-off**: Download the clip and upload it directly into any template. Inline trim controls within `VideoTemplateCreator` let you tighten pacing without leaving the `/create` route.
 - **Formats & Compatibility**: Clips are saved as `audio/webm` (Opus) for broad browser + FFmpeg support. The backend trim endpoint already accepts the format, and HTML5 playback works seamlessly in Chrome/Edge with graceful fallbacks for unsupported browsers.
 - **Future Integration**: Once battle-tested, the same component will sit alongside every “Upload Audio” dropzone so creators can toggle between uploading and recording without leaving the template modal.
+---
+
+## CS Share Route
+
+- **Path**: `/cs-share` is a direct-only route that mirrors the dark builder background while staying isolated from existing timelines.
+- **Purpose**: Stage a single hero image for upcoming case-study sharing automations without touching the active template stack.
+- **UI & Components**: Reuses the shared `FileInput` dropzone plus button primitives so users can drag/drop one PNG, JPG, or WebP (15 MB cap) and see an instant preview.
+- **Vision Assist**: Each upload is sent to the new `POST /api/cs-share/process` endpoint which streams the screenshot to GPT‑4o Vision, confirms it is a real “win,” and returns a cropped image + summary.
+- **State**: Cropped results replace the original preview and can be downloaded immediately; failures bubble up inline with the reason (e.g., screenshot wasn’t actually a shout-out).
+- **Next**: When the downstream automation is ready we can forward the processed artifact straight into Slack or archival storage—no further UI change required.
 ---
 
 ## Getting Started
@@ -204,7 +207,7 @@ Key environment variables:
 | Railway | `ENV` | Typically `production` |
 | Railway | `FEATURE_SLACK`, `SLACK_BOT_TOKEN`, `SLACK_CHANNEL_ID` | Enables Slack uploads |
 
-**Deployment flow:** push to `main` → Vercel + Railway auto-deploy → verify Slack + OpenAI env vars → smoke test `/create`, `/trim`, and Slack share.
+**Deployment flow:** push to `main` → Vercel + Railway auto-deploy → verify Slack + OpenAI env vars → smoke test `/create`, `/cs-share`, and Slack share.
 
 ---
 

@@ -19,12 +19,11 @@ export default function App() {
         <p>Create professional videos with our template-based system</p>
 
         <div className="cta-section">
-         
           <Link to="/create" className="btn btn--secondary btn--large cta-link">
             Create Video
           </Link>
-          <Link to="/trim" className="btn btn--secondary btn--large cta-link">
-            Video Trim Tool
+          <Link to="/cs-share" className="btn btn--secondary btn--large cta-link">
+            CS Share Upload
           </Link>
         </div>
       </div>

@@ -1,11 +1,11 @@
 import { useState, useEffect, lazy, Suspense } from 'react';
+import { track } from '@vercel/analytics';
 import VideoTemplateCreator from '@/components/shared/video-template-creator';
 import { getTemplateConfig } from '@/lib/templateConfigs';
 import OverlayPreviewSection from '@/components/shared/overlay-preview-section';
 import ConfirmationDialog from '@/components/shared/confirmation-dialog';
 import SuccessModal from '@/components/shared/success-modal';
 import { API_BASE_URL } from '@/lib/config';
-import Trim from '@/pages/trim/Trim';
 import HeroLogoCs from '@/components/shared/HeroLogoCs';
 import './Create.scss';
 
@@ -128,8 +128,6 @@ export default function CSTeam() {
   const [selectedTemplate, setSelectedTemplate] = useState(null);
   const [isRendering, setIsRendering] = useState(false);
   const [renderingProgress, setRenderingProgress] = useState('');
-  const [isTrimModalOpen, setIsTrimModalOpen] = useState(false);
-  
   // Confirmation dialog state
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [pendingClose, setPendingClose] = useState(false);
@@ -333,6 +331,9 @@ export default function CSTeam() {
   };
 
   const handleRenderFinal = async () => {
+    // Track "Create Video" button click
+    track('create-video-clicked');
+
     const readyTemplates = templates.filter(t => t.status === 'ready');
     console.log('Rendering final presentation with templates:', readyTemplates);
     

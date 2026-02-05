@@ -15,6 +15,7 @@ import {
   useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { track } from '@vercel/analytics';
 import VideoTemplateCreator from '@/components/shared/video-template-creator';
 import { getTemplateConfig } from '@/lib/templateConfigs';
 import OverlayPreviewSection from '@/components/shared/overlay-preview-section';
@@ -531,6 +532,9 @@ export default function FreeFormTemplate() {
   };
 
   const handleRenderFinal = async () => {
+    // Track "Create Video" button click
+    track('create-video-clicked');
+
     const readyTemplates = templates.filter(t => t.status === 'ready');
 
     if (readyTemplates.length === 0) {

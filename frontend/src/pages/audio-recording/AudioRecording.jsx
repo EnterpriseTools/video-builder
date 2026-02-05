@@ -18,11 +18,6 @@ export default function AudioRecording() {
     });
   };
 
-  const handleOpenTrim = () => {
-    if (!latestRecording) return;
-    navigate('/trim', { state: { recording: latestRecording } });
-  };
-
   return (
     <div className="audio-recording-page">
       <section className="page-hero">
@@ -30,7 +25,7 @@ export default function AudioRecording() {
           <p className="eyebrow">TakeOne Studio</p>
           <h1>Record pristine narration without leaving the builder</h1>
           <p>
-            Capture a quick voice clip, download it, or hand it off to the Trim tool for final polish.
+            Capture a quick voice clip, download it, or drop it directly into any template. In-template trim controls stay available once you upload the file.
             This standalone recorder mirrors the experience that will soon live inside every audio upload step.
           </p>
         </div>
@@ -38,15 +33,12 @@ export default function AudioRecording() {
           <Button variant="secondary" onClick={() => navigate('/create')}>
             Back to Templates
           </Button>
-          <Button variant="ghost" onClick={() => navigate('/trim')}>
-            Open Trim Tool
-          </Button>
         </div>
       </section>
 
       <AudioRecorder
         title="Microphone Recorder"
-        description="Click start, speak naturally, then stop and review. Saved clips can immediately flow into Trim or any template’s audio slot."
+        description="Click start, speak naturally, then stop and review. Saved clips can immediately flow into any template’s audio slot."
         onRecordingComplete={handleRecordingComplete}
         allowDownload
       />
@@ -59,8 +51,8 @@ export default function AudioRecording() {
                 <p className="eyebrow">Latest recording</p>
                 <h2>{latestRecording.file?.name}</h2>
               </div>
-              <Button variant="primary" onClick={handleOpenTrim}>
-                Open in Trim Tool
+              <Button variant="primary" onClick={() => navigate('/create')}>
+                Upload in Templates
               </Button>
             </header>
 
@@ -108,7 +100,7 @@ export default function AudioRecording() {
           <div className="helper-card">
             <h3>What’s next?</h3>
             <ul>
-              <li>Trim silence or tighten pacing with the existing `/trim` route.</li>
+              <li>Trim silence or tighten pacing using the per-file controls inside VideoTemplateCreator.</li>
               <li>Upload the exported clip inside any audio-capable template.</li>
               <li>Coming soon: embed this recorder directly alongside each “Upload Audio” dropzone.</li>
             </ul>
