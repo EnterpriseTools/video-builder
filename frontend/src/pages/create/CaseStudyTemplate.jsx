@@ -337,8 +337,8 @@ export default function CaseStudyTemplate() {
   };
 
   const handleRenderFinal = async () => {
-    // Track "Create Video" button click
-    track('create-video-clicked');
+    // Track "Create Video" button click with template info
+    track('create-video-clicked', { template: 'case-study' });
 
     const readyTemplates = templates.filter(t => t.status === 'ready');
     console.log('Rendering final presentation with templates:', readyTemplates);

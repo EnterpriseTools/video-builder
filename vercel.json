@@ -6,6 +6,14 @@
   "devCommand": "cd frontend && npm run dev",
   "rewrites": [
     {
+      "source": "/va/script.js",
+      "destination": "https://va.vercel-scripts.com/v1/script.js"
+    },
+    {
+      "source": "/va/event",
+      "destination": "https://va.vercel-scripts.com/v1/event"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

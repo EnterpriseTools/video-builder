@@ -532,8 +532,8 @@ export default function FreeFormTemplate() {
   };
 
   const handleRenderFinal = async () => {
-    // Track "Create Video" button click
-    track('create-video-clicked');
+    // Track "Create Video" button click with template info
+    track('create-video-clicked', { template: 'free-form' });
 
     const readyTemplates = templates.filter(t => t.status === 'ready');
 
